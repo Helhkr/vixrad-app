@@ -11,18 +11,16 @@ import {
   CAlert 
 } from '@coreui/react';
 import { useAuth } from '../../../context/AuthContext';
-import api from '../../../api'; // Importe sua instância do axios/api
+import api from '../../../api';
 
 const PleaseVerify = () => {
   const { user, logout, refreshUserStatus } = useAuth();
   const navigate = useNavigate();
 
-  // Estados para controlar o loading e as mensagens de feedback
-  const [loading, setLoading] = useState(false);
+  const [loadingResend, setLoadingResend] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Hook para a verificação automática ao focar na aba
   useEffect(() => {
     const handleFocus = async () => {
       if (!document.hidden) {
@@ -42,9 +40,8 @@ const PleaseVerify = () => {
     };
   }, [refreshUserStatus, navigate]);
 
-  // Função para lidar com o clique no botão de reenvio
   const handleResend = async () => {
-    setLoading(true);
+    setLoadingResend(true);
     setMessage('');
     setError('');
     try {
@@ -53,7 +50,7 @@ const PleaseVerify = () => {
     } catch (err) {
       setError(err.response?.data?.message || 'Ocorreu um erro ao reenviar o e-mail.');
     } finally {
-      setLoading(false);
+      setLoadingResend(false);
     }
   };
 
@@ -68,15 +65,13 @@ const PleaseVerify = () => {
                 <p className="text-medium-emphasis">
                   Enviamos um link de verificação para o e-mail <strong>{user?.email}</strong>.
                 </p>
-                <p>Por favor, verifique sua caixa de entrada (e a pasta de spam) para ativar sua conta.</p>
+                <p>Após clicar no link em seu e-mail, volte para esta aba para continuar.</p>
 
-                {/* Exibe alertas de sucesso ou erro */}
                 {message && <CAlert color="success" className="mt-3">{message}</CAlert>}
                 {error && <CAlert color="danger" className="mt-3">{error}</CAlert>}
 
-                {/* Botão de Reenvio Reintegrado */}
-                <CButton color="primary" onClick={handleResend} disabled={loading} className="mt-3 mx-2">
-                  {loading ? <CSpinner size="sm" /> : 'Reenviar E-mail de Verificação'}
+                <CButton color="primary" onClick={handleResend} disabled={loadingResend} className="mt-3 mx-2">
+                  {loadingResend ? <CSpinner size="sm" /> : 'Reenviar E-mail'}
                 </CButton>
                 <CButton color="secondary" onClick={logout} className="mt-3 mx-2">
                   Sair
