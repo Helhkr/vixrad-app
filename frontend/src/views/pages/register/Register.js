@@ -16,9 +16,12 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser, cilAt, cilCreditCard, cilBriefcase } from '@coreui/icons'
+import { useAuth } from '../../../context/AuthContext';
 import api from '../../../api'
 
+
 const Register = () => {
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,8 +32,7 @@ const Register = () => {
     crm_uf: '',
   })
   const [error, setError] = useState('')
-  const [validated, setValidated] = useState(false)
-  const navigate = useNavigate()
+  const [validated, setValidated] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -38,44 +40,48 @@ const Register = () => {
   }
 
   const handleRegister = async (e) => {
-    e.preventDefault()
-    const form = e.currentTarget
+    e.preventDefault();
+    const form = e.currentTarget;
 
     if (form.checkValidity() === false || formData.password !== formData.repeatPassword) {
-      e.stopPropagation()
-      setValidated(true)
+      e.stopPropagation();
+      setValidated(true);
       if (formData.password !== formData.repeatPassword) {
-        setError('As senhas não coincidem.')
+        setError('As senhas não coincidem.');
       } else {
-        setError('')
+        setError('');
       }
-      return
+      return;
     }
-
-    setValidated(true)
-    setError('')
+    setValidated(true);
+    setError('');
 
     try {
-      // Limpa a formatação do CPF, mantendo apenas os dígitos.
-      const cpfLimpo = formData.cpf.replace(/[^\d]/g, '')
+      const cpfLimpo = formData.cpf.replace(/[^\d]/g, '');
       
       const response = await api.post('/api/auth/register', {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        // O campo agora é user_cpf para corresponder ao backend
-        user_cpf: cpfLimpo,
+        cpf: cpfLimpo,
         crm: formData.crm,
         crm_uf: formData.crm_uf,
-      })
+      });
 
-      console.log('Registro bem-sucedido:', response.data)
-      navigate('/login')
+      console.log('Registro bem-sucedido:', response.data);
+
+      // 3. Use a função de login do contexto com os dados recebidos
+      // A função de login do AuthContext já cuida de salvar o token,
+      // definir o usuário e redirecionar para a página principal.
+      if (response.data.token && response.data.user) {
+        await login(response.data.token, response.data.user);
+      }
+      
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao registrar. Por favor, tente novamente.')
-      console.error('Erro de registro:', err.response?.data || err)
+      setError(err.response?.data?.message || 'Erro ao registrar. Tente novamente.');
+      console.error('Erro de registro:', err.response?.data || err);
     }
-  }
+  };
 
   const estados = [
     'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import {
   CButton,
   CCard,
@@ -12,38 +12,44 @@ import {
   CInputGroup,
   CInputGroupText,
   CRow,
+  CSpinner, // Importamos o spinner para feedback visual
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser } from '@coreui/icons'
-// Importa a instância do nosso módulo de API
-import api from '../../../api'
+
+// 1. Importar nosso hook useAuth para acessar o contexto
+import { useAuth } from '../../../context/AuthContext' // Verifique se o caminho está correto
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false) // Estado para controlar o loading
+
+  // 2. Obter a função de login do nosso contexto
+  const { login } = useAuth()
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    setError('') // Limpa a mensagem de erro anterior
+    setError('')
+    setLoading(true) // Ativa o loading
 
     try {
-      // Usa a instância 'api' e apenas o caminho da rota.
-      const response = await api.post('/api/auth/login', {
-        email,
-        password,
-      })
+      // 3. Chamar a função de login do contexto
+      // A função retorna `true` em caso de sucesso ou `false` em caso de falha.
+      const success = await login(email, password)
 
-      // Se o login for bem-sucedido, armazena o token
-      localStorage.setItem('authToken', response.data.token)
-
-      // Redireciona o usuário para a página principal
-      navigate('/')
+      if (!success) {
+        // A lógica do contexto já tratou o erro, aqui apenas mostramos a mensagem.
+        setError('Credenciais inválidas. Por favor, tente novamente.')
+      }
+      // Não precisamos mais do navigate('/') aqui, o contexto já faz isso!
     } catch (err) {
-      // Em caso de falha, exibe uma mensagem de erro
-      setError('Credenciais inválidas. Por favor, tente novamente.')
-      console.error('Erro de login:', err)
+      // Este catch é uma segurança extra, mas a lógica principal está no contexto.
+      setError('Ocorreu um erro inesperado. Tente novamente.')
+      console.error('Erro inesperado na página de login:', err)
+    } finally {
+      setLoading(false) // Desativa o loading, tanto em sucesso quanto em falha
     }
   }
 
@@ -70,6 +76,7 @@ const Login = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        disabled={loading} // Desabilita o campo durante o loading
                       />
                     </CInputGroup>
                     <CInputGroup className="mb-4">
@@ -83,16 +90,17 @@ const Login = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        disabled={loading} // Desabilita o campo durante o loading
                       />
                     </CInputGroup>
                     <CRow>
                       <CCol xs={6}>
-                        <CButton type="submit" color="primary" className="px-4">
-                          Login
+                        <CButton type="submit" color="primary" className="px-4" disabled={loading}>
+                          {loading ? <CSpinner size="sm" /> : 'Login'}
                         </CButton>
                       </CCol>
                       <CCol xs={6} className="text-end">
-                        <CButton color="link" className="px-0">
+                        <CButton color="link" className="px-0" disabled={loading}>
                           Esqueceu a senha?
                         </CButton>
                       </CCol>
@@ -104,9 +112,7 @@ const Login = () => {
                 <CCardBody className="text-center">
                   <div>
                     <h2>Cadastro</h2>
-                    <p>
-                      Se você ainda não tem uma conta, clique abaixo para se registrar.
-                    </p>
+                    <p>Se você ainda não tem uma conta, clique abaixo para se registrar.</p>
                     <Link to="/register">
                       <CButton color="primary" className="mt-3" active tabIndex={-1}>
                         Cadastre-se agora!

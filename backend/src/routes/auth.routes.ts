@@ -1,21 +1,22 @@
-console.log('  3. Iniciando auth.routes.ts...');
+import { Router } from 'express';
 
-import express from 'express';
-import * as AuthController from '../controllers/auth.controller.ts';
-import { protect } from '../middlewares/auth.middleware.ts';
+// Adicione a extensão .js no final dos caminhos dos arquivos locais
+import { register, login, verifyEmail, resendVerificationEmail  } from '../controllers/auth.controller.js';
+import { protect } from '../middlewares/auth.middleware.js';
 
-console.log('  4. Imports do auth.routes.ts concluídos.'); // Adicione após os imports
+const router = Router();
 
-const router = express.Router();
+router.post('/register', register);
+router.post('/login', login);
+router.get('/verify-email', verifyEmail);
+router.post('/resend-verification', protect, resendVerificationEmail);
 
-router.post('/register', AuthController.register);
-router.post('/login', AuthController.login);
-
-// A função 'protect' roda primeiro. Se o token for válido, ela passa para a próxima função.
+// Rota de exemplo para testar a proteção
 router.get('/profile', protect, (req: any, res) => {
+  // Graças ao middleware 'protect', o req.user estará disponível aqui
   res.status(200).json({
-    message: 'Acesso a rota protegida foi um sucesso!',
-    user: req.user 
+    message: 'Acesso à rota protegida bem-sucedido!',
+    user: req.user,
   });
 });
 
