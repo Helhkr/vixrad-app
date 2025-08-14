@@ -21,7 +21,7 @@ import api from '../../../api'
 
 
 const Register = () => {
-  const { login } = useAuth();
+  const { loginAfterRegister } = useAuth()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -73,10 +73,11 @@ const Register = () => {
       // 3. Use a função de login do contexto com os dados recebidos
       // A função de login do AuthContext já cuida de salvar o token,
       // definir o usuário e redirecionar para a página principal.
+
       if (response.data.token && response.data.user) {
-        await login(response.data.token, response.data.user);
+        loginAfterRegister(response.data.token, response.data.user)
       }
-      
+
     } catch (err) {
       setError(err.response?.data?.message || 'Erro ao registrar. Tente novamente.');
       console.error('Erro de registro:', err.response?.data || err);

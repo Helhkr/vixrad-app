@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 
 export const sendVerificationEmail = async (to: string, token: string) => {
   // Usaremos uma variável de ambiente para o URL do frontend
-  const verificationUrl = `${process.env.FRONTEND_URL}/#/verify-email?token=${token}`;
+  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
 
   const mailOptions = {
     from: '"VixRad" <noreply@vixrad.com.br>',
