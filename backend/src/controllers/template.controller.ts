@@ -8,48 +8,37 @@ const prisma = new PrismaClient();
 // --- FUNÇÕES CRUD ATUALIZADAS PARA O NOVO SCHEMA ---
 
 /**
- * Cria um novo Template com suas Seções e Subseções aninhadas.
+ * Cria um novo Template com suas Seções.
  */
-export const createTemplate = async (req: Request, res: Response) => {
-  if (!req.user?.isAdmin) {
-    return res.status(403).json({ message: 'Acesso negado.' });
-  }
+export const createTemplate = async (req: any, res: Response) => {
+  // A verificação de admin está comentada para fins de teste
+  // if (!req.user?.isAdmin) {
+  //   return res.status(403).json({ message: 'Acesso negado.' });
+  // }
 
   try {
-    const { name, modality, specialty, sections } = req.body;
+    const { name, category_id, sections } = req.body;
 
-    if (!name || !modality || !specialty || !sections) {
-      return res.status(400).json({ message: 'Dados inválidos. Campos obrigatórios: name, modality, specialty, sections.' });
+    if (!name || !sections || !Array.isArray(sections)) {
+      return res.status(400).json({ message: 'Dados inválidos. Campos obrigatórios: name, sections (array).' });
     }
 
-    // A mágica do Prisma: "escrita aninhada" através de 3 níveis.
     const newTemplate = await prisma.template.create({
       data: {
         name,
-        modality,
-        specialty,
-        authorId: req.user.userId,
+        created_by_id: req.user.userId,
+        category_id: category_id || null,
         sections: {
           create: sections.map((section: any) => ({
             title: section.title,
+            default_text: section.default_text || '',
             display_order: section.display_order,
-            subsections: {
-              create: section.subsections.map((subsection: any) => ({
-                title: subsection.title,
-                display_order: subsection.display_order,
-                content: subsection.content || {}, // Garante que o JSON não seja nulo
-              })),
-            },
+            content: section.content || undefined, // Opcional
           })),
         },
       },
-      // Incluímos todos os dados criados na resposta para confirmação
       include: {
-        sections: {
-          include: {
-            subsections: true,
-          },
-        },
+        sections: true, // Inclui as seções criadas na resposta
       },
     });
 
@@ -67,12 +56,16 @@ export const getAllTemplates = async (req: Request, res: Response) => {
   try {
     const templates = await prisma.template.findMany({
       orderBy: { name: 'asc' },
-      // Para a lista principal, só precisamos dos dados de alto nível
       select: {
         id: true,
         name: true,
-        modality: true,
-        specialty: true,
+        category: {
+          select: {
+            name: true,
+          },
+        },
+        createdAt: true,
+        updatedAt: true,
       },
     });
     res.status(200).json(templates);

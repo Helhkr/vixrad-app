@@ -33,6 +33,7 @@ const Register = () => {
   })
   const [error, setError] = useState('')
   const [validated, setValidated] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -55,6 +56,7 @@ const Register = () => {
     }
     setValidated(true);
     setError('');
+    setLoading(true);
 
     try {
       const cpfLimpo = formData.cpf.replace(/[^\d]/g, '');
@@ -81,6 +83,8 @@ const Register = () => {
     } catch (err) {
       setError(err.response?.data?.message || 'Erro ao registrar. Tente novamente.');
       console.error('Erro de registro:', err.response?.data || err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -204,8 +208,8 @@ const Register = () => {
                   </CInputGroup>
 
                   <div className="d-grid">
-                    <CButton color="success" type="submit">
-                      Criar conta
+                    <CButton color="success" type="submit" disabled={loading}>
+                      {loading ? 'Criando conta...' : 'Criar conta'}
                     </CButton>
                   </div>
                 </CForm>

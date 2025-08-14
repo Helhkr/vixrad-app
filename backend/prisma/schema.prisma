@@ -10,15 +10,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- NOSSOS MODELOS DE DADOS CORRIGIDOS ---
-
 model User {
   id                       String        @id @default(uuid())
   name                     String
   email                    String        @unique
-  password_hash                 String
+  password_hash            String
   cpf                      String        @unique
-  crm                      String        @unique
+  crm                      String
   crm_uf                   String
   is_admin                 Boolean       @default(false)
   is_email_verified        Boolean       @default(false)
@@ -28,8 +26,9 @@ model User {
   created_at               DateTime      @default(now())
   updated_at               DateTime      @updatedAt
   subscription             Subscription?
-  templates                Template[]    // changed to array
-  audit_logs               AuditLog[]    // changed to array
+  templates                Template[]
+  reports                  Report[]
+  audit_logs               AuditLog[]
 
   @@unique([crm, crm_uf])
 }
@@ -46,48 +45,79 @@ model Subscription {
   updated_at             DateTime @updatedAt
 }
 
+model TemplateCategory {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  templates Template[]
+  createdAt DateTime   @default(now())
+}
+
 model Template {
-  id         String   @id @default(uuid())
-  name       String   // Ex: "Ultrassonografia do Abdome Total"
-  modality   String   // Ex: "Ultrassonografia"
-  specialty  String   // Ex: "Medicina Interna"
-
-  authorId   String
-  author     User     @relation(fields: [authorId], references: [id])
-  
-  sections   TemplateSection[] // Um template agora é composto por seções
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(uuid())
+  name        String
+  created_by  User     @relation(fields: [created_by_id], references: [id])
+  created_by_id String
+  category_id String?
+  category    TemplateCategory? @relation(fields: [category_id], references: [id])
+  sections    TemplateSection[]
+  actionRules ActionRule[]
+  reports     Report[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model TemplateSection {
   id            String   @id @default(uuid())
-  title         String   // Ex: "Técnica", "Análise", "Impressão Diagnóstica"
+  template_id   String
+  template      Template @relation(fields: [template_id], references: [id], onDelete: Cascade)
+  title         String
+  default_text  String?
   display_order Int
-
-  templateId    String
-  template      Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  
-  subsections   TemplateSubsection[] // Cada seção tem várias subseções
-
+  content       Json?
+  reportData    ReportData[]
   createdAt     DateTime @default(now())
 }
 
-model TemplateSubsection {
-  id            String   @id @default(uuid())
-  title         String   // Ex: "Fígado", "Vias Biliares", "Vesícula Biliar"
-  display_order Int
+model ActionRule {
+  id                String   @id @default(uuid())
+  template_id       String
+  template          Template @relation(fields: [template_id], references: [id], onDelete: Cascade)
+  source_action_id  String
+  target_section_id String
+  action_text       String
+  createdAt         DateTime @default(now())
+}
 
-  // O conteúdo aqui guarda as opções interativas (botões, caixas de texto)
-  // que aparecerão na coluna do meio. O formato JSON é perfeito para isso.
-  // Ex: { "options": [{ "label": "NORMAL", "text": "Fígado com dimensões normais..." }] }
-  content       Json
+model Report {
+  id          String       @id @default(uuid())
+  user_id     String
+  user        User         @relation(fields: [user_id], references: [id])
+  template_id String
+  template    Template     @relation(fields: [template_id], references: [id])
+  status      String       @default("draft")
+  pdf_url     String?
+  reportData  ReportData[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
 
-  sectionId     String
-  section       TemplateSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  
-  createdAt     DateTime @default(now())
+model ReportData {
+  id         String   @id @default(uuid())
+  report_id  String
+  report     Report   @relation(fields: [report_id], references: [id], onDelete: Cascade)
+  section_id String
+  section    TemplateSection @relation(fields: [section_id], references: [id], onDelete: Cascade)
+  content    String?
+
+  @@unique([report_id, section_id])
+}
+
+model Letterhead {
+  id               String   @id @default(uuid())
+  name             String
+  header_image_url String?
+  footer_image_url String?
+  createdAt        DateTime @default(now())
 }
 
 model AuditLog {

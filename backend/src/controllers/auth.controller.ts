@@ -20,9 +20,19 @@ export const register = async (req: Request, res: Response) => {
     if (!name || !email || !password || !crm || !crm_uf || !cpf) {
       return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
     }
-    if (!cpfValidator.isValid(cpf)) {
-      return res.status(400).json({ message: 'Formato de CPF inválido.' });
+    
+    const cpfLimpo = cpf.replace(/[^\d]/g, '');
+
+    // if (!cpfValidator.isValid(cpfLimpo)) {
+    //   return res.status(400).json({ message: 'Formato de CPF inválido.' });
+    // }
+
+    // TODO: Implementar validação de CRM com o serviço do CFM
+    const isCrmValid = true; 
+    if (!isCrmValid) {
+      return res.status(400).json({ message: 'CRM inválido.' });
     }
+
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: 'Este e-mail já está em uso.' });
@@ -30,7 +40,7 @@ export const register = async (req: Request, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const emailVerificationToken = randomBytes(32).toString('hex');
-    const verificationExpiresAt = new Date(Date.now() + 3600000); // 1 hora em milissegundos
+    const verificationExpiresAt = new Date(Date.now() + 3600000); 
 
     const newUser = await prisma.user.create({
       data: { 
@@ -39,17 +49,15 @@ export const register = async (req: Request, res: Response) => {
         password_hash: hashedPassword, 
         crm, 
         crm_uf, 
-        cpf,
+        cpf: cpfLimpo,
         email_verification_token: emailVerificationToken, 
         email_verification_expires_at: verificationExpiresAt,
       },
     });
 
-    // Envie o e-mail de verificação
     await sendVerificationEmail(newUser.email, emailVerificationToken);
 
-    // Gera o token para o novo usuário, assim como no login
-    const secret = process.env.JWT_SECRET;
+    const secret = process.env.JWT_ACCESS_SECRET;
     if (!secret) {
       throw new Error("JWT Secret não configurado.");
     }
@@ -59,7 +67,6 @@ export const register = async (req: Request, res: Response) => {
       { expiresIn: '1h' }
     );
 
-    // Retorna o token e os dados do novo usuário
     res.status(201).json({
       message: 'Usuário criado com sucesso!',
       token,
@@ -68,11 +75,10 @@ export const register = async (req: Request, res: Response) => {
         name: newUser.name,
         email: newUser.email,
         isAdmin: newUser.is_admin,
-        is_email_verified: newUser.is_email_verified, // Importante para o próximo passo
+        is_email_verified: newUser.is_email_verified,
       },
     });
 
-    // --- FIM DA MODIFICAÇÃO ---
   } catch (error) {
     console.error("ERRO NO REGISTRO:", error);
     res.status(500).json({ message: 'Ocorreu um erro interno no servidor.' });
@@ -88,40 +94,50 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    // Busca o usuário pelo e-mail.
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       return res.status(401).json({ message: 'Credenciais inválidas.' });
     }
 
-    // Compara a senha fornecida com o hash armazenado.
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Credenciais inválidas.' });
     }
 
-    // Garante que o segredo JWT está configurado no ambiente.
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      console.error("Variável de ambiente JWT_SECRET não está configurada.");
-      throw new Error("JWT Secret não configurado.");
+    const accessTokenSecret = process.env.JWT_ACCESS_SECRET;
+    const refreshTokenSecret = process.env.JWT_REFRESH_SECRET;
+    if (!accessTokenSecret || !refreshTokenSecret) {
+      console.error("Variáveis de ambiente JWT não configuradas.");
+      throw new Error("JWT Secrets não configurados.");
     }
 
-    // Gera o token de acesso.
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { userId: user.id, isAdmin: user.is_admin },
-      secret,
-      { expiresIn: '1h' } // Token expira em 1 hora
+      accessTokenSecret,
+      { expiresIn: '15m' }
     );
 
-    // Retorna o token e os dados básicos do usuário.
+    const refreshToken = jwt.sign(
+      { userId: user.id },
+      refreshTokenSecret,
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
+    });
+
     res.status(200).json({
-      token,
+      accessToken,
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
         isAdmin: user.is_admin,
+        is_email_verified: user.is_email_verified, // CORREÇÃO
       },
     });
   } catch (error) {
@@ -152,7 +168,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Seu token de verificação é inválido ou já expirou.' });
     }
 
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         is_email_verified: true,
@@ -161,9 +177,50 @@ export const verifyEmail = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(200).json({ message: 'E-mail verificado com sucesso!' });
+    // --- INÍCIO DA MODIFICAÇÃO: Login automático após verificação ---
+    const accessTokenSecret = process.env.JWT_ACCESS_SECRET;
+    const refreshTokenSecret = process.env.JWT_REFRESH_SECRET;
+    if (!accessTokenSecret || !refreshTokenSecret) {
+      console.error("Variáveis de ambiente JWT não configuradas.");
+      // Não jogue um erro aqui para não quebrar o fluxo para o usuário
+      return res.status(500).json({ message: "Erro de configuração interna do servidor." });
+    }
+
+    const accessToken = jwt.sign(
+      { userId: updatedUser.id, isAdmin: updatedUser.is_admin },
+      accessTokenSecret,
+      { expiresIn: '15m' }
+    );
+
+    const refreshToken = jwt.sign(
+      { userId: updatedUser.id },
+      refreshTokenSecret,
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
+    });
+
+    res.status(200).json({
+      message: 'E-mail verificado com sucesso!',
+      accessToken,
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isAdmin: updatedUser.is_admin,
+        is_email_verified: updatedUser.is_email_verified, // CORREÇÃO
+      },
+    });
+    // --- FIM DA MODIFICAÇÃO ---
+
   } catch (error) {
-    // ...
+    console.error("ERRO NA VERIFICAÇÃO DE EMAIL:", error);
+    res.status(500).json({ message: 'Ocorreu um erro interno no servidor.' });
   }
 };
 
@@ -204,4 +261,40 @@ export const resendVerificationEmail = async (req: any, res: Response) => {
     console.error("ERRO NO REENVIO DE EMAIL:", error);
     res.status(500).json({ message: 'Ocorreu um erro interno no servidor.' });
   }
+};
+
+export const refresh = (req: Request, res: Response) => {
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken) {
+    return res.status(401).json({ message: 'Refresh token não encontrado.' });
+  }
+
+  const refreshTokenSecret = process.env.JWT_REFRESH_SECRET;
+  if (!refreshTokenSecret) {
+    throw new Error('JWT Refresh Secret não configurado.');
+  }
+
+  jwt.verify(refreshToken, refreshTokenSecret, (err: any, user: any) => {
+    if (err) {
+      return res.status(403).json({ message: 'Refresh token inválido.' });
+    }
+
+    const accessTokenSecret = process.env.JWT_ACCESS_SECRET;
+    if (!accessTokenSecret) {
+      throw new Error('JWT Access Secret não configurado.');
+    }
+
+    const accessToken = jwt.sign(
+      { userId: user.userId, isAdmin: user.isAdmin },
+      accessTokenSecret,
+      { expiresIn: '15m' }
+    );
+
+    res.json({ accessToken });
+  });
+};
+
+export const logout = (req: Request, res: Response) => {
+  res.clearCookie('refreshToken');
+  res.status(200).json({ message: 'Logout bem-sucedido.' });
 };

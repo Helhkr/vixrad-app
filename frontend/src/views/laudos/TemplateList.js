@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Importa useNavigate
+import api from '../../api';
 import {
   CTable,
   CTableBody,
@@ -20,11 +21,12 @@ const TemplateList = () => {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate(); // Hook para navegação
 
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/admin/templates');
+        const response = await api.get('/api/templates');
         setTemplates(response.data);
       } catch (err) {
         setError("Não foi possível carregar os modelos de laudo.");
@@ -34,7 +36,21 @@ const TemplateList = () => {
       }
     };
     fetchTemplates();
-  }, []); // O array vazio garante que o useEffect rode apenas uma vez, ao montar o componente.
+  }, []);
+
+  // Função para criar um novo laudo e navegar para o editor
+  const handleCreateReport = async (templateId) => {
+    try {
+      // Chama a API para criar um novo laudo
+      const response = await api.post('/api/reports', { templateId });
+      const newReport = response.data;
+      // Navega para a página do editor com o ID do novo laudo
+      navigate(`/laudos/editor/${newReport.id}`);
+    } catch (err) {
+      console.error("Erro ao criar o laudo:", err);
+      setError("Não foi possível criar um novo laudo a partir deste modelo.");
+    }
+  };
 
   if (loading) {
     return (
@@ -60,39 +76,37 @@ const TemplateList = () => {
           <CCol>
             <strong>Modelos de Laudos</strong>
           </CCol>
-          <CCol className="text-end">
-            <CButton color="success" size="sm">
-              Criar Novo Laudo
-            </CButton>
-          </CCol>
         </CRow>
       </CCardHeader>
       <CCardBody>
         <CTable striped hover>
           <CTableHead>
             <CTableRow>
-              <CTableHeaderCell scope="col">#</CTableHeaderCell>
-              <CTableHeaderCell scope="col">Nome do Laudo</CTableHeaderCell>
-              <CTableHeaderCell scope="col">Modalidade</CTableHeaderCell>
+              <CTableHeaderCell scope="col">Nome do Modelo</CTableHeaderCell>
+              <CTableHeaderCell scope="col">Categoria</CTableHeaderCell>
               <CTableHeaderCell scope="col">Ações</CTableHeaderCell>
             </CTableRow>
           </CTableHead>
           <CTableBody>
             {templates.length > 0 ? (
-              templates.map((template, index) => (
+              templates.map((template) => (
                 <CTableRow key={template.id}>
-                  <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
                   <CTableDataCell>{template.name}</CTableDataCell>
-                  <CTableDataCell>{template.modality}</CTableDataCell>
+                  <CTableDataCell>{template.category?.name || 'Sem categoria'}</CTableDataCell>
                   <CTableDataCell>
-                    <CButton color="primary" size="sm" className="me-2">Editar</CButton>
-                    <CButton color="danger" size="sm">Excluir</CButton>
+                    <CButton 
+                      color="primary" 
+                      size="sm"
+                      onClick={() => handleCreateReport(template.id)}
+                    >
+                      Criar Laudo
+                    </CButton>
                   </CTableDataCell>
                 </CTableRow>
               ))
             ) : (
               <CTableRow>
-                <CTableDataCell colSpan="4" className="text-center">
+                <CTableDataCell colSpan="3" className="text-center">
                   Nenhum modelo de laudo encontrado.
                 </CTableDataCell>
               </CTableRow>
