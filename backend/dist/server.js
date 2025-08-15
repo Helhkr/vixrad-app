@@ -1,0 +1,21 @@
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import authRoutes from './routes/auth.routes.js';
+import templateRoutes from './routes/template.routes.js';
+import reportRoutes from './routes/report.routes.js';
+import actionRuleRoutes from './routes/actionRule.routes.js';
+import templateCategoryRoutes from './routes/templateCategory.routes.js';
+const app = express();
+// Configuração dos middlewares
+app.use(cors());
+app.use(express.json());
+app.use(cookieParser());
+app.use('/api/auth', authRoutes);
+app.use('/api/templates', templateRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/action-rules', actionRuleRoutes);
+app.use('/api/template-categories', templateCategoryRoutes);
+const PORT = process.env.PORT || 3000;
+app.listen(Number(PORT), '0.0.0.0', () => console.log(`Servidor rodando na porta ${PORT}`));

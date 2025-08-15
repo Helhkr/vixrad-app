@@ -6,6 +6,13 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Define an interface for the JWT payload
+interface JwtPayload {
+  userId: string;
+  isAdmin: boolean;
+  is_email_verified: boolean; // Include this property
+}
+
 export const protect = (req: Request, res: Response, next: NextFunction) => {
   try {
     const authorization = req.headers.authorization;
@@ -16,26 +23,25 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
     const token = authorization.split(' ')[1];
     const secret = process.env.JWT_ACCESS_SECRET;
 
-    // Estrutura IF/ELSE para isolar completamente o escopo
     if (typeof secret === 'string') {
-      // DENTRO DESTE BLOCO, 'secret' É INEGAVELMENTE UMA STRING
-
-      const decodedPayload = jwt.verify(token, secret);
+      // Cast decodedPayload to our JwtPayload interface
+      const decodedPayload = jwt.verify(token, secret) as JwtPayload;
 
       if (typeof decodedPayload !== 'object' || !('userId' in decodedPayload)) {
         return res.status(401).json({ message: 'Token com formato inválido.' });
       }
 
+      // Assign the decoded payload directly to req.user
+      // Ensure all properties expected by Express.Request.user are present
       req.user = {
         userId: decodedPayload.userId,
-        isAdmin: (decodedPayload as any).isAdmin || false
+        isAdmin: decodedPayload.isAdmin || false,
+        is_email_verified: decodedPayload.is_email_verified || false
       };
-      
-      // Se tudo deu certo, passamos para a próxima rota
+
       return next();
 
     } else {
-      // Se 'secret' não for uma string, caímos aqui
       console.error('FATAL: A variável de ambiente JWT_SECRET não foi configurada.');
       return res.status(500).json({ message: 'Erro de configuração interna do servidor.' });
     }

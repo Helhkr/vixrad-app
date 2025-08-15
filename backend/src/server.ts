@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.routes.js';
 import templateRoutes from './routes/template.routes.js';
 import reportRoutes from './routes/report.routes.js';
 import actionRuleRoutes from './routes/actionRule.routes.js';
+import templateCategoryRoutes from './routes/templateCategory.routes.js';
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/action-rules', actionRuleRoutes);
+app.use('/api/template-categories', templateCategoryRoutes);
 
 const PORT = process.env.PORT || 3000;
 

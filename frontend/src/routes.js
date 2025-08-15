@@ -10,6 +10,8 @@ const routes = [
   { path: '/laudos', name: 'Laudos', exact: true },
   { path: '/laudos/templates', name: 'Modelos de Laudos', element: TemplateList },
   { path: '/laudos/editor/:reportId', name: 'Editor de Laudo', element: TemplateEditor },
+  { path: '/laudos/templates/new', name: 'Novo Modelo de Laudo', element: TemplateEditor },
+  { path: '/laudos/templates/edit/:templateId', name: 'Editar Modelo de Laudo', element: TemplateEditor },
 ]
 
 export default routes

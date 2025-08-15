@@ -80,6 +80,23 @@ export const getReport = async (req: any, res: Response) => {
               orderBy: {
                 display_order: 'asc',
               },
+              include: {
+                subsections: {
+                  orderBy: {
+                    display_order: 'asc',
+                  },
+                  include: {
+                    dynamicOptionSets: {
+                      orderBy: {
+                        display_order: 'asc',
+                      },
+                      include: {
+                        elements: true,
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -159,10 +176,10 @@ export const updateReportData = async (req: any, res: Response) => {
  * Avalia uma ação do editor e retorna as atualizações de texto correspondentes.
  */
 export const evaluateAction = async (req: any, res: Response) => {
-  const { templateId, sourceActionId } = req.body;
+  const { templateId, sourceActionId, isActive } = req.body; // Adicionado isActive
 
-  if (!templateId || !sourceActionId) {
-    return res.status(400).json({ message: 'Os IDs do template e da ação de origem são obrigatórios.' });
+  if (!templateId || !sourceActionId || typeof isActive !== 'boolean') { // Validar isActive
+    return res.status(400).json({ message: 'Os IDs do template, da ação de origem e o estado de ativação são obrigatórios.' });
   }
 
   try {
@@ -176,7 +193,8 @@ export const evaluateAction = async (req: any, res: Response) => {
     // Mapeia as regras para o formato de resposta esperado pelo frontend
     const updates = rules.map(rule => ({
       targetSectionId: rule.target_section_id,
-      actionText: rule.action_text,
+      // Usa o texto de ativação ou desativação com base no estado isActive
+      actionText: (isActive ? rule.action_text_on_activate : (rule.action_text_on_deactivate || '')).trim(),
     }));
 
     res.status(200).json({ updates });

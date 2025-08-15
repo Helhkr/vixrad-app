@@ -285,7 +285,7 @@ export const refresh = (req: Request, res: Response) => {
     }
 
     const accessToken = jwt.sign(
-      { userId: user.userId, isAdmin: user.isAdmin },
+      { userId: user.userId, isAdmin: user.isAdmin, is_email_verified: user.is_email_verified },
       accessTokenSecret,
       { expiresIn: '15m' }
     );
