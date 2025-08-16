@@ -1,10 +1,10 @@
-import React from 'react';
-import { Button, Checkbox, Input, Space, Typography, Card } from 'antd';
-import type { ElementGroup, InteractiveElement, Option } from '../../types/template';
-import type { SelectedOptions } from '../../pages/ReportEditorPage';
+import React, { memo } from 'react'; // Adicionado memo
+import { Button, Checkbox, Space, Typography, Card } from 'antd';
+import type { ElementGroup } from '../../types/template';
+import type { SelectedOptions } from '../../types/template';
+import { DebouncedTextArea } from '../common/DebouncedTextArea';
 
-const { Title, Text } = Typography;
-const { TextArea } = Input;
+const { Text } = Typography;
 
 interface InteractionPanelProps {
   elementGroups: ElementGroup[];
@@ -12,7 +12,7 @@ interface InteractionPanelProps {
   onOptionChange: (elementId: string, value: string | string[]) => void;
 }
 
-export const InteractionPanel: React.FC<InteractionPanelProps> = ({
+export const InteractionPanel: React.FC<InteractionPanelProps> = memo(({
   elementGroups,
   selectedOptions,
   onOptionChange,
@@ -47,7 +47,7 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({
                 <div key={element.id} style={{ width: '100%' }}>
                   <Text strong>{element.label}</Text>
                   {element.type === 'BUTTON_GROUP' && element.options && (
-                    <Button.Group style={{ marginTop: '8px' }}>
+                    <Space.Compact style={{ marginTop: '8px' }}>
                       {element.options.map(option => (
                         <Button
                           key={option.id}
@@ -57,7 +57,7 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({
                           {option.value}
                         </Button>
                       ))}
-                    </Button.Group>
+                    </Space.Compact>
                   )}
                   {element.type === 'CHECKBOX' && element.options && (
                     <Checkbox.Group
@@ -75,11 +75,11 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({
                     </Checkbox.Group>
                   )}
                   {element.type === 'TEXT_AREA' && (
-                    <TextArea
+                    <DebouncedTextArea
                       rows={4}
                       placeholder={element.placeholder}
                       value={selectedOptions[element.id] as string || ''}
-                      onChange={(e) => onOptionChange(element.id, e.target.value)}
+                      onChange={(value) => onOptionChange(element.id, value)}
                       style={{ marginTop: '8px' }}
                     />
                   )}
@@ -91,4 +91,4 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({
       })}
     </Space>
   );
-};
+}); // Fechamento do memo

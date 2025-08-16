@@ -1,11 +1,13 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Layout, Spin, theme } from 'antd';
 import { getTemplateById } from '../api/templateService';
 import type {
   Template,
-  Section,
   Subsection,
-  ElementGroup
+  Option,
+  SelectedOptions,
+  StructuredReport,
+  InteractiveElement
 } from '../types/template';
 import { ReportSidebar } from '../components/report/ReportSidebar';
 import { InteractionPanel } from '../components/report/InteractionPanel';
@@ -13,16 +15,12 @@ import { ReportPreview } from '../components/report/ReportPreview';
 
 const { Content, Sider } = Layout;
 
-export interface SelectedOptions {
-  [elementId: string]: string | string[]; // Stores selected option IDs or text for text areas
-}
-
 const ReportEditorPage: React.FC = () => {
   const [template, setTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedSubsection, setSelectedSubsection] = useState<Subsection | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
-  const [reportText, setReportText] = useState<string>('');
+  const [activeSubsections, setActiveSubsections] = useState<Record<string, boolean>>({}); // New state for active/inactive subsections
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -36,6 +34,16 @@ const ReportEditorPage: React.FC = () => {
         const mockTemplateId = 'template-001'; // Use a mock ID for now
         const data = await getTemplateById(mockTemplateId);
         setTemplate(data);
+
+        // Initialize activeSubsections based on template data
+        const initialActiveSubsections: Record<string, boolean> = {};
+        data.sections.forEach(section => {
+          section.subsections.forEach(subsection => {
+            initialActiveSubsections[subsection.id] = subsection.isActive;
+          });
+        });
+        setActiveSubsections(initialActiveSubsections);
+
         // Set the first subsection as selected by default
         if (data.sections.length > 0 && data.sections[0].subsections.length > 0) {
           setSelectedSubsection(data.sections[0].subsections[0]);
@@ -64,60 +72,146 @@ const ReportEditorPage: React.FC = () => {
     }
   }, [template]);
 
+  // Callback to toggle subsection active state
+  const handleToggleSubsectionActive = useCallback((subsectionId: string) => {
+    setActiveSubsections(prevActive => ({
+      ...prevActive,
+      [subsectionId]: !prevActive[subsectionId],
+    }));
+  }, []);
+
   // Callback for when an option is changed in the interaction panel
   const handleOptionChange = useCallback((elementId: string, value: string | string[]) => {
     setSelectedOptions(prevOptions => {
       const newOptions = { ...prevOptions };
-      if (Array.isArray(value) && value.length === 0) {
-        delete newOptions[elementId]; // Remove if no checkboxes are selected
-      } else if (value === '') {
-        delete newOptions[elementId]; // Remove if text area is empty
-      } else {
-        newOptions[elementId] = value;
-      }
-      return newOptions;
-    });
-  }, []);
 
-  // Logic to generate the report text
-  useEffect(() => {
-    if (!template) return;
-
-    let currentReportText = template.baseContent;
-
-    // Iterate through all sections and subsections to find the options
-    template.sections.forEach(section => {
-      section.subsections.forEach(subsection => {
-        subsection.elementGroups.forEach(group => {
-          group.interactiveElements.forEach(element => {
-            if (selectedOptions[element.id]) {
-              const selectedValue = selectedOptions[element.id];
-              if (element.type === 'BUTTON_GROUP' || element.type === 'CHECKBOX') {
-                const selectedOptionIds = Array.isArray(selectedValue) ? selectedValue : [selectedValue];
-                selectedOptionIds.forEach(optionId => {
-                  const option = element.options?.find(opt => opt.id === optionId);
-                  if (option && option.textToAdd) {
-                    currentReportText += option.textToAdd;
-                  }
-                });
-              } else if (element.type === 'TEXT_AREA') {
-                if (typeof selectedValue === 'string' && selectedValue.trim() !== '') {
-                  currentReportText += selectedValue + ' '; // Add text area content
-                }
-              }
+      // Find the element to determine its type and options
+      let currentElement: InteractiveElement | undefined;
+      template?.sections.forEach(section => {
+        section.subsections.forEach(subsection => {
+          subsection.elementGroups.forEach(group => {
+            const found = group.interactiveElements.find(el => el.id === elementId);
+            if (found) {
+              currentElement = found;
             }
           });
         });
       });
-    });
 
-    setReportText(currentReportText.trim());
-  }, [template, selectedOptions]);
+      if (!currentElement) {
+        return prevOptions; // Element not found, do nothing
+      }
+
+      if (currentElement.type === 'BUTTON_GROUP') {
+        // For BUTTON_GROUP, only one option can be selected at a time.
+        // If the clicked option is already selected, deselect it.
+        if (newOptions[elementId] === value) {
+          delete newOptions[elementId];
+        } else {
+          newOptions[elementId] = value;
+        }
+      } else if (currentElement.type === 'CHECKBOX') {
+        // For CHECKBOX, handle array of selected values
+        if (Array.isArray(value) && value.length === 0) {
+          delete newOptions[elementId];
+        } else {
+          newOptions[elementId] = value;
+        }
+      } else if (currentElement.type === 'TEXT_AREA') {
+        // For TEXT_AREA, handle string value
+        if (typeof value === 'string' && value.trim() === '') {
+          delete newOptions[elementId];
+        } else {
+          newOptions[elementId] = value;
+        }
+      }
+      return newOptions;
+    });
+  }, [template]);
+
+  // Logic to generate the structured report text
+  const structuredReport = useMemo<StructuredReport | null>(() => {
+    if (!template) return null;
+
+    const report: StructuredReport = {
+      title: template.reportTitle,
+      sections: template.sections.map(section => ({
+        id: section.id,
+        name: section.name,
+        content: section.subsections
+          .filter(subsection => activeSubsections[subsection.id]) // Filter active subsections
+          .map(subsection => {
+            let subsectionContent = `[${subsection.name}]`; // Start with placeholder
+
+            // Collect all interactive elements and their options for easy lookup
+            const allOptions = new Map<string, Option>();
+            const allElements = new Map<string, InteractiveElement>();
+
+            subsection.elementGroups.forEach(group => {
+              group.interactiveElements.forEach(element => {
+                allElements.set(element.id, element);
+                if (element.options) {
+                  element.options.forEach(option => {
+                    allOptions.set(option.id, option);
+                  });
+                }
+              });
+            });
+
+            let accumulatedTextForSubsection = '';
+
+            // Iterate through elements in this subsection to find selected options
+            subsection.elementGroups.forEach(group => {
+              group.interactiveElements.forEach(element => {
+                const selectedValue = selectedOptions[element.id];
+
+                if (element.type === 'BUTTON_GROUP') {
+                  if (selectedValue) {
+                    const selectedOption = element.options?.find(opt => opt.id === selectedValue);
+                    if (selectedOption) {
+                      accumulatedTextForSubsection += selectedOption.textToAdd;
+                    }
+                  }
+                } else if (element.type === 'CHECKBOX') {
+                  if (Array.isArray(selectedValue) && selectedValue.length > 0) {
+                    selectedValue.forEach(optionId => {
+                      const option = allOptions.get(optionId);
+                      if (option && option.textToAdd) {
+                        accumulatedTextForSubsection += option.textToAdd;
+                      }
+                    });
+                  }
+                } else if (element.type === 'TEXT_AREA') {
+                  if (typeof selectedValue === 'string' && selectedValue.trim() !== '') {
+                    accumulatedTextForSubsection += selectedValue + ' ';
+                  }
+                }
+              });
+            });
+
+            // If there's accumulated text, replace the placeholder. Otherwise, keep the placeholder.
+            if (accumulatedTextForSubsection.trim() !== '') {
+              subsectionContent = accumulatedTextForSubsection.trim();
+            }
+
+            return {
+              id: subsection.id,
+              name: subsection.name,
+              paragraphs: [subsectionContent],
+            };
+          }),
+      })),
+    };
+
+    return report;
+  }, [template, selectedOptions, activeSubsections]); // Added activeSubsections to dependencies
 
   if (loading) {
     return (
       <Layout style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <Spin size="large" tip="Carregando modelo de laudo..." />
+        <Spin size="large">
+          <div style={{ marginTop: '16px', color: 'rgba(0, 0, 0, 0.88)' }}>Carregando modelo de laudo...</div>
+        </Spin>
       </Layout>
     );
   }
@@ -131,7 +225,7 @@ const ReportEditorPage: React.FC = () => {
   }
 
   return (
-    <Layout style={{ height: '100%', display: 'flex', flexDirection: 'row' }}> {/* Adjust minHeight for header if present */}
+    <Layout style={{ height: '100%', display: 'flex', flexDirection: 'row' }}>
       <Sider
         width={250}
         style={{
@@ -145,6 +239,8 @@ const ReportEditorPage: React.FC = () => {
           sections={template.sections}
           onSelectSubsection={handleSubsectionSelect}
           selectedSubsectionId={selectedSubsection?.id || ''}
+          activeSubsections={activeSubsections} // Pass activeSubsections
+          onToggleSubsectionActive={handleToggleSubsectionActive} // Pass toggle handler
         />
       </Sider>
       <Content
@@ -154,7 +250,7 @@ const ReportEditorPage: React.FC = () => {
           borderRadius: borderRadiusLG,
           marginRight: '16px',
           overflowY: 'auto',
-          flex: 1, // Allow content to grow
+          flex: 1,
         }}
       >
         {selectedSubsection ? (
@@ -176,7 +272,10 @@ const ReportEditorPage: React.FC = () => {
           overflowY: 'auto',
         }}
       >
-        <ReportPreview reportText={reportText} />
+        <ReportPreview
+          structuredReport={structuredReport}
+          activeSubsections={activeSubsections} // Pass activeSubsections
+        />
       </Sider>
     </Layout>
   );

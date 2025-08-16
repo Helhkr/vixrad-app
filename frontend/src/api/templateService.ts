@@ -11,7 +11,7 @@ export const getTemplateById = async (id: string): Promise<Template> => {
   const mockTemplate: Template = {
     id: 'template-001',
     name: 'Laudo de Exemplo',
-    baseContent: 'Este é o laudo inicial. ',
+    reportTitle: 'TOMOGRAFIA COMPUTADORIZADA DE CRÂNIO',
     sections: [
       {
         id: 'sec-001',
@@ -20,6 +20,7 @@ export const getTemplateById = async (id: string): Promise<Template> => {
           {
             id: 'sub-001-1',
             name: 'Informações Básicas',
+            isActive: true, // Added isActive
             elementGroups: [
               {
                 id: 'eg-001-1-1',
@@ -30,8 +31,8 @@ export const getTemplateById = async (id: string): Promise<Template> => {
                     type: 'BUTTON_GROUP',
                     label: 'Gênero do Paciente',
                     options: [
-                      { id: 'opt-masc', value: 'Masculino', textToAdd: 'Paciente do sexo masculino. ' },
-                      { id: 'opt-fem', value: 'Feminino', textToAdd: 'Paciente do sexo feminino. ' },
+                      { id: 'opt-masc', value: 'Masculino', textToAdd: 'Masculino' },
+                      { id: 'opt-fem', value: 'Feminino', textToAdd: 'Feminino' },
                     ],
                   },
                 ],
@@ -59,6 +60,7 @@ export const getTemplateById = async (id: string): Promise<Template> => {
           {
             id: 'sub-002-1',
             name: 'Achados Gerais',
+            isActive: true, // Added isActive
             elementGroups: [
               {
                 id: 'eg-002-1-1',
@@ -105,6 +107,7 @@ export const getTemplateById = async (id: string): Promise<Template> => {
           {
             id: 'sub-002-2',
             name: 'Achados Específicos',
+            isActive: true, // Added isActive
             elementGroups: [
               {
                 id: 'eg-002-2-1',
@@ -129,6 +132,7 @@ export const getTemplateById = async (id: string): Promise<Template> => {
           {
             id: 'sub-003-1',
             name: 'Conclusão Final',
+            isActive: true, // Added isActive
             elementGroups: [
               {
                 id: 'eg-003-1-1',

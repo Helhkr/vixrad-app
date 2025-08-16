@@ -6,3 +6,7 @@ html, body, #root {
   padding: 0;
   overflow: hidden; /* Prevent scrolling on main body if content fits */
 }
+
+.editor-fade-transition {
+  transition: opacity 0.1s ease-in-out; /* Transição rápida de opacidade */
+}

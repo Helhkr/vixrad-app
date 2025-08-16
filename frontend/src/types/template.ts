@@ -27,6 +27,7 @@ export interface ElementGroup {
 export interface Subsection {
   id: string;
   name: string;
+  isActive: boolean; // Indicates if the subsection is active by default
   elementGroups: ElementGroup[];
 }
 
@@ -39,6 +40,23 @@ export interface Section {
 export interface Template {
   id: string;
   name: string;
-  baseContent: string; // Initial text for the report
+  reportTitle: string; // Main title for the final report
   sections: Section[];
+}
+
+export interface SelectedOptions {
+  [elementId: string]: string | string[]; // Stores selected option IDs or text for text areas
+}
+
+export interface StructuredReport {
+  title: string;
+  sections: Array<{
+    id: string;
+    name: string;
+    content: Array<{
+      id: string;
+      name: string;
+      paragraphs: string[];
+    }>;
+  }>;
 }
