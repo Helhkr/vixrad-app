@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Checkbox, Alert, Typography } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
+import type { LoginCredentials } from '../api/authService'; // Import LoginCredentials
 
 const { Title } = Typography;
 
@@ -11,7 +12,7 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: LoginCredentials) => {
     setLoading(true);
     setError(null);
     try {

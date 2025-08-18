@@ -58,20 +58,42 @@ export class AuthService {
 
   async login(loginUserDto: LoginUserDto) {
     const { email, password } = loginUserDto;
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    // Fetch user including password for comparison
+    const userWithPassword = await this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        crm: true,
+        crmUf: true,
+        trialEndsAt: true,
+        stripeCustomerId: true,
+        subscriptionStatus: true,
+        password: true, // Include password for comparison
+      },
+    });
 
-    if (!user) {
+    if (!userWithPassword) {
       throw new UnauthorizedException('Credenciais inválidas.');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, userWithPassword.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciais inválidas.');
     }
 
-    const accessToken = this.jwtService.sign({ userId: user.id, email: user.email, role: user.role });
+    // Create a user object without the password for the token payload and return
+    const { password: _, ...userWithoutPassword } = userWithPassword;
 
-    return { accessToken };
+    const accessToken = this.jwtService.sign({
+      userId: userWithoutPassword.id,
+      email: userWithoutPassword.email,
+      role: userWithoutPassword.role,
+    });
+
+    return { user: userWithoutPassword, accessToken };
   }
 
   async getProfile(userId: string) {

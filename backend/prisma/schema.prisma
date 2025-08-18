@@ -122,43 +122,33 @@ model ElementGroup {
 
   subsection            Subsection             @relation(fields: [subsectionId], references: [id], onDelete: Cascade)
   interactiveElements   InteractiveElement[]
-  triggeredByActionRule ActionRule?
-}
+  }
 
 model InteractiveElement {
   id             String                 @id @default(uuid())
-  label          String
+  label          String?
   type           InteractiveElementType
   order          Int
-  elementGroupId String
+  elementGroupId String?
+  optionId       String?
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
 
-  elementGroup ElementGroup @relation(fields: [elementGroupId], references: [id], onDelete: Cascade)
-  options      Option[]
+  elementGroup ElementGroup? @relation(fields: [elementGroupId], references: [id], onDelete: Cascade)
+  option       Option?       @relation("ChildInteractiveElements", fields: [optionId], references: [id], onDelete: Cascade)
+  options      Option[]      @relation("InteractiveElementOptions")
 }
 
 model Option {
   id                   String   @id @default(uuid())
   label                String
-  textToAdd            String
+  textToAdd            String?
   order                Int
   isDefault            Boolean  @default(false)
   interactiveElementId String
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
-  interactiveElement  InteractiveElement @relation(fields: [interactiveElementId], references: [id], onDelete: Cascade)
-  triggersActionRules ActionRule[]
-}
-
-model ActionRule {
-  id                   String   @id @default(uuid())
-  triggerOptionId      String   @unique
-  targetElementGroupId String   @unique
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  triggerOption      Option       @relation(fields: [triggerOptionId], references: [id], onDelete: Cascade)
-  targetElementGroup ElementGroup @relation(fields: [targetElementGroupId], references: [id], onDelete: Cascade)
+  interactiveElement  InteractiveElement @relation("InteractiveElementOptions", fields: [interactiveElementId], references: [id], onDelete: Cascade)
+  childElements       InteractiveElement[] @relation("ChildInteractiveElements")
 }

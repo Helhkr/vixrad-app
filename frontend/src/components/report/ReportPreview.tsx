@@ -8,6 +8,18 @@ import Paragraph from '@editorjs/paragraph';
 
 import type { StructuredReport } from '/home/juanr/vixrad-app/frontend/src/types/template';
 
+interface StructuredReportSubsectionContent {
+  id: string;
+  name: string;
+  paragraphs: string[];
+}
+
+interface StructuredReportSectionContent {
+  id: string;
+  name: string;
+  content: StructuredReportSubsectionContent[];
+}
+
 const { Title } = Typography;
 
 interface ReportPreviewProps {
@@ -78,7 +90,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = memo(({ structuredRep
     });
 
     // Add sections and subsections, filtering by activeSubsections
-    structuredReport.sections.forEach((section: { id: string; name: string; content: Array<{ id: string; name: string; paragraphs: string[]; }> }) => {
+    structuredReport.sections.forEach((section: StructuredReportSectionContent) => {
       const activeContent = section.content.filter(subsection => activeSubsections[subsection.id]);
 
       if (activeContent.length > 0) { // Only add section header if there's active content
@@ -91,7 +103,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = memo(({ structuredRep
           },
         });
 
-        activeContent.forEach((subsection: { id: string; name: string; paragraphs: string[]; }) => {
+        activeContent.forEach((subsection: StructuredReportSubsectionContent) => {
           subsection.paragraphs.forEach((paragraphText: string, index: number) => {
             if (paragraphText.trim() !== '') {
               editorData.blocks.push({
@@ -120,12 +132,12 @@ export const ReportPreview: React.FC<ReportPreviewProps> = memo(({ structuredRep
   const handleCopyReport = useCallback(() => {
     if (structuredReport) {
       let fullReportText = structuredReport.title + '\n\n';
-      structuredReport.sections.forEach((section: { id: string; name: string; content: Array<{ id: string; name: string; paragraphs: string[]; }> }) => {
+      structuredReport.sections.forEach((section: StructuredReportSectionContent) => {
         // Filter content for copying based on activeSubsections
         const activeContentForCopy = section.content.filter(subsection => activeSubsections[subsection.id]);
         if (activeContentForCopy.length > 0) {
           fullReportText += section.name + ':\n';
-          activeContentForCopy.forEach((subsection: { id: string; name: string; paragraphs: string[]; }) => {
+          activeContentForCopy.forEach((subsection: StructuredReportSubsectionContent) => {
             subsection.paragraphs.forEach((paragraph: string) => {
               fullReportText += paragraph + '\n';
             });

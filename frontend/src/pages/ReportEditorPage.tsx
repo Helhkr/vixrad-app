@@ -80,10 +80,27 @@ const ReportEditorPage: React.FC = () => {
     }));
   }, []);
 
+  // Recursive helper to clear selected options for a given element and its children
+  const clearElementSelections = useCallback((element: InteractiveElement, currentOptions: SelectedOptions) => {
+    const newOptions = { ...currentOptions };
+    delete newOptions[element.id]; // Clear the element itself
+
+    if (element.type === 'SEGMENTED' || element.type === 'CHECKBOX') {
+      element.options?.forEach(option => {
+        if (option.childElements) {
+          option.childElements.forEach(childElement => {
+            Object.assign(newOptions, clearElementSelections(childElement, newOptions));
+          });
+        }
+      });
+    }
+    return newOptions;
+  }, []);
+
   // Callback for when an option is changed in the interaction panel
   const handleOptionChange = useCallback((elementId: string, value: string | string[]) => {
     setSelectedOptions(prevOptions => {
-      const newOptions = { ...prevOptions };
+      let newOptions = { ...prevOptions };
 
       // Find the element to determine its type and options
       let currentElement: InteractiveElement | undefined;
@@ -102,23 +119,51 @@ const ReportEditorPage: React.FC = () => {
         return prevOptions; // Element not found, do nothing
       }
 
-      if (currentElement.type === 'BUTTON_GROUP') {
-        // For BUTTON_GROUP, only one option can be selected at a time.
-        // If the clicked option is already selected, deselect it.
-        if (newOptions[elementId] === value) {
+      if (currentElement.type === 'SEGMENTED') {
+        const previouslySelectedOptionId = newOptions[elementId] as string;
+        const previouslySelectedOption = currentElement.options?.find(opt => opt.id === previouslySelectedOptionId);
+
+        // If the new value is the same as the old, it means deselect (toggle behavior)
+        if (previouslySelectedOptionId === value) {
           delete newOptions[elementId];
+          // Clear all children of the deselected option
+          if (previouslySelectedOption && previouslySelectedOption.childElements) {
+            previouslySelectedOption.childElements.forEach(child => {
+              newOptions = clearElementSelections(child, newOptions);
+            });
+          }
         } else {
+          // If selecting a new option, first clear children of the old option if any
+          if (previouslySelectedOption && previouslySelectedOption.childElements) {
+            previouslySelectedOption.childElements.forEach(child => {
+              newOptions = clearElementSelections(child, newOptions);
+            });
+          }
           newOptions[elementId] = value;
         }
       } else if (currentElement.type === 'CHECKBOX') {
         // For CHECKBOX, handle array of selected values
-        if (Array.isArray(value) && value.length === 0) {
+        const oldSelectedValues = (newOptions[elementId] || []) as string[];
+        const newSelectedValues = value as string[];
+
+        // Identify options that were deselected
+        const deselectedOptionIds = oldSelectedValues.filter(id => !newSelectedValues.includes(id));
+
+        deselectedOptionIds.forEach(deselectedId => {
+          const deselectedOption = currentElement.options?.find(opt => opt.id === deselectedId);
+          if (deselectedOption && deselectedOption.childElements) {
+            deselectedOption.childElements.forEach(child => {
+              newOptions = clearElementSelections(child, newOptions);
+            });
+          }
+        });
+
+        if (newSelectedValues.length === 0) {
           delete newOptions[elementId];
         } else {
-          newOptions[elementId] = value;
+          newOptions[elementId] = newSelectedValues;
         }
-      } else if (currentElement.type === 'TEXT_AREA') {
-        // For TEXT_AREA, handle string value
+      } else if (currentElement.type === 'TEXT_AREA' || currentElement.type === 'INPUT_NUMBER') {
         if (typeof value === 'string' && value.trim() === '') {
           delete newOptions[elementId];
         } else {
@@ -127,7 +172,66 @@ const ReportEditorPage: React.FC = () => {
       }
       return newOptions;
     });
-  }, [template]);
+  }, [template, clearElementSelections]);
+
+  const handleNestedOptionChange = useCallback((parentId: string, elementId: string, value: string | string[]) => {
+    setSelectedOptions(prevOptions => {
+      const newOptions = { ...prevOptions };
+      // For nested options, we just update the selectedOptions directly
+      if (Array.isArray(value) && value.length === 0) {
+        delete newOptions[elementId];
+      } else if (typeof value === 'string' && value.trim() === '') {
+        delete newOptions[elementId];
+      } else {
+        newOptions[elementId] = value;
+      }
+      return newOptions;
+    });
+  }, []);
+
+  // Recursive function to collect text from interactive elements and their children
+  const collectTextFromElements = useCallback((elements: InteractiveElement[], currentSelectedOptions: SelectedOptions): string => {
+    let accumulatedText = '';
+
+    elements.forEach(element => {
+      const selectedValue = currentSelectedOptions[element.id];
+
+      if (element.type === 'SEGMENTED') {
+        if (selectedValue) {
+          const selectedOption = element.options?.find(opt => opt.id === selectedValue);
+          if (selectedOption) {
+            if (selectedOption.textToAdd) {
+              accumulatedText += selectedOption.textToAdd + ' ';
+            }
+            // Recursively collect text from child elements if the option is selected
+            if (selectedOption.childElements && selectedOption.childElements.length > 0) {
+              accumulatedText += collectTextFromElements(selectedOption.childElements, currentSelectedOptions);
+            }
+          }
+        }
+      } else if (element.type === 'CHECKBOX') {
+        if (Array.isArray(selectedValue) && selectedValue.length > 0) {
+          selectedValue.forEach(optionId => {
+            const option = element.options?.find(opt => opt.id === optionId);
+            if (option) {
+              if (option.textToAdd) {
+                accumulatedText += option.textToAdd + ' ';
+              }
+              // Recursively collect text from child elements if this checkbox option is selected
+              if (option.childElements && option.childElements.length > 0) {
+                accumulatedText += collectTextFromElements(option.childElements, currentSelectedOptions);
+              }
+            }
+          });
+        }
+      } else if (element.type === 'TEXT_AREA' || element.type === 'INPUT_NUMBER') {
+        if (typeof selectedValue === 'string' && selectedValue.trim() !== '') {
+          accumulatedText += selectedValue + ' ';
+        }
+      }
+    });
+    return accumulatedText;
+  }, []);
 
   // Logic to generate the structured report text
   const structuredReport = useMemo<StructuredReport | null>(() => {
@@ -141,70 +245,32 @@ const ReportEditorPage: React.FC = () => {
         content: section.subsections
           .filter(subsection => activeSubsections[subsection.id]) // Filter active subsections
           .map(subsection => {
-            let subsectionContent = `[${subsection.name}]`; // Start with placeholder
+            const paragraphs: string[] = [];
 
-            // Collect all interactive elements and their options for easy lookup
-            const allOptions = new Map<string, Option>();
-            const allElements = new Map<string, InteractiveElement>();
-
+            // Collect text from all element groups within this subsection, each as a separate paragraph
             subsection.elementGroups.forEach(group => {
-              group.interactiveElements.forEach(element => {
-                allElements.set(element.id, element);
-                if (element.options) {
-                  element.options.forEach(option => {
-                    allOptions.set(option.id, option);
-                  });
-                }
-              });
+              const groupText = collectTextFromElements(group.interactiveElements, selectedOptions).trim();
+              if (groupText !== '') {
+                paragraphs.push(groupText);
+              }
             });
 
-            let accumulatedTextForSubsection = '';
-
-            // Iterate through elements in this subsection to find selected options
-            subsection.elementGroups.forEach(group => {
-              group.interactiveElements.forEach(element => {
-                const selectedValue = selectedOptions[element.id];
-
-                if (element.type === 'BUTTON_GROUP') {
-                  if (selectedValue) {
-                    const selectedOption = element.options?.find(opt => opt.id === selectedValue);
-                    if (selectedOption) {
-                      accumulatedTextForSubsection += selectedOption.textToAdd;
-                    }
-                  }
-                } else if (element.type === 'CHECKBOX') {
-                  if (Array.isArray(selectedValue) && selectedValue.length > 0) {
-                    selectedValue.forEach(optionId => {
-                      const option = allOptions.get(optionId);
-                      if (option && option.textToAdd) {
-                        accumulatedTextForSubsection += option.textToAdd;
-                      }
-                    });
-                  }
-                } else if (element.type === 'TEXT_AREA') {
-                  if (typeof selectedValue === 'string' && selectedValue.trim() !== '') {
-                    accumulatedTextForSubsection += selectedValue + ' ';
-                  }
-                }
-              });
-            });
-
-            // If there's accumulated text, replace the placeholder. Otherwise, keep the placeholder.
-            if (accumulatedTextForSubsection.trim() !== '') {
-              subsectionContent = accumulatedTextForSubsection.trim();
+            // If no content was generated for the subsection, add a placeholder paragraph
+            if (paragraphs.length === 0) {
+              paragraphs.push(`[${subsection.name}]`);
             }
 
             return {
               id: subsection.id,
               name: subsection.name,
-              paragraphs: [subsectionContent],
+              paragraphs: paragraphs,
             };
           }),
       })),
     };
 
     return report;
-  }, [template, selectedOptions, activeSubsections]); // Added activeSubsections to dependencies
+  }, [template, selectedOptions, activeSubsections, collectTextFromElements]); // Added collectTextFromElements to dependencies
 
   if (loading) {
     return (
@@ -258,6 +324,7 @@ const ReportEditorPage: React.FC = () => {
             elementGroups={selectedSubsection.elementGroups}
             selectedOptions={selectedOptions}
             onOptionChange={handleOptionChange}
+            onNestedOptionChange={handleNestedOptionChange}
           />
         ) : (
           <div>Selecione uma subseção para começar.</div>

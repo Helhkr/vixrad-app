@@ -25,12 +25,9 @@ export const DebouncedTextArea: React.FC<DebouncedTextAreaProps> = ({
 
   // Effect to synchronize local state with parent's value
   useEffect(() => {
-    // Only update local state if the incoming prop value is different from current local value
-    // This prevents overwriting user's typing with old parent state
-    if (value !== localValue) {
-      setLocalValue(value);
-    }
-  }, [value]); // Dependency on the parent's value prop
+    // Update local state only when the external 'value' prop changes
+    setLocalValue(value);
+  }, [value]); // Only depend on the external 'value' prop
 
   // Effect to debounce updates to the parent
   useEffect(() => {

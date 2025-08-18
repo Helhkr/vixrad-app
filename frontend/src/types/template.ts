@@ -1,27 +1,23 @@
-export interface ActionRule {
-  id: string;
-  triggerOptionId: string; // The ID of the option that triggers this rule
-}
-
 export interface Option {
   id: string;
   value: string;
-  textToAdd: string; // Text to append to the report when this option is selected
+  textToAdd?: string; // Text to append to the report when this option is selected
+  childElements?: InteractiveElement[]; // New field: nested interactive elements
 }
 
 export interface InteractiveElement {
   id: string;
-  type: 'BUTTON_GROUP' | 'CHECKBOX' | 'TEXT_AREA';
-  label: string;
-  options?: Option[]; // For BUTTON_GROUP and CHECKBOX
-  placeholder?: string; // For TEXT_AREA
+  type: 'SEGMENTED' | 'CHECKBOX' | 'INPUT_NUMBER' | 'TEXT_AREA';
+  label?: string; // Made optional
+  isVisibleByDefault: boolean; // New field: whether the element is visible by default
+  options?: Option[]; // For SEGMENTED and CHECKBOX
+  placeholder?: string; // For INPUT_NUMBER and TEXT_AREA
 }
 
 export interface ElementGroup {
   id: string;
   name: string;
   interactiveElements: InteractiveElement[];
-  actionRule?: ActionRule; // Optional rule for conditional visibility
 }
 
 export interface Subsection {
@@ -41,6 +37,7 @@ export interface Template {
   id: string;
   name: string;
   reportTitle: string; // Main title for the final report
+  modality: string;
   sections: Section[];
 }
 
