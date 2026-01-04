@@ -6,3 +6,21 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  trial Trial?
+}
+
+model Trial {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  startedAt DateTime
+  endsAt    DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
