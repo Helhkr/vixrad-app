@@ -1,4 +1,10 @@
 import { Module } from "@nestjs/common";
 
-@Module({})
+import { TrialService } from "./trial.service";
+
+@Module({
+	providers: [TrialService],
+	exports: [TrialService],
+})
 export class TrialModule {}
+
