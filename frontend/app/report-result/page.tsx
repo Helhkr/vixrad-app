@@ -3,25 +3,43 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
 import Container from "@mui/material/Container";
 import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
 import { useAppState } from "../state";
+import { useSnackbar } from "../snackbar";
+import { formatReportForCopy, type CopyFormat } from "@/features/reportCopyFormat";
 
 export default function ReportResultPage() {
   const router = useRouter();
   const { reportText } = useAppState();
+  const { showMessage } = useSnackbar();
   const [copied, setCopied] = useState(false);
 
-  const copy = async () => {
-    setCopied(false);
-    await navigator.clipboard.writeText(reportText);
+  const options: Array<{ label: string; format: CopyFormat }> = [
+    { label: "Formatação padrão", format: "formatted" },
+    { label: "Sem formatação", format: "plain" },
+    { label: "Copiar como markdown", format: "markdown" },
+  ];
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedFormat, setSelectedFormat] = useState<CopyFormat>("formatted");
+
+  const copyReport = async (format: CopyFormat) => {
+    const output = formatReportForCopy(reportText, format);
+    await navigator.clipboard.writeText(output);
+    showMessage("Laudo copiado com sucesso!", "success");
+
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
@@ -63,11 +81,27 @@ export default function ReportResultPage() {
 
         <Paper sx={{ p: 2, whiteSpace: "pre-wrap" }}>{reportText}</Paper>
 
-        <Stack direction="row" spacing={2}>
-          <Button variant="outlined" onClick={copy}>
-            COPIAR LAUDO
+        <ButtonGroup variant="contained">
+          <Button onClick={() => copyReport(selectedFormat)}>COPIAR LAUDO</Button>
+          <Button onClick={(e) => setAnchorEl(e.currentTarget)}>
+            <ArrowDropDownIcon />
           </Button>
-        </Stack>
+        </ButtonGroup>
+
+        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+          {options.map((opt) => (
+            <MenuItem
+              key={opt.format}
+              onClick={() => {
+                setSelectedFormat(opt.format);
+                setAnchorEl(null);
+                void copyReport(opt.format);
+              }}
+            >
+              {opt.label}
+            </MenuItem>
+          ))}
+        </Menu>
 
         {copied ? (
           <Typography variant="body2" color="text.secondary">

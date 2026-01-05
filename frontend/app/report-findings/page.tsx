@@ -3,17 +3,22 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
 import { apiPost } from "@/features/api";
+import { formatReportForCopy, type CopyFormat } from "@/features/reportCopyFormat";
 import { useAppState } from "../state";
 import { useSnackbar } from "../snackbar";
 
@@ -38,6 +43,15 @@ export default function ReportFindingsPage() {
 
   const [loading, setLoading] = useState(false);
 
+  const options: Array<{ label: string; format: CopyFormat }> = [
+    { label: "Formatação padrão", format: "formatted" },
+    { label: "Sem formatação", format: "plain" },
+    { label: "Copiar como markdown", format: "markdown" },
+  ];
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedFormat, setSelectedFormat] = useState<CopyFormat>("formatted");
+
   useEffect(() => {
     if (!accessToken) router.replace("/");
   }, [accessToken, router]);
@@ -50,7 +64,7 @@ export default function ReportFindingsPage() {
     if (!templateId) router.replace("/templates");
   }, [templateId, router]);
 
-  const handleCopyNormal = async () => {
+  const handleCopyNormal = async (format: CopyFormat) => {
     if (!accessToken || !examType || !templateId) return;
 
     setLoading(true);
@@ -69,7 +83,8 @@ export default function ReportFindingsPage() {
 
       setReportText(data.reportText);
 
-      await navigator.clipboard.writeText(data.reportText);
+      const output = formatReportForCopy(data.reportText, format);
+      await navigator.clipboard.writeText(output);
       showMessage("Laudo normal copiado!", "success");
     } catch (e) {
       showMessage(e instanceof Error ? e.message : "Erro ao gerar laudo", "error");
@@ -138,14 +153,12 @@ export default function ReportFindingsPage() {
           />
 
           <Stack direction="row" spacing={2}>
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={loading}
-              onClick={handleCopyNormal}
-            >
-              COPIAR LAUDO NORMAL
-            </Button>
+            <ButtonGroup variant="contained" disabled={loading}>
+              <Button onClick={() => handleCopyNormal(selectedFormat)}>COPIAR LAUDO NORMAL</Button>
+              <Button onClick={(e) => setAnchorEl(e.currentTarget)}>
+                <ArrowDropDownIcon />
+              </Button>
+            </ButtonGroup>
 
             <Button
               variant="outlined"
@@ -156,6 +169,21 @@ export default function ReportFindingsPage() {
               GERAR COM IA
             </Button>
           </Stack>
+
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+            {options.map((opt) => (
+              <MenuItem
+                key={opt.format}
+                onClick={() => {
+                  setSelectedFormat(opt.format);
+                  setAnchorEl(null);
+                  void handleCopyNormal(opt.format);
+                }}
+              >
+                {opt.label}
+              </MenuItem>
+            ))}
+          </Menu>
 
           {loading ? (
             <Box display="flex" justifyContent="center" mt={1}>
