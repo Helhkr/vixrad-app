@@ -6,6 +6,15 @@ import { TemplatesService } from "../templates/templates.service";
 export class ReportsService {
   constructor(private readonly templatesService: TemplatesService) {}
 
+  private stripDiacritics(input: string): string {
+    return input.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
+  private hasTemplateIndicationSection(markdown: string): boolean {
+    const normalized = this.stripDiacritics(markdown);
+    return /\*\*\s*indicacao\s*:\s*\*\*/i.test(normalized);
+  }
+
   private composeOutput(params: {
     templateMarkdown: string;
     indication?: string;
@@ -14,8 +23,8 @@ export class ReportsService {
     let out = params.templateMarkdown.trimEnd();
 
     const indication = params.indication?.trim();
-    if (indication) {
-      out += `\n\n**INDICAÇÃO CLÍNICA:** ${indication}`;
+    if (indication && !this.hasTemplateIndicationSection(out)) {
+      out += `\n\n**Indicação clínica:** ${indication}`;
     }
 
     const findings = params.findings?.trim();

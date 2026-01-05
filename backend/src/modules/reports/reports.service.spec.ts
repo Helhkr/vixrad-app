@@ -39,7 +39,30 @@ describe("ReportsService output composition", () => {
       indication: "Dor lombar",
     });
 
-    expect(result.reportText).toContain("**INDICAÇÃO CLÍNICA:** Dor lombar");
+    expect(result.reportText).toContain("**Indicação clínica:** Dor lombar");
+  });
+
+  it("does not duplicate indication when template already contains an Indicação section", () => {
+    const templateWithIndication = "# T\n\n**Indicação:** Dor lombar\n\nA\n";
+    const svc = new ReportsService(makeTemplatesServiceStub(templateWithIndication) as any);
+
+    const result = svc.generateStructuredBaseReport({
+      examType: "CT",
+      templateId: "ct-cranio-normal-v1",
+      contrast: "without",
+      indication: "Dor lombar",
+    });
+
+    expect(result.reportText).toContain("**Indicação:** Dor lombar");
+    expect(result.reportText).not.toContain("**Indicação clínica:**");
+
+    const normalized = result.reportText
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
+    const occurrences = (normalized.match(/\*\*\s*indicacao\s*:\s*\*\*/g) ?? []).length;
+    expect(occurrences).toBe(1);
   });
 
   it("adds findings block when findings is provided", () => {
@@ -67,7 +90,7 @@ describe("ReportsService output composition", () => {
       findings: "Achados compatíveis com hérnia discal",
     });
 
-    const posInd = result.reportText.indexOf("**INDICAÇÃO CLÍNICA:**");
+    const posInd = result.reportText.indexOf("**Indicação clínica:**");
     const posFind = result.reportText.indexOf("**ACHADOS DO EXAME:**");
 
     expect(posInd).toBeGreaterThan(-1);
