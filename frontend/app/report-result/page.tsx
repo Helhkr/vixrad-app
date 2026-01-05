@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Paper from "@mui/material/Paper";
@@ -15,10 +16,6 @@ export default function ReportResultPage() {
   const { reportText, resetReport } = useAppState();
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    if (!reportText) router.replace("/report-form");
-  }, [reportText, router]);
-
   const copy = async () => {
     setCopied(false);
     await navigator.clipboard.writeText(reportText);
@@ -30,6 +27,20 @@ export default function ReportResultPage() {
     resetReport();
     router.push("/templates");
   };
+
+  if (!reportText) {
+    return (
+      <Container maxWidth="sm" sx={{ py: 6 }}>
+        <Stack spacing={2}>
+          <Alert severity="error">Nenhum laudo disponível. Gere um laudo novamente.</Alert>
+          <Button variant="contained" onClick={() => router.replace("/report-form")}
+          >
+            Voltar
+          </Button>
+        </Stack>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>

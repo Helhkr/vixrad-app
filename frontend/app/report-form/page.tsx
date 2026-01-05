@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -117,14 +120,20 @@ export default function ReportFormPage() {
           </FormControl>
 
           {error ? (
-            <Typography variant="body2" color="error">
+            <Alert severity="error" onClose={() => setError(null)}>
               {error}
-            </Typography>
+            </Alert>
           ) : null}
 
           <Button variant="contained" disabled={loading} onClick={submit}>
             Gerar
           </Button>
+
+          {loading ? (
+            <Box display="flex" justifyContent="center" mt={1}>
+              <CircularProgress />
+            </Box>
+          ) : null}
         </Stack>
       </Paper>
     </Container>

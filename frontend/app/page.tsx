@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
+import CircularProgress from "@mui/material/CircularProgress";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
@@ -77,9 +79,9 @@ export default function AuthPage() {
 					/>
 
 					{error ? (
-						<Typography variant="body2" color="error">
+						<Alert severity="error" onClose={() => setError(null)}>
 							{error}
-						</Typography>
+						</Alert>
 					) : null}
 
 					<Stack direction="row" spacing={2}>
@@ -100,6 +102,12 @@ export default function AuthPage() {
 							Registrar
 						</Button>
 					</Stack>
+
+					{loading ? (
+						<Box display="flex" justifyContent="center" mt={2}>
+							<CircularProgress />
+						</Box>
+					) : null}
 				</Stack>
 			</Paper>
 		</Container>

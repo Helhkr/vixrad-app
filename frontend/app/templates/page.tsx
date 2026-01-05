@@ -2,8 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Alert from "@mui/material/Alert";
 import Autocomplete from "@mui/material/Autocomplete";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
@@ -86,12 +89,18 @@ export default function TemplatesPage() {
           />
 
           {error ? (
-            <Typography variant="body2" color="error">
+            <Alert severity="error" onClose={() => setError(null)}>
               {error}
-            </Typography>
+            </Alert>
           ) : null}
 
-          <Button variant="contained" onClick={next}>
+          {loading ? (
+            <Box display="flex" justifyContent="center" mt={1}>
+              <CircularProgress />
+            </Box>
+          ) : null}
+
+          <Button variant="contained" disabled={loading} onClick={next}>
             Continuar
           </Button>
         </Stack>
