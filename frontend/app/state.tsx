@@ -3,14 +3,15 @@
 import type { ReactNode } from "react";
 import React, { createContext, useContext, useMemo, useState } from "react";
 
-export type ExamType = "CT";
+export type ExamType = "CT" | "XR" | "US" | "MR" | "MG" | "DXA" | "NM";
 export type Contrast = "with" | "without";
 
 type AppState = {
   accessToken: string | null;
   setAccessToken: (token: string | null) => void;
 
-  examType: ExamType;
+  examType: ExamType | null;
+  setExamType: (examType: ExamType | null) => void;
   templateId: string | null;
   setTemplateId: (templateId: string | null) => void;
 
@@ -39,6 +40,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return window.localStorage.getItem(ACCESS_TOKEN_KEY);
   });
 
+  const [examType, setExamType] = useState<ExamType | null>(null);
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [indication, setIndication] = useState<string>("");
   const [findings, setFindings] = useState<string>("");
@@ -53,6 +55,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   };
 
   const resetReport = () => {
+    setExamType(null);
     setTemplateId(null);
     setIndication("");
     setFindings("");
@@ -64,7 +67,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     () => ({
       accessToken,
       setAccessToken,
-      examType: "CT",
+      examType,
+      setExamType,
       templateId,
       setTemplateId,
       indication,
@@ -77,7 +81,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setReportText,
       resetReport,
     }),
-    [accessToken, templateId, indication, findings, contrast, reportText],
+    [accessToken, examType, templateId, indication, findings, contrast, reportText],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

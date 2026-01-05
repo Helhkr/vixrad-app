@@ -5,7 +5,7 @@ class InMemoryTemplatesService extends TemplatesService {
     super();
   }
 
-  override loadTemplateSource(_templateId: string): string {
+  override loadTemplateSource(_templateId: string, _examType: "CT" | "XR" | "US" | "MR" | "MG" | "DXA" | "NM"): string {
     return this.source;
   }
 }

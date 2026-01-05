@@ -12,10 +12,14 @@ export type TemplateListItem = {
   examType: string;
 };
 
-export async function fetchCtTemplates(accessToken: string): Promise<TemplateOption[]> {
-  const items = await apiGet<TemplateListItem[]>("/templates", accessToken);
+export async function fetchTemplatesByExamType(
+  examType: string,
+  accessToken: string,
+): Promise<TemplateOption[]> {
+  const items = await apiGet<TemplateListItem[]>(
+    `/templates?examType=${encodeURIComponent(examType)}`,
+    accessToken,
+  );
 
-  return items
-    .filter((t) => t.examType === "CT")
-    .map((t) => ({ id: t.id, label: t.name, examType: t.examType }));
+  return items.map((t) => ({ id: t.id, label: t.name, examType: t.examType }));
 }

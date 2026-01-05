@@ -65,35 +65,33 @@ const ENDIF_RE = /^<!--\s*ENDIF\s+([A-Z0-9_]+)\s*-->$/;
 
 @Injectable()
 export class TemplatesService {
-  private resolveTemplatesDir(): string {
+  private resolveTemplatesDir(examType: ExamType): string | null {
+    const folder = `docs/clinical/${examType.toLowerCase()}`;
     const candidates = [
-      path.resolve(process.cwd(), "docs/clinical/ct"),
-      path.resolve(process.cwd(), "../docs/clinical/ct"),
-      path.resolve(process.cwd(), "../../docs/clinical/ct"),
+      path.resolve(process.cwd(), folder),
+      path.resolve(process.cwd(), "../", folder),
+      path.resolve(process.cwd(), "../../", folder),
     ];
 
     const found = candidates.find((p) => fs.existsSync(p) && fs.statSync(p).isDirectory());
-    if (!found) {
-      throw new Error(
-        `Clinical templates directory not found. Tried: ${candidates.join(", ")}.`,
-      );
-    }
-
-    return found;
+    return found ?? null;
   }
 
-  private getTemplatePath(templateId: string): string {
+  private getTemplatePath(templateId: string, examType: ExamType): string {
     const safeId = templateId.replace(/[^a-zA-Z0-9._-]/g, "");
     if (safeId !== templateId) {
       throw new BadRequestException("templateId inválido");
     }
 
-    const dir = this.resolveTemplatesDir();
+    const dir = this.resolveTemplatesDir(examType);
+    if (!dir) {
+      throw new BadRequestException("templateId inválido");
+    }
     return path.join(dir, `${templateId}.md`);
   }
 
-  loadTemplateSource(templateId: string): string {
-    const filePath = this.getTemplatePath(templateId);
+  loadTemplateSource(templateId: string, examType: ExamType): string {
+    const filePath = this.getTemplatePath(templateId, examType);
     if (!fs.existsSync(filePath)) {
       throw new BadRequestException("templateId inválido");
     }
@@ -289,8 +287,13 @@ export class TemplatesService {
     return null;
   }
 
-  listTemplates(): TemplateListItem[] {
-    const dir = this.resolveTemplatesDir();
+  listTemplates(examType: ExamType): TemplateListItem[] {
+    if (!SUPPORTED_EXAM_TYPES.includes(examType)) {
+      throw new BadRequestException("examType inválido");
+    }
+
+    const dir = this.resolveTemplatesDir(examType);
+    if (!dir) return [];
     const entries = fs
       .readdirSync(dir)
       .filter((name) => name.endsWith(".md"))
@@ -299,8 +302,13 @@ export class TemplatesService {
     const out: TemplateListItem[] = [];
     for (const fileName of entries) {
       const templateId = fileName.replace(/\.md$/, "");
-      const source = this.loadTemplateSource(templateId);
+      const source = this.loadTemplateSource(templateId, examType);
       const parsed = this.parseFrontMatter(source);
+
+      if (parsed.meta.exam_type !== examType) {
+        throw new BadRequestException(`Template ${templateId} com exam_type incompatível`);
+      }
+
       const title = this.extractTitle(parsed.body);
 
       out.push({
@@ -314,7 +322,7 @@ export class TemplatesService {
   }
 
   renderResolvedMarkdown(input: RenderInput): { meta: TemplateMeta; markdown: string } {
-    const source = this.loadTemplateSource(input.templateId);
+    const source = this.loadTemplateSource(input.templateId, input.examType);
     const parsed = this.parseFrontMatter(source);
 
     if (parsed.meta.exam_type !== input.examType) {

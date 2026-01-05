@@ -48,11 +48,15 @@ export default function ReportFormPage() {
   }, [accessToken, router]);
 
   useEffect(() => {
+    if (!examType) router.replace("/templates");
+  }, [examType, router]);
+
+  useEffect(() => {
     if (!templateId) router.replace("/templates");
   }, [templateId, router]);
 
   const submit = async () => {
-    if (!accessToken || !templateId) return;
+    if (!accessToken || !examType || !templateId) return;
 
     setLoading(true);
     try {

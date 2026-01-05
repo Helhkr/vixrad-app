@@ -39,7 +39,7 @@ describe("TemplatesController", () => {
   });
 
   it("GET /templates returns template metadata", async () => {
-    const res = await request(app.getHttpServer()).get("/templates").expect(200);
+    const res = await request(app.getHttpServer()).get("/templates?examType=CT").expect(200);
     expect(res.body).toEqual([
       { id: "ct-cranio-normal-v1", name: "TOMOGRAFIA COMPUTADORIZADA DO CRÂNIO", examType: "CT" },
     ]);
