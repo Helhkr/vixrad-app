@@ -24,6 +24,7 @@ services:
 
   frontend:
     container_name: vixrad-frontend-dev
+    user: "${UID:-1000}:${GID:-1000}"
     build:
       context: .
       dockerfile: frontend/Dockerfile
