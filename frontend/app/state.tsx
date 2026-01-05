@@ -5,6 +5,8 @@ import React, { createContext, useContext, useMemo, useState } from "react";
 
 export type ExamType = "CT" | "XR" | "US" | "MR" | "MG" | "DXA" | "NM";
 export type Contrast = "with" | "without";
+export type Sex = "M" | "F";
+export type Side = "RIGHT" | "LEFT";
 
 type AppState = {
   accessToken: string | null;
@@ -23,6 +25,12 @@ type AppState = {
 
   contrast: Contrast;
   setContrast: (value: Contrast) => void;
+
+  sex: Sex | null;
+  setSex: (value: Sex | null) => void;
+
+  side: Side | null;
+  setSide: (value: Side | null) => void;
 
   reportText: string;
   setReportText: (value: string) => void;
@@ -45,6 +53,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [indication, setIndication] = useState<string>("");
   const [findings, setFindings] = useState<string>("");
   const [contrast, setContrast] = useState<Contrast>("without");
+  const [sex, setSex] = useState<Sex | null>(null);
+  const [side, setSide] = useState<Side | null>(null);
   const [reportText, setReportText] = useState<string>("");
 
   const setAccessToken = (token: string | null) => {
@@ -60,6 +70,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setIndication("");
     setFindings("");
     setContrast("without");
+    setSex(null);
+    setSide(null);
     setReportText("");
   };
 
@@ -77,11 +89,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setFindings,
       contrast,
       setContrast,
+      sex,
+      setSex,
+      side,
+      setSide,
       reportText,
       setReportText,
       resetReport,
     }),
-    [accessToken, examType, templateId, indication, findings, contrast, reportText],
+    [accessToken, examType, templateId, indication, findings, contrast, sex, side, reportText],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

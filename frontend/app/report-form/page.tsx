@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -16,7 +17,9 @@ import RadioGroup from "@mui/material/RadioGroup";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { fetchTemplateDetail, type TemplateDetail } from "@/features/templates";
 import { useAppState } from "../state";
+import { useSnackbar } from "../snackbar";
 
 export default function ReportFormPage() {
   const router = useRouter();
@@ -28,7 +31,16 @@ export default function ReportFormPage() {
     setIndication,
     contrast,
     setContrast,
+    sex,
+    setSex,
+    side,
+    setSide,
   } = useAppState();
+
+  const { showMessage } = useSnackbar();
+
+  const [template, setTemplate] = useState<TemplateDetail | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!accessToken) router.replace("/");
@@ -41,6 +53,68 @@ export default function ReportFormPage() {
   useEffect(() => {
     if (!templateId) router.replace("/templates");
   }, [templateId, router]);
+
+  useEffect(() => {
+    if (!accessToken || !templateId) return;
+
+    let cancelled = false;
+    setLoading(true);
+
+    fetchTemplateDetail(templateId, accessToken)
+      .then((t) => {
+        if (cancelled) return;
+        setTemplate(t);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        showMessage(e instanceof Error ? e.message : "Erro ao carregar template", "error");
+        router.replace("/templates");
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, router, showMessage, templateId]);
+
+  const requires = template?.requires;
+
+  const showIndication = requires ? requires.indication !== "none" && requires.indication !== "fixed" : true;
+  const showContrast = requires ? requires.contrast !== "none" && requires.contrast !== "fixed" : true;
+  const showSex = requires ? requires.sex !== "none" && requires.sex !== "fixed" : false;
+  const showSide = requires ? requires.side !== "none" && requires.side !== "fixed" : false;
+
+  const templateLabel = useMemo(() => {
+    if (!templateId) return "-";
+    return template?.name ?? templateId;
+  }, [template?.name, templateId]);
+
+  const validateAndContinue = () => {
+    if (!requires) {
+      showMessage("Aguarde carregar o template.", "error");
+      return;
+    }
+
+    if (requires.indication === "required" && !indication.trim()) {
+      showMessage("Preencha a indicação.", "error");
+      return;
+    }
+
+    if (requires.sex === "required" && !sex) {
+      showMessage("Selecione o sexo.", "error");
+      return;
+    }
+
+    if (requires.side === "required" && !side) {
+      showMessage("Selecione o lado.", "error");
+      return;
+    }
+
+    router.push("/report-findings");
+  };
 
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
@@ -55,34 +129,69 @@ export default function ReportFormPage() {
           </Typography>
 
           <Typography variant="body2" color="text.secondary">
-            Template: {templateId ?? "-"}
+            Template: {templateLabel}
           </Typography>
 
-          <TextField
-            label="Indicação"
-            fullWidth
-            multiline
-            minRows={2}
-            value={indication}
-            onChange={(e) => setIndication(e.target.value)}
-          />
+          {loading ? (
+            <Box display="flex" justifyContent="center" mt={1}>
+              <CircularProgress />
+            </Box>
+          ) : null}
 
-          <FormControl>
-            <FormLabel>Contraste</FormLabel>
-            <RadioGroup
-              row
-              value={contrast}
-              onChange={(e) => setContrast(e.target.value as "with" | "without")}
-            >
-              <FormControlLabel value="with" control={<Radio />} label="COM" />
-              <FormControlLabel value="without" control={<Radio />} label="SEM" />
-            </RadioGroup>
-          </FormControl>
+          {showIndication ? (
+            <TextField
+              label="Indicação"
+              fullWidth
+              multiline
+              minRows={2}
+              value={indication}
+              onChange={(e) => setIndication(e.target.value)}
+            />
+          ) : null}
+
+          {showContrast ? (
+            <FormControl>
+              <FormLabel>Contraste</FormLabel>
+              <RadioGroup
+                row
+                value={contrast}
+                onChange={(e) => setContrast(e.target.value as "with" | "without")}
+              >
+                <FormControlLabel value="with" control={<Radio />} label="COM" />
+                <FormControlLabel value="without" control={<Radio />} label="SEM" />
+              </RadioGroup>
+            </FormControl>
+          ) : null}
+
+          {showSex ? (
+            <FormControl>
+              <FormLabel>Sexo</FormLabel>
+              <RadioGroup row value={sex ?? ""} onChange={(e) => setSex(e.target.value as "M" | "F")}>
+                <FormControlLabel value="M" control={<Radio />} label="Masculino" />
+                <FormControlLabel value="F" control={<Radio />} label="Feminino" />
+              </RadioGroup>
+            </FormControl>
+          ) : null}
+
+          {showSide ? (
+            <FormControl>
+              <FormLabel>Lado</FormLabel>
+              <RadioGroup
+                row
+                value={side ?? ""}
+                onChange={(e) => setSide(e.target.value as "RIGHT" | "LEFT")}
+              >
+                <FormControlLabel value="RIGHT" control={<Radio />} label="Direito" />
+                <FormControlLabel value="LEFT" control={<Radio />} label="Esquerdo" />
+              </RadioGroup>
+            </FormControl>
+          ) : null}
 
           <Button
             variant="contained"
             color="primary"
-            onClick={() => router.push("/report-findings")}
+            disabled={loading || !template}
+            onClick={validateAndContinue}
           >
             CONTINUAR
           </Button>

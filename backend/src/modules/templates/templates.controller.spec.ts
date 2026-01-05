@@ -20,6 +20,17 @@ describe("TemplatesController", () => {
             listTemplates: () => [
               { id: "ct-cranio-normal-v1", name: "TOMOGRAFIA COMPUTADORIZADA DO CRÂNIO", examType: "CT" },
             ],
+            getTemplateDetail: () => ({
+              id: "ct-cranio-normal-v1",
+              name: "TOMOGRAFIA COMPUTADORIZADA DO CRÂNIO",
+              examType: "CT",
+              requires: {
+                indication: "optional",
+                sex: "none",
+                contrast: "required",
+                side: "required",
+              },
+            }),
           },
         },
       ],
@@ -43,5 +54,23 @@ describe("TemplatesController", () => {
     expect(res.body).toEqual([
       { id: "ct-cranio-normal-v1", name: "TOMOGRAFIA COMPUTADORIZADA DO CRÂNIO", examType: "CT" },
     ]);
+  });
+
+  it("GET /templates/:id returns template detail with requires", async () => {
+    const res = await request(app.getHttpServer())
+      .get("/templates/ct-cranio-normal-v1")
+      .expect(200);
+
+    expect(res.body).toEqual({
+      id: "ct-cranio-normal-v1",
+      name: "TOMOGRAFIA COMPUTADORIZADA DO CRÂNIO",
+      examType: "CT",
+      requires: {
+        indication: "optional",
+        sex: "none",
+        contrast: "required",
+        side: "required",
+      },
+    });
   });
 });

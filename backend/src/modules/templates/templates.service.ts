@@ -24,6 +24,13 @@ export type TemplateListItem = {
   examType: ExamType;
 };
 
+export type TemplateDetail = {
+  id: string;
+  name: string;
+  examType: ExamType;
+  requires: TemplateRequires;
+};
+
 export type RenderInput = {
   examType: ExamType;
   templateId: string;
@@ -121,6 +128,29 @@ export class TemplatesService {
       throw new BadRequestException("templateId inválido");
     }
     return path.join(dir, `${templateId}.md`);
+  }
+
+  private assertTemplateIdIsSafe(templateId: string): void {
+    const safeId = templateId.replace(/[^a-zA-Z0-9._-]/g, "");
+    if (safeId !== templateId) {
+      throw new BadRequestException("templateId inválido");
+    }
+  }
+
+  private resolveExamTypeForTemplateId(templateId: string): ExamType {
+    this.assertTemplateIdIsSafe(templateId);
+
+    for (const examType of SUPPORTED_EXAM_TYPES) {
+      const dir = this.resolveTemplatesDir(examType);
+      if (!dir) continue;
+
+      const candidate = path.join(dir, `${templateId}.md`);
+      if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+        return examType;
+      }
+    }
+
+    throw new BadRequestException("templateId inválido");
   }
 
   loadTemplateSource(templateId: string, examType: ExamType): string {
@@ -354,6 +384,23 @@ export class TemplatesService {
     }
 
     return out;
+  }
+
+  getTemplateDetail(templateId: string, examType?: ExamType): TemplateDetail {
+    const resolvedExamType = examType ?? this.resolveExamTypeForTemplateId(templateId);
+
+    const source = this.loadTemplateSource(templateId, resolvedExamType);
+    const parsed = this.parseFrontMatter(source);
+
+    const title = this.extractTitle(parsed.body);
+    const name = this.sanitizeTemplateName(title ?? templateId);
+
+    return {
+      id: templateId,
+      name,
+      examType: parsed.meta.exam_type,
+      requires: parsed.meta.requires,
+    };
   }
 
   renderResolvedMarkdown(input: RenderInput): { meta: TemplateMeta; markdown: string } {

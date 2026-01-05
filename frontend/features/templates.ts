@@ -12,6 +12,20 @@ export type TemplateListItem = {
   examType: string;
 };
 
+export type TemplateRequires = {
+  indication: "required" | "optional" | "none" | "fixed";
+  sex: "required" | "optional" | "none" | "fixed";
+  contrast: "required" | "optional" | "none" | "fixed";
+  side: "required" | "optional" | "none" | "fixed";
+};
+
+export type TemplateDetail = {
+  id: string;
+  name: string;
+  examType: string;
+  requires: TemplateRequires;
+};
+
 export async function fetchTemplatesByExamType(
   examType: string,
   accessToken: string,
@@ -22,4 +36,11 @@ export async function fetchTemplatesByExamType(
   );
 
   return items.map((t) => ({ id: t.id, label: t.name, examType: t.examType }));
+}
+
+export async function fetchTemplateDetail(
+  templateId: string,
+  accessToken: string,
+): Promise<TemplateDetail> {
+  return apiGet<TemplateDetail>(`/templates/${encodeURIComponent(templateId)}`, accessToken);
 }
