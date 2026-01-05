@@ -69,6 +69,10 @@ export class TemplatesService {
     return input.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
 
+  private sanitizeTemplateName(name: string): string {
+    return name.replace(/\{\{.*?\}\}/g, "").replace(/\s+/g, " ").trim();
+  }
+
   private hasTemplateIndicationSection(markdown: string): boolean {
     const normalized = this.stripDiacritics(markdown);
     return /\*\*\s*indicacao\s*:\s*\*\*/i.test(normalized);
@@ -340,9 +344,11 @@ export class TemplatesService {
 
       const title = this.extractTitle(parsed.body);
 
+      const name = this.sanitizeTemplateName(title ?? templateId);
+
       out.push({
         id: templateId,
-        name: title ?? templateId,
+        name,
         examType: parsed.meta.exam_type,
       });
     }
