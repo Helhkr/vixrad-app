@@ -2,13 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import CircularProgress from "@mui/material/CircularProgress";
 import Paper from "@mui/material/Paper";
-import Snackbar from "@mui/material/Snackbar";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -16,6 +14,7 @@ import Typography from "@mui/material/Typography";
 import { apiPost } from "@/features/api";
 
 import { useAppState } from "./state";
+import { useSnackbar } from "./snackbar";
 
 type AuthResponse = {
 	accessToken: string;
@@ -25,29 +24,25 @@ type AuthResponse = {
 export default function AuthPage() {
 	const router = useRouter();
 	const { setAccessToken, resetReport } = useAppState();
+	const { showMessage } = useSnackbar();
 
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [snackbarOpen, setSnackbarOpen] = useState(false);
-	const [snackbarMessage, setSnackbarMessage] = useState("");
-	const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
 	const run = async (mode: "login" | "register") => {
-		setSnackbarOpen(false);
 		setLoading(true);
 		try {
 			const data = await apiPost<AuthResponse>(`/auth/${mode}`, { email, password });
 			setAccessToken(data.accessToken);
 			resetReport();
-			setSnackbarMessage(mode === "login" ? "Login realizado com sucesso!" : "Usuário registrado com sucesso!");
-			setSnackbarSeverity("success");
-			setSnackbarOpen(true);
-			setTimeout(() => router.push("/templates"), 250);
+			showMessage(
+				mode === "login" ? "Login realizado com sucesso!" : "Usuário registrado com sucesso!",
+				"success",
+			);
+			router.push("/templates");
 		} catch (e) {
-			setSnackbarMessage(e instanceof Error ? e.message : "Erro ao autenticar");
-			setSnackbarSeverity("error");
-			setSnackbarOpen(true);
+			showMessage(e instanceof Error ? e.message : "Erro ao autenticar", "error");
 		} finally {
 			setLoading(false);
 		}
@@ -110,17 +105,6 @@ export default function AuthPage() {
 							<CircularProgress />
 						</Box>
 					) : null}
-
-					<Snackbar
-						open={snackbarOpen}
-						autoHideDuration={4000}
-						onClose={() => setSnackbarOpen(false)}
-						anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-					>
-						<Alert severity={snackbarSeverity} onClose={() => setSnackbarOpen(false)}>
-							{snackbarMessage}
-						</Alert>
-					</Snackbar>
 				</Stack>
 			</Paper>
 		</Container>

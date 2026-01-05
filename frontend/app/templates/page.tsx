@@ -2,29 +2,26 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Alert from "@mui/material/Alert";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import Paper from "@mui/material/Paper";
-import Snackbar from "@mui/material/Snackbar";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
 import { fetchCtTemplates, type TemplateOption } from "@/features/templates";
 import { useAppState } from "../state";
+import { useSnackbar } from "../snackbar";
 
 export default function TemplatesPage() {
   const router = useRouter();
   const { accessToken, templateId, setTemplateId } = useAppState();
+  const { showMessage } = useSnackbar();
   const [options, setOptions] = useState<TemplateOption[]>([]);
   const [loading, setLoading] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
   useEffect(() => {
     if (!accessToken) {
@@ -34,7 +31,6 @@ export default function TemplatesPage() {
 
     let cancelled = false;
     setLoading(true);
-    setSnackbarOpen(false);
 
     fetchCtTemplates(accessToken)
       .then((items) => {
@@ -43,9 +39,7 @@ export default function TemplatesPage() {
       })
       .catch((e) => {
         if (cancelled) return;
-        setSnackbarMessage(e instanceof Error ? e.message : "Erro ao carregar templates");
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
+        showMessage(e instanceof Error ? e.message : "Erro ao carregar templates", "error");
       })
       .finally(() => {
         if (cancelled) return;
@@ -63,9 +57,7 @@ export default function TemplatesPage() {
 
   const next = () => {
     if (!templateId) {
-      setSnackbarMessage("Selecione um template.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      showMessage("Selecione um template.", "error");
       return;
     }
     router.push("/report-form");
@@ -103,17 +95,6 @@ export default function TemplatesPage() {
           <Button variant="contained" disabled={loading} onClick={next}>
             Continuar
           </Button>
-
-          <Snackbar
-            open={snackbarOpen}
-            autoHideDuration={4000}
-            onClose={() => setSnackbarOpen(false)}
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-          >
-            <Alert severity={snackbarSeverity} onClose={() => setSnackbarOpen(false)}>
-              {snackbarMessage}
-            </Alert>
-          </Snackbar>
         </Stack>
       </Paper>
     </Container>

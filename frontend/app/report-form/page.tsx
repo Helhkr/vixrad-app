@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -13,13 +12,13 @@ import FormLabel from "@mui/material/FormLabel";
 import Paper from "@mui/material/Paper";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
-import Snackbar from "@mui/material/Snackbar";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
 import { apiPost } from "@/features/api";
 import { useAppState } from "../state";
+import { useSnackbar } from "../snackbar";
 
 type GenerateResponse = {
   reportText: string;
@@ -40,10 +39,9 @@ export default function ReportFormPage() {
     setReportText,
   } = useAppState();
 
+  const { showMessage } = useSnackbar();
+
   const [loading, setLoading] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
   useEffect(() => {
     if (!accessToken) router.replace("/");
@@ -56,7 +54,6 @@ export default function ReportFormPage() {
   const submit = async () => {
     if (!accessToken || !templateId) return;
 
-    setSnackbarOpen(false);
     setLoading(true);
     try {
       const data = await apiPost<GenerateResponse>(
@@ -73,14 +70,10 @@ export default function ReportFormPage() {
 
       setReportText(data.reportText);
 
-      setSnackbarMessage("Laudo gerado com sucesso!");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
-      setTimeout(() => router.push("/report-result"), 250);
+      showMessage("Laudo gerado com sucesso!", "success");
+      router.push("/report-result");
     } catch (e) {
-      setSnackbarMessage(e instanceof Error ? e.message : "Erro ao gerar laudo");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      showMessage(e instanceof Error ? e.message : "Erro ao gerar laudo", "error");
     } finally {
       setLoading(false);
     }
@@ -137,17 +130,6 @@ export default function ReportFormPage() {
               <CircularProgress />
             </Box>
           ) : null}
-
-          <Snackbar
-            open={snackbarOpen}
-            autoHideDuration={4000}
-            onClose={() => setSnackbarOpen(false)}
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-          >
-            <Alert severity={snackbarSeverity} onClose={() => setSnackbarOpen(false)}>
-              {snackbarMessage}
-            </Alert>
-          </Snackbar>
         </Stack>
       </Paper>
     </Container>
