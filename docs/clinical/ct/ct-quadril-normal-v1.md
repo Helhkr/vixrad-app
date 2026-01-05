@@ -9,12 +9,7 @@ requires:
 
 # TOMOGRAFIA COMPUTADORIZADA DO QUADRIL {{LADO}}
 
-**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica
-<!-- IF CONTRASTE -->
-após a administração de meio de contraste iodado endovenoso.
-<!-- ELSE -->
-sem a administração de meio de contraste iodado endovenoso.
-<!-- ENDIF CONTRASTE -->
+**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica <!-- IF CONTRASTE -->antes e após a administração de meio de contraste iodado endovenoso.<!-- ELSE -->sem a administração de meio de contraste iodado endovenoso.<!-- ENDIF CONTRASTE -->
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
