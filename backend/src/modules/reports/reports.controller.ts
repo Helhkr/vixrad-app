@@ -12,7 +12,7 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @UseGuards(JwtAuthGuard, TrialGuard, ReportsRateLimitGuard)
-  @Throttle({ default: { limit: 10, ttl: 60 } })
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @HttpCode(200)
   @Post("generate")
   generate(@Body() dto: GenerateReportDto) {

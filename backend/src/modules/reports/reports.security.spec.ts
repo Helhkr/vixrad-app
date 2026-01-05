@@ -59,7 +59,7 @@ describe("Reports security", () => {
       imports: [
         ThrottlerModule.forRoot([
           {
-            ttl: 60,
+            ttl: 60_000,
             limit: 10,
           },
         ]),

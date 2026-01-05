@@ -18,7 +18,7 @@ import { ReportsService } from "./reports.service";
 		TemplatesModule,
 		ThrottlerModule.forRoot([
 			{
-				ttl: 60,
+				ttl: 60_000,
 				limit: 10,
 			},
 		]),
