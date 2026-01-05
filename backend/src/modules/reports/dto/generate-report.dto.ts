@@ -2,8 +2,8 @@ import { IsIn, IsOptional, IsString, MaxLength } from "class-validator";
 
 export class GenerateReportDto {
   @IsString()
-  @IsIn(["CT"], { message: "examType inválido" })
-  examType!: string;
+  @IsIn(["CT", "XR", "US", "MR", "MG", "DXA", "NM"], { message: "examType inválido" })
+  examType!: "CT" | "XR" | "US" | "MR" | "MG" | "DXA" | "NM";
 
   @IsString()
   @MaxLength(64)
@@ -16,6 +16,25 @@ export class GenerateReportDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(["M", "F"], { message: "sex inválido" })
+  sex?: "M" | "F";
+
+  @IsOptional()
+  @IsString()
+  @IsIn(["RIGHT", "LEFT"], { message: "side inválido" })
+  side?: "RIGHT" | "LEFT";
+
+  @IsOptional()
+  @IsString()
+  @IsIn(["with", "without"], { message: "contrast inválido" })
+  contrast?: "with" | "without";
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  notes?: string;
+
+  @IsString()
   @MaxLength(8000)
-  findings?: string;
+  findings!: string;
 }

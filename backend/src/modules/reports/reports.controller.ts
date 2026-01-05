@@ -16,6 +16,11 @@ export class ReportsController {
     return this.reportsService.generateStructuredBaseReport({
       examType: dto.examType,
       templateId: dto.templateId,
+      indication: dto.indication,
+      sex: dto.sex,
+      side: dto.side,
+      contrast: dto.contrast,
+      notes: dto.notes,
     });
   }
 }
