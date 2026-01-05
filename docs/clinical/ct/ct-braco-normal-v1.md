@@ -7,7 +7,7 @@ requires:
   side: required
 ---
 
-# TOMOGRAFIA COMPUTADORIZADA DO {{LADO}}
+# TOMOGRAFIA COMPUTADORIZADA DO BRAÇO {{LADO}}
 
 **Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica <!-- IF CONTRASTE -->antes e após a administração de meio de contraste iodado endovenoso.<!-- ELSE -->sem a administração de meio de contraste iodado endovenoso.<!-- ENDIF CONTRASTE -->
 
