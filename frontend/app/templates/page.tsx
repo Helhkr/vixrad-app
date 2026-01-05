@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
+import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
@@ -97,6 +99,10 @@ export default function TemplatesPage() {
     <Container maxWidth="sm" sx={{ py: 6 }}>
       <Paper sx={{ p: 3 }}>
         <Stack spacing={2}>
+          <IconButton onClick={() => router.back()}>
+            <ArrowBackIcon />
+          </IconButton>
+
           <Typography variant="h6" component="h1">
             Seleção de Template
           </Typography>
@@ -155,6 +161,12 @@ export default function TemplatesPage() {
           </Button>
         </Stack>
       </Paper>
+
+      <Box mt={4} textAlign="center">
+        <Button variant="text" color="error" onClick={() => router.push("/templates")}>
+          INICIAR NOVO LAUDO
+        </Button>
+      </Box>
     </Container>
   );
 }

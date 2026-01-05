@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
+import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -13,7 +16,7 @@ import { useAppState } from "../state";
 
 export default function ReportResultPage() {
   const router = useRouter();
-  const { reportText, resetReport } = useAppState();
+  const { reportText } = useAppState();
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -23,20 +26,25 @@ export default function ReportResultPage() {
     setTimeout(() => setCopied(false), 1200);
   };
 
-  const startOver = () => {
-    resetReport();
-    router.push("/templates");
-  };
-
   if (!reportText) {
     return (
       <Container maxWidth="sm" sx={{ py: 6 }}>
         <Stack spacing={2}>
+          <IconButton onClick={() => router.back()}>
+            <ArrowBackIcon />
+          </IconButton>
+
           <Alert severity="error">Nenhum laudo disponível. Gere um laudo novamente.</Alert>
           <Button variant="contained" onClick={() => router.replace("/report-form")}
           >
             Voltar
           </Button>
+
+          <Box mt={4} textAlign="center">
+            <Button variant="text" color="error" onClick={() => router.push("/templates")}>
+              INICIAR NOVO LAUDO
+            </Button>
+          </Box>
         </Stack>
       </Container>
     );
@@ -45,6 +53,10 @@ export default function ReportResultPage() {
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
       <Stack spacing={2}>
+        <IconButton onClick={() => router.back()}>
+          <ArrowBackIcon />
+        </IconButton>
+
         <Typography variant="h6" component="h1">
           Laudo
         </Typography>
@@ -55,9 +67,6 @@ export default function ReportResultPage() {
           <Button variant="outlined" onClick={copy}>
             Copiar laudo normal
           </Button>
-          <Button variant="contained" onClick={startOver}>
-            Novo laudo
-          </Button>
         </Stack>
 
         {copied ? (
@@ -65,6 +74,12 @@ export default function ReportResultPage() {
             Copiado.
           </Typography>
         ) : null}
+
+        <Box mt={4} textAlign="center">
+          <Button variant="text" color="error" onClick={() => router.push("/templates")}>
+            INICIAR NOVO LAUDO
+          </Button>
+        </Box>
       </Stack>
     </Container>
   );

@@ -7,13 +7,8 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
-import FormControl from "@mui/material/FormControl";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormLabel from "@mui/material/FormLabel";
 import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -26,16 +21,16 @@ type GenerateResponse = {
   reportText: string;
 };
 
-export default function ReportFormPage() {
+export default function ReportFindingsPage() {
   const router = useRouter();
   const {
     accessToken,
     examType,
     templateId,
     indication,
-    setIndication,
     contrast,
-    setContrast,
+    findings,
+    setFindings,
     setReportText,
   } = useAppState();
 
@@ -55,7 +50,7 @@ export default function ReportFormPage() {
     if (!templateId) router.replace("/templates");
   }, [templateId, router]);
 
-  const handleCopyNormal = async () => {
+  const submit = async () => {
     if (!accessToken || !examType || !templateId) return;
 
     setLoading(true);
@@ -67,15 +62,15 @@ export default function ReportFormPage() {
           templateId,
           contrast,
           indication: indication || undefined,
-          findings: null,
+          findings: findings || undefined,
         },
         accessToken,
       );
 
       setReportText(data.reportText);
 
-      await navigator.clipboard.writeText(data.reportText);
-      showMessage("Laudo normal copiado!", "success");
+      showMessage("Laudo gerado com sucesso!", "success");
+      router.push("/report-result");
     } catch (e) {
       showMessage(e instanceof Error ? e.message : "Erro ao gerar laudo", "error");
     } finally {
@@ -92,7 +87,7 @@ export default function ReportFormPage() {
           </IconButton>
 
           <Typography variant="h6" component="h1">
-            Indicação / Contraste
+            Achados
           </Typography>
 
           <Typography variant="body2" color="text.secondary">
@@ -100,39 +95,17 @@ export default function ReportFormPage() {
           </Typography>
 
           <TextField
-            label="Indicação"
+            label="Achados"
             fullWidth
             multiline
-            minRows={2}
-            value={indication}
-            onChange={(e) => setIndication(e.target.value)}
+            minRows={6}
+            value={findings}
+            onChange={(e) => setFindings(e.target.value)}
           />
 
-          <FormControl>
-            <FormLabel>Contraste</FormLabel>
-            <RadioGroup
-              row
-              value={contrast}
-              onChange={(e) => setContrast(e.target.value as "with" | "without")}
-            >
-              <FormControlLabel value="with" control={<Radio />} label="COM" />
-              <FormControlLabel value="without" control={<Radio />} label="SEM" />
-            </RadioGroup>
-          </FormControl>
-
-          <Stack direction="row" spacing={2}>
-            <Button variant="contained" color="primary" onClick={handleCopyNormal}>
-              COPIAR LAUDO NORMAL
-            </Button>
-
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => router.push("/report-findings")}
-            >
-              DESCREVER ACHADOS
-            </Button>
-          </Stack>
+          <Button variant="contained" disabled={loading} onClick={submit}>
+            GERAR
+          </Button>
 
           {loading ? (
             <Box display="flex" justifyContent="center" mt={1}>
@@ -143,7 +116,11 @@ export default function ReportFormPage() {
       </Paper>
 
       <Box mt={4} textAlign="center">
-        <Button variant="text" color="error" onClick={() => router.push("/templates")}>
+        <Button
+          variant="text"
+          color="error"
+          onClick={() => router.push("/templates")}
+        >
           INICIAR NOVO LAUDO
         </Button>
       </Box>
