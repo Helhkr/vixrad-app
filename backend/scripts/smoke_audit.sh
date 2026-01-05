@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BACKEND_DIR="/home/juanr/vixrad-app/backend"
+BACKEND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PORT="${PORT:-3002}"
 
 SERVER_LOG="$BACKEND_DIR/smoke_audit.server.log"
@@ -12,6 +12,10 @@ PID_FILE="$BACKEND_DIR/smoke_audit.pid"
 rm -f "$SERVER_LOG" "$REGISTER_JSON" "$REPORT_JSON" "$PID_FILE"
 
 cd "$BACKEND_DIR"
+
+# Ensure DB schema is present (CI starts with a fresh Postgres)
+DATABASE_URL='postgresql://postgres:postgres@localhost:5432/vixrad?schema=public' \
+  npx prisma migrate deploy >/dev/null 2>&1
 
 # Start server with absolute log path
 DATABASE_URL='postgresql://postgres:postgres@localhost:5432/vixrad?schema=public' \
