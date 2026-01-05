@@ -73,7 +73,7 @@ export default function TemplatesPage() {
           <Autocomplete
             options={options}
             value={selected}
-            getOptionLabel={(opt: TemplateOption) => opt.label}
+            getOptionLabel={(opt: TemplateOption) => `${opt.examType} — ${opt.label}`}
             isOptionEqualToValue={(a, b) => a.id === b.id}
             onChange={(_, value) => setTemplateId(value?.id ?? null)}
             renderInput={(params) => (

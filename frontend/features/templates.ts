@@ -3,6 +3,7 @@ import { apiGet } from "./api";
 export type TemplateOption = {
   id: string;
   label: string;
+  examType: string;
 };
 
 export type TemplateListItem = {
@@ -16,5 +17,5 @@ export async function fetchCtTemplates(accessToken: string): Promise<TemplateOpt
 
   return items
     .filter((t) => t.examType === "CT")
-    .map((t) => ({ id: t.id, label: t.name }));
+    .map((t) => ({ id: t.id, label: t.name, examType: t.examType }));
 }
