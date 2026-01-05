@@ -218,6 +218,36 @@ O Editor é o componente central do sistema e **deve conter**:
 
 ---
 
+## CI (Backend) — Como validar localmente
+
+O repositório possui um workflow de CI para o backend (testes, build e smoke checks). Para reproduzir localmente os mesmos passos do CI, você precisa de **Node.js 20** e **Docker**.
+
+1) Suba o Postgres (porta 5432):
+
+```bash
+docker compose up -d postgres
+```
+
+2) Execute testes, build e smoke checks do backend:
+
+```bash
+cd backend
+npm ci
+npm test
+npm run build
+
+# Smoke checks (não devem logar conteúdo sensível)
+bash scripts/smoke_audit.sh
+bash scripts/smoke_security.sh
+```
+
+Notas:
+- Os smoke scripts aplicam migrations automaticamente com `prisma migrate deploy` (útil em ambientes limpos como o CI).
+- `smoke_audit.sh` valida que a auditoria registra apenas metadados (sem achados/indicação/laudo).
+- `smoke_security.sh` valida `401` para token expirado e `429` ao exceder o rate limit.
+
+---
+
 ## Nota Final
 
 O Vixrad é uma ferramenta médica profissional.
