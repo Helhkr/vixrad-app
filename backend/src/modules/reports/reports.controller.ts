@@ -21,6 +21,7 @@ export class ReportsController {
       side: dto.side,
       contrast: dto.contrast,
       notes: dto.notes,
+      findings: dto.findings,
     });
   }
 }

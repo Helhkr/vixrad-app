@@ -34,7 +34,8 @@ export class GenerateReportDto {
   @MaxLength(2000)
   notes?: string;
 
+  @IsOptional()
   @IsString()
   @MaxLength(8000)
-  findings!: string;
+  findings?: string;
 }
