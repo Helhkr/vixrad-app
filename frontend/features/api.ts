@@ -3,13 +3,31 @@ export const API_BASE_URL =
 
 type Json = Record<string, unknown>;
 
+function buildHeaders(accessToken?: string | null): HeadersInit {
+  return {
+    "Content-Type": "application/json",
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+  };
+}
+
+export async function apiGet<T>(path: string, accessToken?: string | null): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "GET",
+    headers: buildHeaders(accessToken),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`${res.status} ${res.statusText}${text ? `: ${text}` : ""}`);
+  }
+
+  return (await res.json()) as T;
+}
+
 export async function apiPost<T>(path: string, body: Json, accessToken?: string | null): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    },
+    headers: buildHeaders(accessToken),
     body: JSON.stringify(body),
   });
 

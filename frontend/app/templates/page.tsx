@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Autocomplete from "@mui/material/Autocomplete";
 import Button from "@mui/material/Button";
@@ -10,17 +10,48 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
-import { CT_TEMPLATES, type TemplateOption } from "@/features/templates";
+import { fetchCtTemplates, type TemplateOption } from "@/features/templates";
 import { useAppState } from "../state";
 
 export default function TemplatesPage() {
   const router = useRouter();
-  const { templateId, setTemplateId } = useAppState();
+  const { accessToken, templateId, setTemplateId } = useAppState();
+  const [options, setOptions] = useState<TemplateOption[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!accessToken) {
+      router.replace("/");
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    fetchCtTemplates(accessToken)
+      .then((items) => {
+        if (cancelled) return;
+        setOptions(items);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setError(e instanceof Error ? e.message : "Erro ao carregar templates");
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, router]);
+
   const selected = useMemo(() => {
-    return CT_TEMPLATES.find((t) => t.id === templateId) ?? null;
-  }, [templateId]);
+    return options.find((t) => t.id === templateId) ?? null;
+  }, [options, templateId]);
 
   const next = () => {
     setError(null);
@@ -40,12 +71,18 @@ export default function TemplatesPage() {
           </Typography>
 
           <Autocomplete
-            options={CT_TEMPLATES}
+            options={options}
             value={selected}
             getOptionLabel={(opt: TemplateOption) => opt.label}
             isOptionEqualToValue={(a, b) => a.id === b.id}
             onChange={(_, value) => setTemplateId(value?.id ?? null)}
-            renderInput={(params) => <TextField {...params} label="Template" />}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Template"
+                helperText={loading ? "Carregando..." : undefined}
+              />
+            )}
           />
 
           {error ? (
