@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState } from "react";
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
 
-type SnackbarSeverity = "success" | "error";
+type SnackbarSeverity = "success" | "error" | "warning" | "info";
 
 type SnackbarContextType = {
   showMessage: (msg: string, severity?: SnackbarSeverity) => void;
