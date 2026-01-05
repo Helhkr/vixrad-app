@@ -65,7 +65,7 @@ export default function ReportResultPage() {
 
         <Stack direction="row" spacing={2}>
           <Button variant="outlined" onClick={copy}>
-            Copiar laudo normal
+            COPIAR LAUDO
           </Button>
         </Stack>
 
