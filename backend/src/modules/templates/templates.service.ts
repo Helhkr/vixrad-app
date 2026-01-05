@@ -18,6 +18,12 @@ export type TemplateMeta = {
   requires: TemplateRequires;
 };
 
+export type TemplateListItem = {
+  id: string;
+  name: string;
+  examType: ExamType;
+};
+
 export type RenderInput = {
   examType: ExamType;
   templateId: string;
@@ -271,6 +277,40 @@ export class TemplatesService {
       }
       return value;
     });
+  }
+
+  private extractTitle(bodyMarkdown: string): string | null {
+    for (const line of bodyMarkdown.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("# ")) {
+        return trimmed.replace(/^#\s+/, "").trim() || null;
+      }
+    }
+    return null;
+  }
+
+  listTemplates(): TemplateListItem[] {
+    const dir = this.resolveTemplatesDir();
+    const entries = fs
+      .readdirSync(dir)
+      .filter((name) => name.endsWith(".md"))
+      .sort((a, b) => a.localeCompare(b));
+
+    const out: TemplateListItem[] = [];
+    for (const fileName of entries) {
+      const templateId = fileName.replace(/\.md$/, "");
+      const source = this.loadTemplateSource(templateId);
+      const parsed = this.parseFrontMatter(source);
+      const title = this.extractTitle(parsed.body);
+
+      out.push({
+        id: templateId,
+        name: title ?? templateId,
+        examType: parsed.meta.exam_type,
+      });
+    }
+
+    return out;
   }
 
   renderResolvedMarkdown(input: RenderInput): { meta: TemplateMeta; markdown: string } {
