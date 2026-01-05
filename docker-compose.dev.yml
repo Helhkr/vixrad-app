@@ -41,7 +41,7 @@ services:
       - ./frontend:/app/frontend
       - /app/frontend/node_modules
     command: >
-      sh -c "npm run dev"
+      sh -c "npm run dev -- --turbopack"
 
   postgres:
     image: postgres:15
