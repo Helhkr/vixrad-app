@@ -24,7 +24,6 @@ services:
 
   frontend:
     container_name: vixrad-frontend-dev
-    user: "${UID:-1000}:${GID:-1000}"
     build:
       context: .
       dockerfile: frontend/Dockerfile
@@ -40,6 +39,8 @@ services:
     volumes:
       - ./frontend:/app/frontend
       - /app/frontend/node_modules
+      - frontend_next:/app/frontend/.next
+      - frontend_turbo:/app/frontend/.turbo
     command: >
       sh -c "npm run dev -- --turbopack"
 
@@ -61,3 +62,5 @@ services:
 
 volumes:
   postgres_data:
+  frontend_next:
+  frontend_turbo:
