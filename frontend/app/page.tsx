@@ -29,14 +29,17 @@ export default function AuthPage() {
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [success, setSuccess] = useState<string | null>(null);
 
 	const run = async (mode: "login" | "register") => {
 		setError(null);
+		setSuccess(null);
 		setLoading(true);
 		try {
 			const data = await apiPost<AuthResponse>(`/auth/${mode}`, { email, password });
 			setAccessToken(data.accessToken);
 			resetReport();
+			setSuccess(mode === "login" ? "Login realizado com sucesso!" : "Usuário registrado com sucesso!");
 			router.push("/templates");
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Erro ao autenticar");
@@ -77,6 +80,12 @@ export default function AuthPage() {
 						onChange={(e) => setPassword(e.target.value)}
 						autoComplete="current-password"
 					/>
+
+					{success ? (
+						<Alert severity="success" onClose={() => setSuccess(null)}>
+							{success}
+						</Alert>
+					) : null}
 
 					{error ? (
 						<Alert severity="error" onClose={() => setError(null)}>

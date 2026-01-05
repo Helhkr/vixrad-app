@@ -41,6 +41,7 @@ export default function ReportFormPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (!accessToken) router.replace("/");
@@ -54,6 +55,7 @@ export default function ReportFormPage() {
     if (!accessToken || !templateId) return;
 
     setError(null);
+    setSuccess(null);
     setLoading(true);
     try {
       const data = await apiPost<GenerateResponse>(
@@ -69,6 +71,7 @@ export default function ReportFormPage() {
       );
 
       setReportText(data.reportText);
+      setSuccess("Laudo gerado com sucesso!");
       router.push("/report-result");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao gerar laudo");
@@ -118,6 +121,12 @@ export default function ReportFormPage() {
               <FormControlLabel value="without" control={<Radio />} label="without" />
             </RadioGroup>
           </FormControl>
+
+          {success ? (
+            <Alert severity="success" onClose={() => setSuccess(null)}>
+              {success}
+            </Alert>
+          ) : null}
 
           {error ? (
             <Alert severity="error" onClose={() => setError(null)}>
