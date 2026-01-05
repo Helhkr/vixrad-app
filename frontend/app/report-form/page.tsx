@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -17,14 +16,7 @@ import RadioGroup from "@mui/material/RadioGroup";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-
-import { apiPost } from "@/features/api";
 import { useAppState } from "../state";
-import { useSnackbar } from "../snackbar";
-
-type GenerateResponse = {
-  reportText: string;
-};
 
 export default function ReportFormPage() {
   const router = useRouter();
@@ -36,12 +28,7 @@ export default function ReportFormPage() {
     setIndication,
     contrast,
     setContrast,
-    setReportText,
   } = useAppState();
-
-  const { showMessage } = useSnackbar();
-
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!accessToken) router.replace("/");
@@ -54,34 +41,6 @@ export default function ReportFormPage() {
   useEffect(() => {
     if (!templateId) router.replace("/templates");
   }, [templateId, router]);
-
-  const handleCopyNormal = async () => {
-    if (!accessToken || !examType || !templateId) return;
-
-    setLoading(true);
-    try {
-      const data = await apiPost<GenerateResponse>(
-        "/reports/generate",
-        {
-          examType,
-          templateId,
-          contrast,
-          indication: indication || undefined,
-          findings: null,
-        },
-        accessToken,
-      );
-
-      setReportText(data.reportText);
-
-      await navigator.clipboard.writeText(data.reportText);
-      showMessage("Laudo normal copiado!", "success");
-    } catch (e) {
-      showMessage(e instanceof Error ? e.message : "Erro ao gerar laudo", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
@@ -120,25 +79,13 @@ export default function ReportFormPage() {
             </RadioGroup>
           </FormControl>
 
-          <Stack direction="row" spacing={2}>
-            <Button variant="contained" color="primary" onClick={handleCopyNormal}>
-              COPIAR LAUDO NORMAL
-            </Button>
-
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => router.push("/report-findings")}
-            >
-              DESCREVER ACHADOS
-            </Button>
-          </Stack>
-
-          {loading ? (
-            <Box display="flex" justifyContent="center" mt={1}>
-              <CircularProgress />
-            </Box>
-          ) : null}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => router.push("/report-findings")}
+          >
+            CONTINUAR
+          </Button>
         </Stack>
       </Paper>
 

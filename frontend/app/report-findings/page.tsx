@@ -7,8 +7,13 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
+import FormControl from "@mui/material/FormControl";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormLabel from "@mui/material/FormLabel";
 import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
+import Radio from "@mui/material/Radio";
+import RadioGroup from "@mui/material/RadioGroup";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -28,7 +33,9 @@ export default function ReportFindingsPage() {
     examType,
     templateId,
     indication,
+    setIndication,
     contrast,
+    setContrast,
     findings,
     setFindings,
     setReportText,
@@ -50,7 +57,7 @@ export default function ReportFindingsPage() {
     if (!templateId) router.replace("/templates");
   }, [templateId, router]);
 
-  const submit = async () => {
+  const handleCopyNormal = async () => {
     if (!accessToken || !examType || !templateId) return;
 
     setLoading(true);
@@ -62,7 +69,41 @@ export default function ReportFindingsPage() {
           templateId,
           contrast,
           indication: indication || undefined,
-          findings: findings || undefined,
+          findings: null,
+        },
+        accessToken,
+      );
+
+      setReportText(data.reportText);
+
+      await navigator.clipboard.writeText(data.reportText);
+      showMessage("Laudo normal copiado!", "success");
+    } catch (e) {
+      showMessage(e instanceof Error ? e.message : "Erro ao gerar laudo", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateWithAI = async () => {
+    if (!accessToken || !examType || !templateId) return;
+
+    const trimmedFindings = findings.trim();
+    if (!trimmedFindings) {
+      showMessage("Preencha os achados.", "error");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = await apiPost<GenerateResponse>(
+        "/reports/generate",
+        {
+          examType,
+          templateId,
+          contrast,
+          indication: indication || undefined,
+          findings: trimmedFindings,
         },
         accessToken,
       );
@@ -95,6 +136,27 @@ export default function ReportFindingsPage() {
           </Typography>
 
           <TextField
+            label="Indicação"
+            fullWidth
+            multiline
+            minRows={2}
+            value={indication}
+            onChange={(e) => setIndication(e.target.value)}
+          />
+
+          <FormControl>
+            <FormLabel>Contraste</FormLabel>
+            <RadioGroup
+              row
+              value={contrast}
+              onChange={(e) => setContrast(e.target.value as "with" | "without")}
+            >
+              <FormControlLabel value="with" control={<Radio />} label="COM" />
+              <FormControlLabel value="without" control={<Radio />} label="SEM" />
+            </RadioGroup>
+          </FormControl>
+
+          <TextField
             label="Achados"
             fullWidth
             multiline
@@ -103,9 +165,25 @@ export default function ReportFindingsPage() {
             onChange={(e) => setFindings(e.target.value)}
           />
 
-          <Button variant="contained" disabled={loading} onClick={submit}>
-            GERAR
-          </Button>
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={loading}
+              onClick={handleCopyNormal}
+            >
+              COPIAR LAUDO NORMAL
+            </Button>
+
+            <Button
+              variant="outlined"
+              color="secondary"
+              disabled={loading}
+              onClick={handleGenerateWithAI}
+            >
+              GERAR COM IA
+            </Button>
+          </Stack>
 
           {loading ? (
             <Box display="flex" justifyContent="center" mt={1}>
