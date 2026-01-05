@@ -66,15 +66,10 @@ export class TemplatesService {
       path.resolve(process.cwd(), "../../docs/clinical/ct"),
     ];
 
-    const envPath = process.env.CLINICAL_TEMPLATES_DIR;
-    if (envPath) {
-      candidates.unshift(path.resolve(envPath));
-    }
-
     const found = candidates.find((p) => fs.existsSync(p) && fs.statSync(p).isDirectory());
     if (!found) {
       throw new Error(
-        `Clinical templates directory not found. Tried: ${candidates.join(", ")}. Set CLINICAL_TEMPLATES_DIR.`,
+        `Clinical templates directory not found. Tried: ${candidates.join(", ")}.`,
       );
     }
 
@@ -96,7 +91,11 @@ export class TemplatesService {
     if (!fs.existsSync(filePath)) {
       throw new BadRequestException("templateId inválido");
     }
-    return fs.readFileSync(filePath, "utf-8");
+    const source = fs.readFileSync(filePath, "utf-8");
+    if (source.trim().length === 0) {
+      throw new BadRequestException("Template vazio");
+    }
+    return source;
   }
 
   parseFrontMatter(source: string): { meta: TemplateMeta; body: string } {

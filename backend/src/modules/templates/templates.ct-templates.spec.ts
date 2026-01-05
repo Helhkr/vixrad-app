@@ -29,7 +29,12 @@ describe("CT templates in docs/clinical/ct", () => {
     for (const filename of files) {
       const templateId = filename.replace(/\.md$/, "");
       const source = fs.readFileSync(path.join(templatesDir as string, filename), "utf-8");
+
+      expect(source.trim().length).toBeGreaterThan(0);
+
       const parsed = service.parseFrontMatter(source);
+
+      expect(parsed.meta.exam_type).toBe("CT");
 
       // Use minimal inputs that satisfy requires.
       const input: Parameters<typeof service.renderResolvedMarkdown>[0] = {
