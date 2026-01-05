@@ -13,6 +13,7 @@ import FormLabel from "@mui/material/FormLabel";
 import Paper from "@mui/material/Paper";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
+import Snackbar from "@mui/material/Snackbar";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -40,8 +41,9 @@ export default function ReportFormPage() {
   } = useAppState();
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
   useEffect(() => {
     if (!accessToken) router.replace("/");
@@ -54,8 +56,7 @@ export default function ReportFormPage() {
   const submit = async () => {
     if (!accessToken || !templateId) return;
 
-    setError(null);
-    setSuccess(null);
+    setSnackbarOpen(false);
     setLoading(true);
     try {
       const data = await apiPost<GenerateResponse>(
@@ -71,10 +72,15 @@ export default function ReportFormPage() {
       );
 
       setReportText(data.reportText);
-      setSuccess("Laudo gerado com sucesso!");
-      router.push("/report-result");
+
+      setSnackbarMessage("Laudo gerado com sucesso!");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
+      setTimeout(() => router.push("/report-result"), 250);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao gerar laudo");
+      setSnackbarMessage(e instanceof Error ? e.message : "Erro ao gerar laudo");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     } finally {
       setLoading(false);
     }
@@ -122,18 +128,6 @@ export default function ReportFormPage() {
             </RadioGroup>
           </FormControl>
 
-          {success ? (
-            <Alert severity="success" onClose={() => setSuccess(null)}>
-              {success}
-            </Alert>
-          ) : null}
-
-          {error ? (
-            <Alert severity="error" onClose={() => setError(null)}>
-              {error}
-            </Alert>
-          ) : null}
-
           <Button variant="contained" disabled={loading} onClick={submit}>
             Gerar
           </Button>
@@ -143,6 +137,17 @@ export default function ReportFormPage() {
               <CircularProgress />
             </Box>
           ) : null}
+
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={4000}
+            onClose={() => setSnackbarOpen(false)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          >
+            <Alert severity={snackbarSeverity} onClose={() => setSnackbarOpen(false)}>
+              {snackbarMessage}
+            </Alert>
+          </Snackbar>
         </Stack>
       </Paper>
     </Container>

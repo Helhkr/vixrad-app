@@ -8,6 +8,7 @@ import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import CircularProgress from "@mui/material/CircularProgress";
 import Paper from "@mui/material/Paper";
+import Snackbar from "@mui/material/Snackbar";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -28,21 +29,25 @@ export default function AuthPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [success, setSuccess] = useState<string | null>(null);
+	const [snackbarOpen, setSnackbarOpen] = useState(false);
+	const [snackbarMessage, setSnackbarMessage] = useState("");
+	const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
 	const run = async (mode: "login" | "register") => {
-		setError(null);
-		setSuccess(null);
+		setSnackbarOpen(false);
 		setLoading(true);
 		try {
 			const data = await apiPost<AuthResponse>(`/auth/${mode}`, { email, password });
 			setAccessToken(data.accessToken);
 			resetReport();
-			setSuccess(mode === "login" ? "Login realizado com sucesso!" : "Usuário registrado com sucesso!");
-			router.push("/templates");
+			setSnackbarMessage(mode === "login" ? "Login realizado com sucesso!" : "Usuário registrado com sucesso!");
+			setSnackbarSeverity("success");
+			setSnackbarOpen(true);
+			setTimeout(() => router.push("/templates"), 250);
 		} catch (e) {
-			setError(e instanceof Error ? e.message : "Erro ao autenticar");
+			setSnackbarMessage(e instanceof Error ? e.message : "Erro ao autenticar");
+			setSnackbarSeverity("error");
+			setSnackbarOpen(true);
 		} finally {
 			setLoading(false);
 		}
@@ -81,18 +86,6 @@ export default function AuthPage() {
 						autoComplete="current-password"
 					/>
 
-					{success ? (
-						<Alert severity="success" onClose={() => setSuccess(null)}>
-							{success}
-						</Alert>
-					) : null}
-
-					{error ? (
-						<Alert severity="error" onClose={() => setError(null)}>
-							{error}
-						</Alert>
-					) : null}
-
 					<Stack direction="row" spacing={2}>
 						<Button
 							variant="contained"
@@ -117,6 +110,17 @@ export default function AuthPage() {
 							<CircularProgress />
 						</Box>
 					) : null}
+
+					<Snackbar
+						open={snackbarOpen}
+						autoHideDuration={4000}
+						onClose={() => setSnackbarOpen(false)}
+						anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+					>
+						<Alert severity={snackbarSeverity} onClose={() => setSnackbarOpen(false)}>
+							{snackbarMessage}
+						</Alert>
+					</Snackbar>
 				</Stack>
 			</Paper>
 		</Container>

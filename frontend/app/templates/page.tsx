@@ -9,6 +9,7 @@ import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import Paper from "@mui/material/Paper";
+import Snackbar from "@mui/material/Snackbar";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -21,7 +22,9 @@ export default function TemplatesPage() {
   const { accessToken, templateId, setTemplateId } = useAppState();
   const [options, setOptions] = useState<TemplateOption[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
   useEffect(() => {
     if (!accessToken) {
@@ -31,7 +34,7 @@ export default function TemplatesPage() {
 
     let cancelled = false;
     setLoading(true);
-    setError(null);
+    setSnackbarOpen(false);
 
     fetchCtTemplates(accessToken)
       .then((items) => {
@@ -40,7 +43,9 @@ export default function TemplatesPage() {
       })
       .catch((e) => {
         if (cancelled) return;
-        setError(e instanceof Error ? e.message : "Erro ao carregar templates");
+        setSnackbarMessage(e instanceof Error ? e.message : "Erro ao carregar templates");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
       })
       .finally(() => {
         if (cancelled) return;
@@ -57,9 +62,10 @@ export default function TemplatesPage() {
   }, [options, templateId]);
 
   const next = () => {
-    setError(null);
     if (!templateId) {
-      setError("Selecione um template.");
+      setSnackbarMessage("Selecione um template.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
     router.push("/report-form");
@@ -88,12 +94,6 @@ export default function TemplatesPage() {
             )}
           />
 
-          {error ? (
-            <Alert severity="error" onClose={() => setError(null)}>
-              {error}
-            </Alert>
-          ) : null}
-
           {loading ? (
             <Box display="flex" justifyContent="center" mt={1}>
               <CircularProgress />
@@ -103,6 +103,17 @@ export default function TemplatesPage() {
           <Button variant="contained" disabled={loading} onClick={next}>
             Continuar
           </Button>
+
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={4000}
+            onClose={() => setSnackbarOpen(false)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          >
+            <Alert severity={snackbarSeverity} onClose={() => setSnackbarOpen(false)}>
+              {snackbarMessage}
+            </Alert>
+          </Snackbar>
         </Stack>
       </Paper>
     </Container>
