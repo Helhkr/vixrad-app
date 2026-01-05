@@ -1,5 +1,7 @@
-import { Module } from "@nestjs/common";
+import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 
+import { AppController } from "./app.controller";
+import { AuditMiddleware } from "./common/middleware/audit.middleware";
 import { PrismaModule } from "./common/prisma/prisma.module";
 import { AiModule } from "./modules/ai/ai.module";
 import { AuditModule } from "./modules/audit/audit.module";
@@ -24,5 +26,10 @@ import { UsersModule } from "./modules/users/users.module";
     AuditModule,
     SecurityModule,
   ],
+  controllers: [AppController],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuditMiddleware).forRoutes("reports");
+  }
+}
