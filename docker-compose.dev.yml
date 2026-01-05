@@ -1,0 +1,62 @@
+services:
+  backend:
+    container_name: vixrad-backend-dev
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/vixrad?schema=public"
+      JWT_SECRET: "dev_secret"
+      JWT_REFRESH_SECRET: "dev_refresh_secret"
+      PORT: 3002
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./backend:/app/backend
+      - /app/backend/node_modules
+    command: >
+      sh -c "npx prisma migrate deploy &&
+             npm run dev"
+
+  frontend:
+    container_name: vixrad-frontend-dev
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: "http://localhost:3002"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: "http://localhost:3002"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    ports:
+      - "3003:3000"
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    command: >
+      sh -c "npm run dev"
+
+  postgres:
+    image: postgres:15
+    container_name: vixrad-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vixrad
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -17,7 +17,7 @@ Estas regras **não podem ser violadas**:
 1. **Nenhum laudo médico é persistido** (nem em banco, nem em logs).
 2. **Nenhum dado pessoal de paciente** transita pelo sistema.
 3. O backend é **stateless** em relação a conteúdo clínico.
-4. **Não utilizar localStorage, sessionStorage ou IndexedDB** para texto médico.
+4. **Não utilizar localStorage, sessionStorage ou IndexedDB** para texto médico ou dados clínicos.
 5. A IA **somente é chamada** quando o usuário explicitamente solicita geração de laudo.
 6. Templates médicos representam **exames normais** e podem ser copiados sem IA.
 7. Auditoria registra apenas **eventos técnicos**, nunca conteúdo médico.
@@ -75,6 +75,65 @@ vixrad/
 ```
 
 Essa estrutura **não é sugestão**, é o padrão esperado para o projeto.
+
+---
+
+## Como rodar com Docker Compose
+
+Pré-requisitos:
+- Docker + Docker Compose v2
+
+### Subir tudo (1 comando)
+
+Sobe Postgres + backend + frontend com build local:
+
+```bash
+docker compose up -d --build
+```
+
+URLs locais:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:3001
+- Postgres: localhost:5432
+
+Comandos úteis:
+
+```bash
+# Ver status
+docker compose ps
+
+# Ver logs
+docker compose logs -f backend
+docker compose logs -f frontend
+
+# Derrubar (mantém volume do Postgres)
+docker compose down
+
+# Derrubar e apagar volume do Postgres (zera o banco)
+docker compose down -v
+```
+
+Notas:
+- O backend aplica migrations automaticamente no startup via `npx prisma migrate deploy`.
+- O frontend é buildado com `NEXT_PUBLIC_API_BASE_URL` apontando para `http://localhost:3001` (configurado no compose).
+
+### Rodar modo DEV (hot reload)
+
+O repositório também inclui um compose para desenvolvimento (Nest `npm run dev` + Next `dev` com volumes):
+
+```bash
+docker compose -f docker-compose.dev.yml up -d --build
+```
+
+Portas típicas no modo dev:
+- Frontend: http://localhost:3003
+- Backend: http://localhost:3002
+
+Para parar:
+
+```bash
+docker compose -f docker-compose.dev.yml down
+```
 
 ---
 
