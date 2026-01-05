@@ -7,7 +7,7 @@ requires:
   side: required
 ---
 
-# TOMOGRAFIA COMPUTADORIZADA DO PÉ [DIREITO/ESQUERDO]
+# TOMOGRAFIA COMPUTADORIZADA DO PÉ {{LADO}}
 
 **Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica
 <!-- IF CONTRASTE -->

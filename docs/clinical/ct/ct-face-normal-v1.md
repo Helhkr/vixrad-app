@@ -4,7 +4,7 @@ requires:
   indication: optional
   sex: none
   contrast: required
-  side: required
+  side: none
 ---
 
 # TOMOGRAFIA COMPUTADORIZADA DA FACE

@@ -24,13 +24,13 @@ sem a administração de meio de contraste iodado endovenoso.
 
 Bexiga com boa repleção, apresentando paredes regulares e conteúdo homogêneo.
 
-<!-- SEXO:FEMININO -->
+<!-- IF SEXO_FEMININO -->
 Útero e ovários com morfologia, contornos e dimensões habituais. Ausência de massas anexiais.
-<!-- /SEXO:FEMININO -->
+<!-- ENDIF SEXO_FEMININO -->
 
-<!-- SEXO:MASCULINO -->
+<!-- IF SEXO_MASCULINO -->
 Próstata com dimensões e contornos preservados. Vesículas seminais anatômicas.
-<!-- /SEXO:MASCULINO -->
+<!-- ENDIF SEXO_MASCULINO -->
 
 Reto e cólon sigmoide sem espessamentos parietais evidentes.
 
