@@ -23,8 +23,9 @@ export class AuditMiddleware implements NestMiddleware {
     const token = match[1];
 
     try {
-      const secret = process.env.JWT_SECRET ?? "dev-secret-change-me";
-      const payload = this.jwtService.verify<JwtPayload>(token, { secret });
+      const payload = this.jwtService.verify<JwtPayload>(token, {
+        secret: process.env.JWT_SECRET,
+      });
       return payload?.sub;
     } catch {
       return undefined;

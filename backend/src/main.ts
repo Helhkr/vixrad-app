@@ -4,8 +4,11 @@ import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 
 import { AppModule } from "./app.module";
+import { validateEnv } from "./config/env";
 
 async function bootstrap() {
+	validateEnv(process.env);
+
 	const app = await NestFactory.create(AppModule, {
 		logger: ["error", "warn", "log"],
 	});

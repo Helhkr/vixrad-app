@@ -16,6 +16,7 @@ cd "$BACKEND_DIR"
 # Start server with absolute log path
 DATABASE_URL='postgresql://postgres:postgres@localhost:5432/vixrad?schema=public' \
 JWT_SECRET='dev_secret' \
+JWT_REFRESH_SECRET='dev_refresh_secret' \
 PORT="$PORT" \
 node dist/main.js >"$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
