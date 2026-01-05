@@ -65,6 +65,35 @@ const ENDIF_RE = /^<!--\s*ENDIF\s+([A-Z0-9_]+)\s*-->$/;
 
 @Injectable()
 export class TemplatesService {
+  private stripDiacritics(input: string): string {
+    return input.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
+  private hasTemplateIndicationSection(markdown: string): boolean {
+    const normalized = this.stripDiacritics(markdown);
+    return /\*\*\s*indicacao\s*:\s*\*\*/i.test(normalized);
+  }
+
+  private composeOutput(params: {
+    templateMarkdown: string;
+    indication?: string;
+    findings?: string;
+  }): string {
+    let out = params.templateMarkdown.trimEnd();
+
+    const indication = params.indication?.trim();
+    if (indication && !this.hasTemplateIndicationSection(out)) {
+      out += `\n\n**Indicação clínica:** ${indication}`;
+    }
+
+    const findings = params.findings?.trim();
+    if (findings) {
+      out += `\n\n**ACHADOS DO EXAME:**\n\n${findings}`;
+    }
+
+    return out.trim() + "\n";
+  }
+
   private resolveTemplatesDir(examType: ExamType): string | null {
     const folder = `docs/clinical/${examType.toLowerCase()}`;
     const candidates = [
@@ -357,5 +386,19 @@ export class TemplatesService {
     const resolved = this.resolvePlaceholders(withoutConditionals, values);
 
     return { meta: parsed.meta, markdown: resolved.trim() + "\n" };
+  }
+
+  renderNormalReport(input: RenderInput): string {
+    const rendered = this.renderResolvedMarkdown(input);
+    return this.composeOutput({ templateMarkdown: rendered.markdown, indication: input.indication });
+  }
+
+  renderFullReport(input: RenderInput & { findings: string }): string {
+    const rendered = this.renderResolvedMarkdown(input);
+    return this.composeOutput({
+      templateMarkdown: rendered.markdown,
+      indication: input.indication,
+      findings: input.findings,
+    });
   }
 }

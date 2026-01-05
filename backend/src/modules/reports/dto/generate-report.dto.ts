@@ -37,5 +37,5 @@ export class GenerateReportDto {
   @IsOptional()
   @IsString()
   @MaxLength(8000)
-  findings?: string;
+  findings?: string | null;
 }
