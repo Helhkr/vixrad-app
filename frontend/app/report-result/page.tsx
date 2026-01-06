@@ -24,7 +24,6 @@ export default function ReportResultPage() {
   const router = useRouter();
   const { reportText, resetReport } = useAppState();
   const { showMessage } = useSnackbar();
-  const [copied, setCopied] = useState(false);
 
   const displayText = useMemo(() => {
     return formatReportForCopy(reportText, "formatted");
@@ -43,9 +42,6 @@ export default function ReportResultPage() {
     const output = formatReportForCopy(reportText, format);
     await navigator.clipboard.writeText(output);
     showMessage("Laudo copiado com sucesso!", "success");
-
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
   };
 
   if (!reportText) {

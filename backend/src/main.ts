@@ -22,6 +22,7 @@ async function bootstrap() {
 		],
 		methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 		allowedHeaders: ["Content-Type", "Authorization"],
+		exposedHeaders: ["X-Gemini-Model", "X-Token-Estimate"],
 	});
 
 	app.enableShutdownHooks();

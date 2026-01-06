@@ -85,7 +85,7 @@ export default function ReportFindingsPage() {
       // Parou de gravar - adicionar transcript com ponto final
       const trimmedTranscript = transcript.trim();
       const textWithPeriod = trimmedTranscript.endsWith(".") ? trimmedTranscript : `${trimmedTranscript}.`;
-      setFindings((prev) => `${prev} ${textWithPeriod}`.trim());
+      setFindings(`${findings} ${textWithPeriod}`.trim());
       resetTranscript();
     }
     

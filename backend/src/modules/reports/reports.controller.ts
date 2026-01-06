@@ -1,16 +1,22 @@
-import { Body, Controller, HttpCode, Post, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, HttpCode, Post, UploadedFile, UseGuards, UseInterceptors, Res, Logger } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Throttle } from "@nestjs/throttler";
+import type { Response } from "express";
 
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { TrialGuard } from "../auth/guards/trial.guard";
 import { ReportsRateLimitGuard } from "../security/reports-rate-limit.guard";
 import { GenerateReportDto } from "./dto/generate-report.dto";
 import { ReportsService } from "./reports.service";
+import { AiService } from "../ai/ai.service";
 
 @Controller("reports")
 export class ReportsController {
-  constructor(private readonly reportsService: ReportsService) {}
+  constructor(
+    private readonly reportsService: ReportsService,
+    private readonly aiService: AiService,
+  ) {}
+  private readonly logger = new Logger(ReportsController.name);
 
   @UseGuards(JwtAuthGuard, TrialGuard, ReportsRateLimitGuard)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
@@ -32,8 +38,30 @@ export class ReportsController {
       },
     }),
   )
-  async generate(@Body() dto: GenerateReportDto, @UploadedFile() file?: Express.Multer.File) {
-    return this.reportsService.generateStructuredBaseReport({
+  async generate(
+    @Body() dto: GenerateReportDto,
+    @UploadedFile() file?: Express.Multer.File,
+    @Res({ passthrough: true }) res?: Response,
+  ) {
+    // Set model header early so it is present even if an exception is thrown later
+    try {
+      const model = await this.aiService.getResolvedModel();
+      if (res) res.setHeader("X-Gemini-Model", model);
+      this.logger.log(`Resolved Gemini model for request: ${model}`);
+    } catch {}
+
+    // Add approximate token estimate header for observability
+    try {
+      const tokenEstimate = this.aiService.estimateTokensForGenerate({
+        findings: dto.findings ?? undefined,
+        indication: dto.indication ?? undefined,
+        hasAttachment: Boolean(file),
+      });
+      if (res) res.setHeader("X-Token-Estimate", String(tokenEstimate));
+      this.logger.log(`Token estimate for request: ${tokenEstimate}`);
+    } catch {}
+
+    const result = await this.reportsService.generateStructuredBaseReport({
       examType: dto.examType,
       templateId: dto.templateId,
       indication: dto.indication,
@@ -44,5 +72,13 @@ export class ReportsController {
       findings: dto.findings,
       indicationFile: file,
     });
+    try {
+      const usedModel = this.aiService.getLastUsedModel();
+      if (usedModel && res) {
+        res.setHeader("X-Gemini-Model", usedModel);
+        this.logger.log(`Final model used for request: ${usedModel}`);
+      }
+    } catch {}
+    return result;
   }
 }
