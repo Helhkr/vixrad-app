@@ -21,7 +21,7 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
-import { apiPost } from "@/features/api";
+import { apiPost, apiPostForm } from "@/features/api";
 import { formatReportForCopy, type CopyFormat } from "@/features/reportCopyFormat";
 import { fetchTemplateDetail, type TemplateDetail } from "@/features/templates";
 import { useAppState } from "../state";
@@ -239,7 +239,7 @@ export default function ReportFindingsPage() {
     setLoading(true);
     try {
       if (indicationFile) {
-        // Enviar com FormData quando há arquivo
+        // Enviar com FormData quando há arquivo, usando API_BASE_URL padrão
         const formData = new FormData();
         formData.append("examType", examType);
         formData.append("templateId", templateId);
@@ -250,20 +250,7 @@ export default function ReportFindingsPage() {
         formData.append("findings", trimmedFindings);
         formData.append("indicationFile", indicationFile);
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/reports/generate`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText || `Erro ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await apiPostForm<GenerateResponse>("/reports/generate", formData, accessToken);
         setReportText(data.reportText);
       } else {
         // Enviar JSON quando não há arquivo

@@ -38,3 +38,21 @@ export async function apiPost<T>(path: string, body: Json, accessToken?: string 
 
   return (await res.json()) as T;
 }
+
+export async function apiPostForm<T>(path: string, formData: FormData, accessToken?: string | null): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: {
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      // Do NOT set Content-Type; browser will set multipart boundary automatically
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`${res.status} ${res.statusText}${text ? `: ${text}` : ""}`);
+  }
+
+  return (await res.json()) as T;
+}
