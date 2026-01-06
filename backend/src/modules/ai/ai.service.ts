@@ -9,6 +9,19 @@ import type { RenderInput } from "../templates/templates.service";
 
 @Injectable()
 export class AiService {
+  private normalizeModel(raw: string | undefined): string {
+    const trimmed = (raw ?? "").trim();
+    const model = trimmed.startsWith("models/") ? trimmed.slice("models/".length) : trimmed;
+
+    if (!model) return "gemini-1.5-pro-latest";
+
+    // Backwards-compatible aliases
+    if (model === "gemini-1.5-pro") return "gemini-1.5-pro-latest";
+    if (model === "gemini-1.5-flash") return "gemini-1.5-flash-latest";
+
+    return model;
+  }
+
   async generateReport(params: {
     prompt: string;
     baseInput: RenderInput;
@@ -19,7 +32,7 @@ export class AiService {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
     }
 
-    const model = process.env.GEMINI_MODEL?.trim() || "gemini-1.5-pro";
+    const model = this.normalizeModel(process.env.GEMINI_MODEL);
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
 
     const controller = new AbortController();

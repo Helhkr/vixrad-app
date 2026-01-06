@@ -253,7 +253,7 @@ O Editor é o componente central do sistema e **deve conter**:
 
 - Defina a chave via variável de ambiente (não commite chaves no repositório):
   - `GEMINI_API_KEY`
-  - (opcional) `GEMINI_MODEL` (default: `gemini-1.5-pro`)
+  - (opcional) `GEMINI_MODEL` (default: `gemini-1.5-pro-latest`)
   - (opcional) `GEMINI_TIMEOUT_MS` (default: `20000`)
 
 No stack de dev (`docker-compose.dev.yml`), o backend lê essas variáveis do seu ambiente local (incluindo `.env` na raiz do projeto).
