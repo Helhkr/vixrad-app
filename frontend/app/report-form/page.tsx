@@ -152,6 +152,7 @@ export default function ReportFormPage() {
           {showIndication ? (
             <TextField
               label="Indicação"
+              placeholder="Qual a indicação do exame? (Opcional)"
               fullWidth
               multiline
               minRows={2}

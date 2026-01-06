@@ -298,6 +298,7 @@ export default function ReportFindingsPage() {
             <Stack direction="row" spacing={1} alignItems="flex-start">
               <TextField
                 label="Achados"
+                placeholder="Descreva os achados do exame."
                 fullWidth
                 multiline
                 minRows={6}
