@@ -54,6 +54,7 @@ export default function ReportFindingsPage() {
   const [template, setTemplate] = useState<TemplateDetail | null>(null);
   const [loadingTemplate, setLoadingTemplate] = useState(false);
   const [micSupported, setMicSupported] = useState(false);
+  const [micPermissionError, setMicPermissionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (browserSupportsSpeechRecognition === false) {
@@ -75,6 +76,50 @@ export default function ReportFindingsPage() {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFormat, setSelectedFormat] = useState<CopyFormat>("formatted");
+
+  const handleMicrophoneToggle = async () => {
+    if (listening) {
+      SpeechRecognition.stopListening();
+      setMicPermissionError(null);
+      return;
+    }
+
+    setMicPermissionError(null);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+
+      SpeechRecognition.startListening({
+        continuous: true,
+        language: "pt-BR",
+      });
+    } catch (error: any) {
+      if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+        setMicPermissionError(
+          "Permissão de microfone negada. Verifique as configurações do navegador.",
+        );
+        showMessage(
+          "Permissão de microfone negada. Clique no ícone de cadeado na barra de endereços e permita o acesso ao microfone.",
+          "error",
+        );
+      } else if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") {
+        setMicPermissionError(
+          "Nenhum microfone encontrado. Verifique se o microfone está conectado e ativado.",
+        );
+        showMessage(
+          "Nenhum microfone encontrado. Conecte um microfone ou verifique se está ativado (Fn + F4 em alguns notebooks).",
+          "error",
+        );
+      } else {
+        setMicPermissionError("Erro ao acessar o microfone. Tente novamente.");
+        showMessage(
+          `Erro ao acessar o microfone: ${error.message || "Tente novamente"}`,
+          "error",
+        );
+      }
+    }
+  };
 
   useEffect(() => {
     if (transcript && !listening) {
@@ -276,14 +321,7 @@ export default function ReportFindingsPage() {
               />
               <IconButton
                 color={listening ? "error" : "primary"}
-                onClick={() =>
-                  listening
-                    ? SpeechRecognition.stopListening()
-                    : SpeechRecognition.startListening({
-                        continuous: true,
-                        language: "pt-BR",
-                      })
-                }
+                onClick={handleMicrophoneToggle}
                 disabled={!micSupported}
                 sx={{ mt: 1 }}
                 title={
@@ -300,6 +338,11 @@ export default function ReportFindingsPage() {
             {!micSupported && (
               <Typography variant="caption" color="error">
                 ⚠️ Reconhecimento de voz não suportado neste navegador
+              </Typography>
+            )}
+            {micPermissionError && (
+              <Typography variant="caption" color="error">
+                🎤 {micPermissionError}
               </Typography>
             )}
             {listening && (
