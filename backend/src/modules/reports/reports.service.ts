@@ -32,6 +32,10 @@ export class ReportsService {
       try {
         indication = await this.aiService.generateIndicationFromFile(params.indicationFile);
       } catch (err: any) {
+        // Preserve upstream HTTP errors (e.g., 429 rate limit) and map unknowns to 400
+        if (err && typeof err === "object" && (err.name === "HttpException" || err.status)) {
+          throw err;
+        }
         const msg = err?.message || "Falha ao processar arquivo de indicação";
         throw new BadRequestException(msg);
       }

@@ -80,6 +80,15 @@ export default function AuthPage() {
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						autoComplete="email"
+						sx={{
+							'& .MuiInputBase-root': {
+								backgroundColor: theme.palette.mode === 'dark' ? '#121212' : undefined,
+							},
+							'& input:-webkit-autofill': {
+								WebkitBoxShadow: theme.palette.mode === 'dark' ? '0 0 0 100px #121212 inset' : undefined,
+								WebkitTextFillColor: theme.palette.mode === 'dark' ? theme.palette.text.primary : undefined,
+							}
+						}}
 					/>
 
 					<TextField
@@ -90,6 +99,15 @@ export default function AuthPage() {
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 						autoComplete="current-password"
+						sx={{
+							'& .MuiInputBase-root': {
+								backgroundColor: theme.palette.mode === 'dark' ? '#121212' : undefined,
+							},
+							'& input:-webkit-autofill': {
+								WebkitBoxShadow: theme.palette.mode === 'dark' ? '0 0 0 100px #121212 inset' : undefined,
+								WebkitTextFillColor: theme.palette.mode === 'dark' ? theme.palette.text.primary : undefined,
+							}
+						}}
 					/>
 
 				<Stack direction="row" spacing={2} sx={{ justifyContent: "center" }}>
