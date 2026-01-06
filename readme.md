@@ -125,6 +125,13 @@ O repositório também inclui um compose para desenvolvimento (Nest `npm run dev
 docker compose -f docker-compose.dev.yml up -d --build
 ```
 
+Se você quiser usar IA sem precisar rodar `export` toda vez, crie um arquivo `.env` na raiz do projeto (ele já é ignorado pelo git):
+
+```bash
+cp .env.example .env
+# edite .env e preencha GEMINI_API_KEY
+```
+
 Portas típicas no modo dev:
 - Frontend: http://localhost:3003
 - Backend: http://localhost:3002
@@ -249,7 +256,7 @@ O Editor é o componente central do sistema e **deve conter**:
   - (opcional) `GEMINI_MODEL` (default: `gemini-1.5-pro`)
   - (opcional) `GEMINI_TIMEOUT_MS` (default: `20000`)
 
-No stack de dev (`docker-compose.dev.yml`), o backend lê essas variáveis do seu ambiente local.
+No stack de dev (`docker-compose.dev.yml`), o backend lê essas variáveis do seu ambiente local (incluindo `.env` na raiz do projeto).
 
 ---
 
