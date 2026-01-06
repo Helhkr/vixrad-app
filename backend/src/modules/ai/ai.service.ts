@@ -3,6 +3,7 @@ import {
   GatewayTimeoutException,
   Injectable,
   ServiceUnavailableException,
+  TooManyRequestsException,
 } from "@nestjs/common";
 
 import type { RenderInput } from "../templates/templates.service";
@@ -86,6 +87,12 @@ export class AiService {
           throw new ServiceUnavailableException("Chave da IA (Gemini) inválida/expirada. Atualize GEMINI_API_KEY.");
         }
 
+        if (res.status === 429) {
+          throw new TooManyRequestsException(
+            "Limite de uso/quotas do Gemini excedido. Verifique seu plano/billing ou aguarde e tente novamente.",
+          );
+        }
+
         throw new BadGatewayException(
           `Falha ao chamar a IA (Gemini): ${res.status} ${res.statusText}${geminiMessage ? ` - ${geminiMessage}` : ""}`,
         );
@@ -106,7 +113,11 @@ export class AiService {
 
       return out.endsWith("\n") ? out : `${out}\n`;
     } catch (e) {
-      if (e instanceof ServiceUnavailableException || e instanceof BadGatewayException) {
+      if (
+        e instanceof ServiceUnavailableException ||
+        e instanceof TooManyRequestsException ||
+        e instanceof BadGatewayException
+      ) {
         throw e;
       }
 
