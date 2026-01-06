@@ -30,6 +30,8 @@ export class AiService {
     }
     return s.trim();
   }
+  private modelsCache?: { names: string[]; fetchedAt: number };
+
   private normalizeModel(raw: string | undefined): string {
     const trimmed = (raw ?? "").trim();
     const model = trimmed.startsWith("models/") ? trimmed.slice("models/".length) : trimmed;
@@ -43,6 +45,63 @@ export class AiService {
     return model;
   }
 
+  private async fetchAvailableModels(apiKey: string): Promise<string[]> {
+    // Cache for 15 minutes
+    const now = Date.now();
+    if (this.modelsCache && now - this.modelsCache.fetchedAt < 15 * 60 * 1000) {
+      return this.modelsCache.names;
+    }
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    try {
+      const res = await fetch(url, { method: "GET", signal: controller.signal });
+      if (!res.ok) {
+        // On error, return empty to allow fallback
+        return [];
+      }
+      const json = (await res.json()) as any;
+      const names = Array.isArray(json?.models)
+        ? json.models
+            .map((m: any) => (typeof m?.name === "string" ? m.name : ""))
+            .filter((n: string) => !!n)
+            .map((n: string) => (n.startsWith("models/") ? n.slice("models/".length) : n))
+        : [];
+      this.modelsCache = { names, fetchedAt: now };
+      return names;
+    } catch {
+      return [];
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  private chooseBestModel(available: string[]): string {
+    // Preference order: latest Pro → Flash
+    const ranking = [
+      "gemini-3.0-pro-exp",
+      "gemini-3.0-pro",
+      "gemini-3.0-flash",
+      "gemini-2.5-pro",
+      "gemini-2.5-flash",
+    ];
+    for (const candidate of ranking) {
+      if (available.includes(candidate)) return candidate;
+    }
+    // Fallback if list is empty or none matched
+    return "gemini-2.5-pro";
+  }
+
+  private async resolveModel(): Promise<string> {
+    const envModel = this.normalizeModel(process.env.GEMINI_MODEL);
+    if (envModel) return envModel;
+    const apiKey = process.env.GEMINI_API_KEY?.trim();
+    if (!apiKey) return "gemini-2.5-pro";
+    const available = await this.fetchAvailableModels(apiKey);
+    return this.chooseBestModel(available);
+  }
+
   async generateReport(params: {
     prompt: string;
     baseInput: RenderInput;
@@ -53,7 +112,7 @@ export class AiService {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
     }
 
-    const model = this.normalizeModel(process.env.GEMINI_MODEL);
+    const model = await this.resolveModel();
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
 
     const controller = new AbortController();
@@ -156,7 +215,7 @@ export class AiService {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
     }
 
-    const model = this.normalizeModel(process.env.GEMINI_MODEL);
+    const model = await this.resolveModel();
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
 
     const prompt = `Leia o texto abaixo (pedido/prontuário) e escreva APENAS UMA frase curta com a indicação clínica, em português brasileiro.
@@ -249,7 +308,7 @@ export class AiService {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
     }
 
-    const model = this.normalizeModel(process.env.GEMINI_MODEL);
+    const model = await this.resolveModel();
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
 
     const prompt = `Leia o documento anexado (pedido/prontuário) e escreva APENAS UMA frase curta com a indicação clínica, em português brasileiro.
