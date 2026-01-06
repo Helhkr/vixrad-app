@@ -1,11 +1,14 @@
-import { Injectable } from "@nestjs/common";
+import {
+  BadGatewayException,
+  GatewayTimeoutException,
+  Injectable,
+  ServiceUnavailableException,
+} from "@nestjs/common";
 
-import { TemplatesService, type RenderInput } from "../templates/templates.service";
+import type { RenderInput } from "../templates/templates.service";
 
 @Injectable()
 export class AiService {
-  constructor(private readonly templatesService: TemplatesService) {}
-
   async generateReport(params: {
     prompt: string;
     baseInput: RenderInput;
@@ -13,7 +16,7 @@ export class AiService {
   }): Promise<string> {
     const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY não configurada");
+      throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
     }
 
     const model = process.env.GEMINI_MODEL?.trim() || "gemini-1.5-pro";
@@ -44,8 +47,35 @@ export class AiService {
       });
 
       if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(`Gemini API error: ${res.status} ${res.statusText}${text ? `: ${text}` : ""}`);
+        // Avoid logging/reporting large bodies. Extract the minimal error info.
+        let geminiMessage = "";
+        let geminiReason = "";
+        try {
+          const errJson = (await res.json()) as any;
+          geminiMessage = typeof errJson?.error?.message === "string" ? errJson.error.message : "";
+          const details = Array.isArray(errJson?.error?.details) ? errJson.error.details : [];
+          geminiReason =
+            typeof details?.[0]?.reason === "string"
+              ? details[0].reason
+              : typeof details?.[0]?.metadata?.reason === "string"
+                ? details[0].metadata.reason
+                : "";
+        } catch {
+          // ignore
+        }
+
+        const isApiKeyInvalid =
+          geminiReason === "API_KEY_INVALID" ||
+          geminiMessage.toLowerCase().includes("api key expired") ||
+          geminiMessage.toLowerCase().includes("api_key_invalid");
+
+        if (isApiKeyInvalid) {
+          throw new ServiceUnavailableException("Chave da IA (Gemini) inválida/expirada. Atualize GEMINI_API_KEY.");
+        }
+
+        throw new BadGatewayException(
+          `Falha ao chamar a IA (Gemini): ${res.status} ${res.statusText}${geminiMessage ? ` - ${geminiMessage}` : ""}`,
+        );
       }
 
       const data = (await res.json()) as any;
@@ -63,8 +93,17 @@ export class AiService {
 
       return out.endsWith("\n") ? out : `${out}\n`;
     } catch (e) {
+      if (e instanceof ServiceUnavailableException || e instanceof BadGatewayException) {
+        throw e;
+      }
+
+      const isAbortError = typeof e === "object" && e !== null && (e as any).name === "AbortError";
+      if (isAbortError) {
+        throw new GatewayTimeoutException("Timeout ao chamar a IA (Gemini)");
+      }
+
       const msg = e instanceof Error ? e.message : "erro desconhecido";
-      throw new Error(`Falha ao gerar com IA (${msg})`);
+      throw new BadGatewayException(`Falha ao gerar com IA (${msg})`);
     } finally {
       clearTimeout(timeout);
     }
