@@ -5,6 +5,8 @@ requires:
   sex: none
   contrast: none
   side: none
+  incidence: required
+  decubitus: none
 ---
 
 # RADIOGRAFIA DE MEMBROS INFERIORES

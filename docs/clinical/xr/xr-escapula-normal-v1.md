@@ -5,6 +5,8 @@ requires:
   sex: none
   contrast: none
   side: required
+  incidence: required
+  decubitus: none
 ---
 
 # RADIOGRAFIA DE ESCÁPULA {{LADO}}
