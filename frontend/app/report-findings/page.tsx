@@ -64,10 +64,10 @@ export default function ReportFindingsPage() {
 
   useEffect(() => {
     if (transcript && !listening) {
-      setFindings((prev) => (prev ? `${prev} ${transcript}` : transcript));
+      setFindings(findings ? `${findings} ${transcript}` : transcript);
       resetTranscript();
     }
-  }, [transcript, listening, setFindings, resetTranscript]);
+  }, [transcript, listening, findings, setFindings, resetTranscript]);
 
   useEffect(() => {
     if (!accessToken) router.replace("/");
