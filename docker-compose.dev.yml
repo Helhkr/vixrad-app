@@ -9,6 +9,9 @@ services:
       JWT_SECRET: "dev_secret"
       JWT_REFRESH_SECRET: "dev_refresh_secret"
       PORT: 3002
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      GEMINI_TIMEOUT_MS: ${GEMINI_TIMEOUT_MS:-}
     depends_on:
       postgres:
         condition: service_healthy

@@ -14,6 +14,21 @@ class EnvVars {
   @Min(1)
   @Max(65535)
   PORT?: number;
+
+  @IsOptional()
+  @IsString()
+  GEMINI_API_KEY?: string;
+
+  @IsOptional()
+  @IsString()
+  GEMINI_MODEL?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => (value === undefined ? undefined : Number(value)))
+  @IsInt()
+  @Min(1000)
+  @Max(120000)
+  GEMINI_TIMEOUT_MS?: number;
 }
 
 export function validateEnv(env: NodeJS.ProcessEnv): EnvVars {
@@ -21,6 +36,9 @@ export function validateEnv(env: NodeJS.ProcessEnv): EnvVars {
     JWT_SECRET: env.JWT_SECRET,
     JWT_REFRESH_SECRET: env.JWT_REFRESH_SECRET,
     PORT: env.PORT,
+    GEMINI_API_KEY: env.GEMINI_API_KEY,
+    GEMINI_MODEL: env.GEMINI_MODEL,
+    GEMINI_TIMEOUT_MS: env.GEMINI_TIMEOUT_MS,
   });
 
   const errors = validateSync(instance, {
