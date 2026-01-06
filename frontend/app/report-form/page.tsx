@@ -205,7 +205,7 @@ export default function ReportFormPage() {
             </Stack>
           ) : null}
           
-          {indicationFile && (
+          {indicationFile ? (
             <Typography variant="caption" color="text.secondary">
               📎 {indicationFile.name} ({(indicationFile.size / 1024).toFixed(1)} KB)
             </Typography>
