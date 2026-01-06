@@ -13,11 +13,11 @@ export class AiService {
     const trimmed = (raw ?? "").trim();
     const model = trimmed.startsWith("models/") ? trimmed.slice("models/".length) : trimmed;
 
-    if (!model) return "gemini-1.5-pro-latest";
+    if (!model) return "gemini-2.5-pro";
 
     // Backwards-compatible aliases
-    if (model === "gemini-1.5-pro") return "gemini-1.5-pro-latest";
-    if (model === "gemini-1.5-flash") return "gemini-1.5-flash-latest";
+    if (model === "gemini-1.5-pro" || model === "gemini-1.5-pro-latest") return "gemini-2.5-pro";
+    if (model === "gemini-1.5-flash" || model === "gemini-1.5-flash-latest") return "gemini-2.5-flash";
 
     return model;
   }
