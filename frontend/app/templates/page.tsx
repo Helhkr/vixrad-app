@@ -114,7 +114,7 @@ export default function TemplatesPage() {
           </IconButton>
 
           <Typography variant="h6" component="h1">
-            Seleção de Template
+            Seleção de Modelos
           </Typography>
 
           <Autocomplete
@@ -148,7 +148,7 @@ export default function TemplatesPage() {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Template"
+                label="Modelos"
                 helperText={
                   !selectedExamType
                     ? "Selecione o tipo de exame primeiro"

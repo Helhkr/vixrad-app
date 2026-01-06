@@ -138,7 +138,7 @@ export default function ReportFindingsPage() {
       })
       .catch((e) => {
         if (cancelled) return;
-        showMessage(e instanceof Error ? e.message : "Erro ao carregar template", "error");
+        showMessage(e instanceof Error ? e.message : "Erro ao carregar modelo", "error");
         router.replace("/templates");
       })
       .finally(() => {
@@ -285,7 +285,7 @@ export default function ReportFindingsPage() {
           </Typography>
 
           <Typography variant="body2" color="text.secondary">
-            Template: {templateLabel}
+            Modelo: {templateLabel}
           </Typography>
 
           {loadingTemplate ? (
@@ -345,9 +345,51 @@ export default function ReportFindingsPage() {
           </Stack>
 
           <Stack direction="row" spacing={2}>
-            <ButtonGroup variant="contained" disabled={loading}>
-              <Button onClick={() => handleCopyNormal(selectedFormat)}>COPIAR LAUDO NORMAL</Button>
-              <Button onClick={(e) => setAnchorEl(e.currentTarget)}>
+            <ButtonGroup 
+              variant="contained" 
+              disabled={loading}
+              sx={(theme) => ({
+                '& .MuiButton-root': {
+                  borderColor: theme.palette.mode === 'dark'
+                    ? `${theme.palette.grey[900]} !important`
+                    : `${theme.palette.grey[100]} !important`,
+                }
+              })}
+            >
+              <Button 
+                onClick={() => handleCopyNormal(selectedFormat)}
+                sx={(theme) => ({
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? theme.palette.grey[300]
+                    : theme.palette.grey[700],
+                  color: theme.palette.mode === 'dark'
+                    ? theme.palette.grey[900]
+                    : theme.palette.grey[100],
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark'
+                      ? theme.palette.grey[400]
+                      : theme.palette.grey[600],
+                  }
+                })}
+              >
+                COPIAR LAUDO NORMAL
+              </Button>
+              <Button 
+                onClick={(e) => setAnchorEl(e.currentTarget)}
+                sx={(theme) => ({
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? theme.palette.grey[300]
+                    : theme.palette.grey[700],
+                  color: theme.palette.mode === 'dark'
+                    ? theme.palette.grey[900]
+                    : theme.palette.grey[100],
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark'
+                      ? theme.palette.grey[400]
+                      : theme.palette.grey[600],
+                  }
+                })}
+              >
                 <ArrowDropDownIcon />
               </Button>
             </ButtonGroup>

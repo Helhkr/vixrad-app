@@ -95,7 +95,7 @@ export default function ReportFormPage() {
 
   const validateAndContinue = () => {
     if (!requires) {
-      showMessage("Aguarde carregar o template.", "error");
+      showMessage("Aguarde carregar o modelo.", "error");
       return;
     }
 
@@ -140,7 +140,7 @@ export default function ReportFormPage() {
           </Typography>
 
           <Typography variant="body2" color="text.secondary">
-            Template: {templateLabel}
+            Modelo: {templateLabel}
           </Typography>
 
           {loading ? (

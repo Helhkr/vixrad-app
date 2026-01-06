@@ -65,8 +65,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   };
 
   const resetReport = () => {
-    setExamType(null);
-    setTemplateId(null);
     setIndication("");
     setFindings("");
     setContrast("without");
