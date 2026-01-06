@@ -48,7 +48,17 @@ export default function ReportResultPage() {
     return (
       <Container maxWidth="sm" sx={{ py: 6 }}>
         <Stack spacing={2}>
-          <IconButton onClick={() => router.back()}>
+          <IconButton
+            onClick={() => router.back()}
+            sx={(theme) => ({
+              alignSelf: "flex-start",
+              color: theme.palette.primary.main,
+              "&:hover": {
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+              },
+            })}
+          >
             <ArrowCircleLeftIcon />
           </IconButton>
 
@@ -71,7 +81,17 @@ export default function ReportResultPage() {
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
       <Stack spacing={2}>
-        <IconButton onClick={() => router.back()}>
+        <IconButton
+          onClick={() => router.back()}
+          sx={(theme) => ({
+            alignSelf: "flex-start",
+            color: theme.palette.primary.main,
+            "&:hover": {
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
+            },
+          })}
+        >
           <ArrowCircleLeftIcon />
         </IconButton>
 

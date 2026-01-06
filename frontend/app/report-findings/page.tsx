@@ -138,7 +138,17 @@ export default function ReportFindingsPage() {
     <Container maxWidth="sm" sx={{ py: 6 }}>
       <Paper elevation={2} sx={{ p: 4 }}>
         <Stack spacing={2}>
-          <IconButton onClick={() => router.back()}>
+          <IconButton
+            onClick={() => router.back()}
+            sx={(theme) => ({
+              alignSelf: "flex-start",
+              color: theme.palette.primary.main,
+              "&:hover": {
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+              },
+            })}
+          >
             <ArrowCircleLeftIcon />
           </IconButton>
 
