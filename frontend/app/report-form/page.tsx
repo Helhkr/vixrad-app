@@ -101,10 +101,10 @@ export default function ReportFormPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file = e.target.files[0];
-      const validTypes = ["application/pdf"];
+      const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
 
       if (!validTypes.includes(file.type)) {
-        showMessage("Tipo de arquivo inválido. Use apenas PDF.", "error");
+        showMessage("Tipo de arquivo inválido. Use PDF ou imagem (JPG/PNG/WebP).", "error");
         return;
       }
 
@@ -188,13 +188,13 @@ export default function ReportFormPage() {
               />
               <input
                 type="file"
-                accept=".pdf,application/pdf"
+                accept=".pdf,application/pdf,image/jpeg,image/png,image/webp"
                 style={{ display: "none" }}
                 id="indication-file-input"
                 onChange={handleFileChange}
               />
               <label htmlFor="indication-file-input">
-                <Tooltip title="Apenas PDF (até 25MB)">
+                <Tooltip title="PDF ou imagem (JPG/PNG/WebP) até 25MB">
                   <span>
                     <IconButton component="span" color="primary" disabled={loading}>
                       <AttachFileIcon />
