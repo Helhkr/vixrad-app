@@ -16,7 +16,15 @@ export class ReportsController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @HttpCode(200)
   @Post("generate")
-  @UseInterceptors(FileInterceptor("indicationFile"))
+  @UseInterceptors(
+    FileInterceptor("indicationFile", {
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+      fileFilter: (_req, file, cb) => {
+        const ok = file.mimetype === "application/pdf" || file.mimetype.startsWith("image/");
+        cb(ok ? null : new Error("Tipo de arquivo inválido (apenas PDF ou imagem)") as any, ok);
+      },
+    }),
+  )
   async generate(@Body() dto: GenerateReportDto, @UploadedFile() file?: Express.Multer.File) {
     return this.reportsService.generateStructuredBaseReport({
       examType: dto.examType,

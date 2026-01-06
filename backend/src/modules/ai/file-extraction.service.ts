@@ -17,7 +17,8 @@ export class FileExtractionService {
 
   private async extractTextFromPDF(buffer: Buffer): Promise<string> {
     try {
-      const pdf = require('pdf-parse');
+      const pdfImport = await import('pdf-parse');
+      const pdf = (pdfImport as any).default || pdfImport;
       const data = await pdf(buffer);
       return data.text;
     } catch (error: any) {

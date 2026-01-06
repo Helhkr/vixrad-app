@@ -11,6 +11,25 @@ import type { RenderInput } from "../templates/templates.service";
 
 @Injectable()
 export class AiService {
+  private sanitizeIndication(raw: string): string {
+    let s = typeof raw === "string" ? raw : "";
+    s = s.trim();
+    // Remove common prefixes that models might add
+    s = s.replace(/^(indica[cç][aã]o|indication|indicacao)\s*:?\s*/i, "");
+    s = s.replace(/^INDICAÇÃO\s*:?\s*/i, "");
+    s = s.replace(/^INDICAÇÃO CLÍNICA RESUMIDA\s*:?\s*/i, "");
+    // Strip surrounding quotes
+    s = s.replace(/^\s*"|"\s*$/g, "");
+    // Keep only the first sentence/line
+    const firstSegment = s.split(/[\.!?\n\r]/)[0] ?? s;
+    s = firstSegment.trim();
+    // Limit to ~15 words to keep concise
+    const words = s.split(/\s+/);
+    if (words.length > 15) {
+      s = words.slice(0, 15).join(" ");
+    }
+    return s.trim();
+  }
   private normalizeModel(raw: string | undefined): string {
     const trimmed = (raw ?? "").trim();
     const model = trimmed.startsWith("models/") ? trimmed.slice("models/".length) : trimmed;
@@ -140,7 +159,16 @@ export class AiService {
     const model = this.normalizeModel(process.env.GEMINI_MODEL);
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
 
-    const prompt = `Leia o texto abaixo (pedido médico / prontuário) e gere uma indicação clínica resumida em português brasileiro, focando nos principais motivos do exame:\n\n${extractedText}`;
+    const prompt = `Leia o texto abaixo (pedido/prontuário) e escreva APENAS UMA frase curta com a indicação clínica, em português brasileiro.
+
+  Regras:
+  - Seja conciso (máx. ~12 palavras).
+  - Não inclua prefixos como "Indicação:".
+  - Não explique, não liste, não detalhe.
+  - Retorne somente a frase final, sem aspas.
+
+  Texto:
+  ${extractedText}`;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), Number.isFinite(timeoutMs) ? timeoutMs : 20000);
@@ -193,7 +221,114 @@ export class AiService {
       }
 
       const text = parts.map((p: any) => p.text ?? "").join("");
-      return text.trim();
+      const out = this.sanitizeIndication(text);
+      if (!out) {
+        throw new BadGatewayException("IA retornou indicação vazia");
+      }
+      return out;
+    } catch (e) {
+      if (e instanceof HttpException || e instanceof BadGatewayException) {
+        throw e;
+      }
+
+      const isAbortError = typeof e === "object" && e !== null && (e as any).name === "AbortError";
+      if (isAbortError) {
+        throw new GatewayTimeoutException("Timeout ao chamar a IA (Gemini)");
+      }
+
+      const msg = e instanceof Error ? e.message : "erro desconhecido";
+      throw new BadGatewayException(`Falha ao gerar indicação com IA (${msg})`);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  async generateIndicationFromFile(file: Express.Multer.File): Promise<string> {
+    const apiKey = process.env.GEMINI_API_KEY?.trim();
+    if (!apiKey) {
+      throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
+    }
+
+    const model = this.normalizeModel(process.env.GEMINI_MODEL);
+    const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
+
+    const prompt = `Leia o documento anexado (pedido/prontuário) e escreva APENAS UMA frase curta com a indicação clínica, em português brasileiro.
+
+  Regras:
+  - Seja conciso (máx. ~12 palavras).
+  - Não inclua prefixos como "Indicação:".
+  - Não explique, não liste, não detalhe.
+  - Retorne somente a frase final, sem aspas.`;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), Number.isFinite(timeoutMs) ? timeoutMs : 20000);
+
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+        model,
+      )}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+      const base64Data = file.buffer.toString("base64");
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: prompt },
+                {
+                  inline_data: {
+                    mime_type: file.mimetype,
+                    data: base64Data,
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+        signal: controller.signal,
+      });
+
+      if (!res.ok) {
+        if (res.status === 429) {
+          throw new HttpException(
+            "Limite de requisições da IA excedido. Tente novamente em alguns segundos.",
+            HttpStatus.TOO_MANY_REQUESTS,
+          );
+        }
+        if (res.status === 404) {
+          throw new BadGatewayException(`Modelo de IA não encontrado: ${model}`);
+        }
+        if (res.status === 400) {
+          const body = await res.text();
+          if (body.includes("API_KEY_INVALID") || body.includes("invalid")) {
+            throw new ServiceUnavailableException("Chave de API da IA inválida ou expirada");
+          }
+        }
+        throw new BadGatewayException(`Erro ao chamar IA (status ${res.status})`);
+      }
+
+      const json = await res.json();
+      const candidates = json?.candidates;
+      if (!Array.isArray(candidates) || candidates.length === 0) {
+        throw new BadGatewayException("Resposta vazia da IA");
+      }
+
+      const parts = candidates[0]?.content?.parts;
+      if (!Array.isArray(parts) || parts.length === 0) {
+        throw new BadGatewayException("IA não retornou texto");
+      }
+
+      const text = parts.map((p: any) => p.text ?? "").join("");
+      const out = this.sanitizeIndication(text);
+      if (!out) {
+        throw new BadGatewayException("IA retornou indicação vazia");
+      }
+      return out;
     } catch (e) {
       if (e instanceof HttpException || e instanceof BadGatewayException) {
         throw e;

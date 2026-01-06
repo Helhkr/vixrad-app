@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 
 import { AiService } from "../ai/ai.service";
 import { PromptBuilderService } from "../ai/prompt-builder.service";
@@ -27,10 +27,14 @@ export class ReportsService {
   }) {
     let indication = params.indication;
 
-    // Se houver arquivo, extrair texto e gerar indicação com IA
+    // Se houver arquivo, enviar para a IA para gerar indicação diretamente do documento
     if (params.indicationFile) {
-      const extractedText = await this.fileExtractionService.extractTextFromFile(params.indicationFile);
-      indication = await this.aiService.generateIndicationFromText(extractedText);
+      try {
+        indication = await this.aiService.generateIndicationFromFile(params.indicationFile);
+      } catch (err: any) {
+        const msg = err?.message || "Falha ao processar arquivo de indicação";
+        throw new BadRequestException(msg);
+      }
     }
 
     const baseInput = {
