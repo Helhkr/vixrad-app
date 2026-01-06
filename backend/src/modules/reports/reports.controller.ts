@@ -18,10 +18,11 @@ export class ReportsController {
   @Post("generate")
   @UseInterceptors(
     FileInterceptor("indicationFile", {
-      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+      // Gemini supports PDFs up to 50MB inline; keep a practical cap
+      limits: { fileSize: 25 * 1024 * 1024 }, // 25MB max
       fileFilter: (_req, file, cb) => {
-        const ok = file.mimetype === "application/pdf" || file.mimetype.startsWith("image/");
-        cb(ok ? null : new Error("Tipo de arquivo inválido (apenas PDF ou imagem)") as any, ok);
+        const ok = file.mimetype === "application/pdf";
+        cb(ok ? null : new Error("Tipo de arquivo inválido: apenas PDF é suportado") as any, ok);
       },
     }),
   )

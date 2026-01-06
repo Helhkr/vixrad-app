@@ -100,13 +100,13 @@ export default function ReportFormPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file = e.target.files[0];
-      const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
-      
+      const validTypes = ["application/pdf"];
+
       if (!validTypes.includes(file.type)) {
-        showMessage("Tipo de arquivo inválido. Use PDF ou imagem (JPG/PNG).", "error");
+        showMessage("Tipo de arquivo inválido. Use apenas PDF.", "error");
         return;
       }
-      
+
       setIndicationFile(file);
       setIndication("Em anexo");
     }
@@ -187,7 +187,7 @@ export default function ReportFormPage() {
               />
               <input
                 type="file"
-                accept=".pdf,image/jpeg,image/jpg,image/png"
+                accept=".pdf,application/pdf"
                 style={{ display: "none" }}
                 id="indication-file-input"
                 onChange={handleFileChange}
