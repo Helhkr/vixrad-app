@@ -1,9 +1,10 @@
 import {
   BadGatewayException,
   GatewayTimeoutException,
+  HttpException,
+  HttpStatus,
   Injectable,
   ServiceUnavailableException,
-  TooManyRequestsException,
 } from "@nestjs/common";
 
 import type { RenderInput } from "../templates/templates.service";
@@ -88,8 +89,9 @@ export class AiService {
         }
 
         if (res.status === 429) {
-          throw new TooManyRequestsException(
+          throw new HttpException(
             "Limite de uso/quotas do Gemini excedido. Verifique seu plano/billing ou aguarde e tente novamente.",
+            HttpStatus.TOO_MANY_REQUESTS,
           );
         }
 
@@ -113,11 +115,7 @@ export class AiService {
 
       return out.endsWith("\n") ? out : `${out}\n`;
     } catch (e) {
-      if (
-        e instanceof ServiceUnavailableException ||
-        e instanceof TooManyRequestsException ||
-        e instanceof BadGatewayException
-      ) {
+      if (e instanceof HttpException || e instanceof BadGatewayException) {
         throw e;
       }
 
