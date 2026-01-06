@@ -360,6 +360,20 @@ export class TemplatesService {
     });
   }
 
+  private enforceBoldSectionLabels(markdown: string): string {
+    const rules: Array<{ re: RegExp; replacement: string }> = [
+      { re: /^\s*(?:\*\*)?\s*Técnica:\s*(?:\*\*)?/gmi, replacement: "**Técnica:** " },
+      { re: /^\s*(?:\*\*)?\s*Análise:\s*(?:\*\*)?/gmi, replacement: "**Análise:** " },
+      { re: /^\s*(?:\*\*)?\s*Impressão diagnóstica:\s*(?:\*\*)?/gmi, replacement: "**Impressão diagnóstica:** " },
+      { re: /^\s*(?:\*\*)?\s*Notas:\s*(?:\*\*)?/gmi, replacement: "**Notas:** " },
+    ];
+    let out = markdown;
+    for (const { re, replacement } of rules) {
+      out = out.replace(re, replacement);
+    }
+    return out;
+  }
+
   private extractTitle(bodyMarkdown: string): string | null {
     for (const line of bodyMarkdown.split(/\r?\n/)) {
       const trimmed = line.trim();
@@ -484,8 +498,8 @@ export class TemplatesService {
     };
 
     const resolved = this.resolvePlaceholders(withoutConditionals, values);
-
-    return { meta: parsed.meta, markdown: resolved.trim() + "\n" };
+    const formatted = this.enforceBoldSectionLabels(resolved);
+    return { meta: parsed.meta, markdown: formatted.trim() + "\n" };
   }
 
   renderNormalReport(input: RenderInput): string {

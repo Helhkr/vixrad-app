@@ -18,15 +18,15 @@ import Typography from "@mui/material/Typography";
 
 import { useAppState } from "../state";
 import { useSnackbar } from "../snackbar";
-import { formatReportForCopy, type CopyFormat } from "@/features/reportCopyFormat";
+import { formatReportForCopy, stripMarkdown, convertMarkdownToHtml, type CopyFormat } from "@/features/reportCopyFormat";
 
 export default function ReportResultPage() {
   const router = useRouter();
   const { reportText, resetReport } = useAppState();
   const { showMessage } = useSnackbar();
 
-  const displayText = useMemo(() => {
-    return formatReportForCopy(reportText, "formatted");
+  const displayHtml = useMemo(() => {
+    return convertMarkdownToHtml(reportText);
   }, [reportText]);
 
   const options: Array<{ label: string; format: CopyFormat }> = [
@@ -39,9 +39,23 @@ export default function ReportResultPage() {
   const [selectedFormat, setSelectedFormat] = useState<CopyFormat>("formatted");
 
   const copyReport = async (format: CopyFormat) => {
-    const output = formatReportForCopy(reportText, format);
-    await navigator.clipboard.writeText(output);
-    showMessage("Laudo copiado com sucesso!", "success");
+    try {
+      if (format === "formatted" && "ClipboardItem" in window) {
+        const html = convertMarkdownToHtml(reportText);
+        const plain = stripMarkdown(reportText);
+        const item = new ClipboardItem({
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([plain], { type: "text/plain" }),
+        });
+        await (navigator.clipboard as any).write([item]);
+      } else {
+        const output = formatReportForCopy(reportText, format);
+        await navigator.clipboard.writeText(output);
+      }
+      showMessage("Laudo copiado com sucesso!", "success");
+    } catch (e) {
+      showMessage(e instanceof Error ? e.message : "Falha ao copiar laudo", "error");
+    }
   };
 
   if (!reportText) {
@@ -99,8 +113,8 @@ export default function ReportResultPage() {
           Laudo
         </Typography>
 
-        <Paper elevation={2} sx={{ p: 4, whiteSpace: "pre-wrap" }}>
-          {displayText}
+        <Paper elevation={2} sx={{ p: 4 }}>
+          <div dangerouslySetInnerHTML={{ __html: displayHtml }} />
         </Paper>
 
         <ButtonGroup variant="contained">
