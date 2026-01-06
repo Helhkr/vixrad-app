@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
@@ -10,6 +11,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 
 import { apiPost } from "@/features/api";
 
@@ -23,6 +25,7 @@ type AuthResponse = {
 
 export default function AuthPage() {
 	const router = useRouter();
+	const theme = useTheme();
 	const { setAccessToken, resetReport } = useAppState();
 	const { showMessage } = useSnackbar();
 
@@ -51,11 +54,19 @@ export default function AuthPage() {
 	return (
 		<Container maxWidth="sm" sx={{ py: 6 }}>
 			<Paper sx={{ p: 3 }}>
-				<Stack spacing={2}>
+				<Stack spacing={3}>
+					<Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+						<Image
+							src={theme.palette.mode === "dark" ? "/914x492_black_background.png" : "/914x492_white_background.png"}
+							alt="Vixrad Logo"
+							width={280}
+							height={150}
+							priority
+							style={{ objectFit: "contain" }}
+						/>
+					</Box>
+
 					<Box>
-						<Typography variant="h5" component="h1">
-							Vixrad
-						</Typography>
 						<Typography variant="body2" color="text.secondary">
 							Login/Registro
 						</Typography>
