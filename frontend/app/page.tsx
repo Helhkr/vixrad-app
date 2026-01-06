@@ -92,17 +92,7 @@ export default function AuthPage() {
 						autoComplete="current-password"
 					/>
 
-					<Stack direction="row" spacing={2}>
-						<Button
-							variant="contained"
-							color="primary"
-							disabled={loading}
-							onClick={() => run("login")}
-						>
-							Entrar
-						</Button>
-						<Button
-							variant="outlined"
+				<Stack direction="row" spacing={2} sx={{ justifyContent: "center" }}>
 							color="primary"
 							disabled={loading}
 							onClick={() => run("register")}
