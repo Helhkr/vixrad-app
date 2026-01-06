@@ -236,10 +236,8 @@ export default function ReportFindingsPage() {
 
     const trimmedFindings = findings.trim();
 
-    setLoading(true);
-    try {
+    const doGenerate = async (): Promise<GenerateResponse> => {
       if (indicationFile) {
-        // Enviar com FormData quando há arquivo, usando API_BASE_URL padrão
         const formData = new FormData();
         formData.append("examType", examType);
         formData.append("templateId", templateId);
@@ -249,31 +247,47 @@ export default function ReportFindingsPage() {
         if (side) formData.append("side", side);
         formData.append("findings", trimmedFindings);
         formData.append("indicationFile", indicationFile);
-
-        const data = await apiPostForm<GenerateResponse>("/reports/generate", formData, accessToken);
-        setReportText(data.reportText);
-      } else {
-        // Enviar JSON quando não há arquivo
-        const data = await apiPost<GenerateResponse>(
-          "/reports/generate",
-          {
-            examType,
-            templateId,
-            contrast,
-            indication: indication || undefined,
-            sex: sex || undefined,
-            side: side || undefined,
-            findings: trimmedFindings,
-          },
-          accessToken,
-        );
-        setReportText(data.reportText);
+        return await apiPostForm<GenerateResponse>("/reports/generate", formData, accessToken);
       }
+      return await apiPost<GenerateResponse>(
+        "/reports/generate",
+        {
+          examType,
+          templateId,
+          contrast,
+          indication: indication || undefined,
+          sex: sex || undefined,
+          side: side || undefined,
+          findings: trimmedFindings,
+        },
+        accessToken,
+      );
+    };
 
+    setLoading(true);
+    try {
+      const data = await doGenerate();
+      setReportText(data.reportText);
       showMessage("Laudo gerado com sucesso!", "success");
       router.push("/report-result");
     } catch (e) {
-      showMessage(e instanceof Error ? e.message : "Erro ao gerar laudo", "error");
+      const msg = e instanceof Error ? e.message : "Erro ao gerar laudo";
+      const is429 = typeof msg === "string" && msg.includes("429");
+      if (is429) {
+        showMessage("Limite de requisições da IA. Tente novamente em ~1 minuto.", "warning");
+        // Tentar novamente após ~60s
+        await new Promise((r) => setTimeout(r, 60000));
+        try {
+          const data = await doGenerate();
+          setReportText(data.reportText);
+          showMessage("Laudo gerado com sucesso!", "success");
+          router.push("/report-result");
+        } catch (e2) {
+          showMessage(e2 instanceof Error ? e2.message : "Erro ao gerar laudo", "error");
+        }
+      } else {
+        showMessage(msg, "error");
+      }
     } finally {
       setLoading(false);
     }
