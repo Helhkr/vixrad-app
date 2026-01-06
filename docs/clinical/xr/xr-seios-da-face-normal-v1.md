@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE SEIOS DA FACE
 
-**Técnica:** Radiografia de seios paranasais em incidência de Waters.
+**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

@@ -21,7 +21,7 @@ export class AuthService {
       { sub: params.userId, email: params.email },
       {
         secret: process.env.JWT_SECRET,
-        expiresIn: "15m",
+        expiresIn: "60m",
       },
     );
 

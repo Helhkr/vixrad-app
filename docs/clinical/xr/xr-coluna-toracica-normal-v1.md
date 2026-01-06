@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE COLUNA TORÁCICA
 
-**Técnica:** Radiografias de coluna torácica em incidências anteroposterior e lateral.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

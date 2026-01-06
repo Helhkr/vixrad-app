@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE OMBRO {{LADO}}
 
-**Técnica:** Radiografia de ombro em incidências anteroposterior e lateral.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

@@ -13,6 +13,8 @@ export type Decubitus = "ventral" | "dorsal" | "lateral";
 type AppState = {
   accessToken: string | null;
   setAccessToken: (token: string | null) => void;
+  refreshToken: string | null;
+  setRefreshToken: (token: string | null) => void;
 
   examType: ExamType | null;
   setExamType: (examType: ExamType | null) => void;
@@ -52,11 +54,16 @@ type AppState = {
 const AppStateContext = createContext<AppState | null>(null);
 
 const ACCESS_TOKEN_KEY = "vixrad.accessToken";
+const REFRESH_TOKEN_KEY = "vixrad.refreshToken";
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [accessToken, setAccessTokenState] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     return window.localStorage.getItem(ACCESS_TOKEN_KEY);
+  });
+  const [refreshToken, setRefreshTokenState] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return window.localStorage.getItem(REFRESH_TOKEN_KEY);
   });
 
   const [examType, setExamType] = useState<ExamType | null>(null);
@@ -77,6 +84,58 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     if (token) window.localStorage.setItem(ACCESS_TOKEN_KEY, token);
     else window.localStorage.removeItem(ACCESS_TOKEN_KEY);
   };
+  const setRefreshToken = (token: string | null) => {
+    setRefreshTokenState(token);
+    if (typeof window === "undefined") return;
+    if (token) window.localStorage.setItem(REFRESH_TOKEN_KEY, token);
+    else window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+  };
+
+  // Decode JWT exp and schedule silent refresh before expiry
+  function decodeJwtExp(token: string | null): number | null {
+    if (!token) return null;
+    try {
+      const parts = token.split(".");
+      if (parts.length !== 3) return null;
+      const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+      const json = typeof window !== "undefined" ? window.atob(base64) : Buffer.from(base64, "base64").toString("utf8");
+      const payload = JSON.parse(json);
+      return typeof payload.exp === "number" ? payload.exp : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function performRefresh(): Promise<void> {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:3002"}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+      if (!res.ok) throw new Error("Refresh failed");
+      const data = (await res.json()) as { accessToken: string; refreshToken: string };
+      setAccessToken(data.accessToken);
+      setRefreshToken(data.refreshToken);
+    } catch {
+      // If refresh fails, keep tokens cleared to force re-auth only when user interacts
+      setAccessToken(null);
+      setRefreshToken(null);
+    }
+  }
+
+  React.useEffect(() => {
+    if (!accessToken || !refreshToken) return;
+    const exp = decodeJwtExp(accessToken);
+    if (!exp) return;
+    const msUntilExpiry = exp * 1000 - Date.now();
+    // Refresh 1 minute before expiry, but not negative
+    const msUntilRefresh = Math.max(msUntilExpiry - 60_000, 5_000);
+    const timer = setTimeout(() => {
+      performRefresh();
+    }, msUntilRefresh);
+    return () => clearTimeout(timer);
+  }, [accessToken, refreshToken]);
 
   const resetReport = () => {
     setIndication("");
@@ -94,6 +153,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     () => ({
       accessToken,
       setAccessToken,
+      refreshToken,
+      setRefreshToken,
       examType,
       setExamType,
       templateId,
@@ -118,7 +179,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setReportText,
       resetReport,
     }),
-    [accessToken, examType, templateId, indication, indicationFile, findings, contrast, sex, side, incidence, decubitus, reportText],
+    [accessToken, refreshToken, examType, templateId, indication, indicationFile, findings, contrast, sex, side, incidence, decubitus, reportText],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

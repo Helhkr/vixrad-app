@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE PUNHO {{LADO}}
 
-**Técnica:** Radiografia de punho em incidências posteroanterior e lateral.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

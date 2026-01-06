@@ -26,7 +26,7 @@ type AuthResponse = {
 export default function AuthPage() {
 	const router = useRouter();
 	const theme = useTheme();
-	const { setAccessToken, resetReport } = useAppState();
+	const { setAccessToken, setRefreshToken, resetReport } = useAppState();
 	const { showMessage } = useSnackbar();
 
 	const [email, setEmail] = useState("");
@@ -38,6 +38,7 @@ export default function AuthPage() {
 		try {
 			const data = await apiPost<AuthResponse>(`/auth/${mode}`, { email, password });
 			setAccessToken(data.accessToken);
+			setRefreshToken(data.refreshToken);
 			resetReport();
 			showMessage(
 				mode === "login" ? "Login realizado com sucesso!" : "Usuário registrado com sucesso!",

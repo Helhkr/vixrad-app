@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE COLUNA EM ESCOLIOSE (PANORÂMICA)
 
-**Técnica:** Radiografia de coluna total em incidência posteroanterior.
+**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

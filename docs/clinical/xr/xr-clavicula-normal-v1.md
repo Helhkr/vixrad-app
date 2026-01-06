@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE CLAVÍCULA {{LADO}}
 
-**Técnica:** Radiografia de clavícula em incidência anteroposterior.
+**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

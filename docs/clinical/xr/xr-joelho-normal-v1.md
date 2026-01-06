@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE JOELHO {{LADO}}
 
-**Técnica:** Radiografias de joelho em incidências anteroposterior, lateral e axial de patela.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

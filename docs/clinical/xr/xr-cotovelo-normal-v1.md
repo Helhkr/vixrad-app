@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE COTOVELO {{LADO}}
 
-**Técnica:** Radiografia de cotovelo em incidências posteroanterior e lateral.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

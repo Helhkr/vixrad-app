@@ -4,14 +4,14 @@ requires:
   indication: optional
   sex: none
   contrast: none
-  side: none
+  side: required
   incidence: required
   decubitus: none
 ---
 
 # RADIOGRAFIA DE ARTICULAÇÃO TEMPOROMANDIBULAR (ATM)
 
-**Técnica:** Radiografia de ATM em incidências boca aberta e boca fechada.
+**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

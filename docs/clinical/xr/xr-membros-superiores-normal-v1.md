@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE MEMBROS SUPERIORES
 
-**Técnica:** Radiografia de membros superiores bilaterais em incidências anteroposterior e lateral.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

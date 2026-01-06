@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE COLUNA LOMBO-SACRA
 
-**Técnica:** Radiografia de coluna lombar e sacra em incidências posteroanterior e lateral.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

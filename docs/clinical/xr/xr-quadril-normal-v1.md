@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE QUADRIL {{LADO}}
 
-**Técnica:** Radiografia de quadril em incidências anteroposterior e axial.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

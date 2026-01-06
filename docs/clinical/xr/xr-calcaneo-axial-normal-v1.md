@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE CALCÂNEO (AXIAL) {{LADO}}
 
-**Técnica:** Radiografia de calcâneo em incidência axial.
+**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

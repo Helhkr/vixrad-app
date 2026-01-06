@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE MEMBROS INFERIORES
 
-**Técnica:** Radiografia de membros inferiores bilaterais em incidências anteroposterior e lateral.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

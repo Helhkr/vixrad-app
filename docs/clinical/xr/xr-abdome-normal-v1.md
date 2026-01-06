@@ -6,12 +6,12 @@ requires:
   contrast: none
   side: none
   incidence: required
-  decubitus: none
+  decubitus: optional
 ---
 
 # RADIOGRAFIA DE ABDOME
 
-**Técnica:** Radiografia de abdome em incidência anteroposterior.
+**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

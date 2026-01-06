@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE COLUNA CERVICAL
 
-**Técnica:** Radiografias de coluna cervical em incidências anteroposterior e lateral.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

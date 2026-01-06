@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE PELVE
 
-**Técnica:** Radiografia de pelve em incidência anteroposterior.
+**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

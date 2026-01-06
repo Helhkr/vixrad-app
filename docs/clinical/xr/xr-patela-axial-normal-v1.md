@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE PATELA (AXIAL) {{LADO}}
 
-**Técnica:** Radiografia de patela em incidência axial.
+**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

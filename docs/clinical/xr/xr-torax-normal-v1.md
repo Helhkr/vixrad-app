@@ -6,11 +6,12 @@ requires:
   contrast: none
   side: none
   incidence: required
+  decubitus: optional
 ---
 
 # RADIOGRAFIA DE TÓRAX
 
-**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
+**Técnica:** {{INCIDENCIA}}, realizado em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

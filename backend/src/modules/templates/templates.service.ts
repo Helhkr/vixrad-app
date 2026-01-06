@@ -371,38 +371,52 @@ export class TemplatesService {
   }
 
   listTemplates(examType: ExamType): TemplateListItem[] {
+    console.log(`[listTemplates] examType=${examType}`);
     if (!SUPPORTED_EXAM_TYPES.includes(examType)) {
       throw new BadRequestException("examType inválido");
     }
 
     const dir = this.resolveTemplatesDir(examType);
+    console.log(`[listTemplates] dir=${dir}`);
     if (!dir) return [];
     const entries = fs
       .readdirSync(dir)
       .filter((name) => name.endsWith(".md"))
       .sort((a, b) => a.localeCompare(b));
 
+    console.log(`[listTemplates] found ${entries.length} .md files`);
+
     const out: TemplateListItem[] = [];
     for (const fileName of entries) {
       const templateId = fileName.replace(/\.md$/, "");
-      const source = this.loadTemplateSource(templateId, examType);
-      const parsed = this.parseFrontMatter(source);
+      console.log(`[listTemplates] processing ${templateId}...`);
+      try {
+        const source = this.loadTemplateSource(templateId, examType);
+        console.log(`[listTemplates] loaded source for ${templateId}, parsing...`);
+        const parsed = this.parseFrontMatter(source);
 
-      if (parsed.meta.exam_type !== examType) {
-        throw new BadRequestException(`Template ${templateId} com exam_type incompatível`);
+        if (parsed.meta.exam_type !== examType) {
+          console.warn(`[listTemplates] Template ${templateId} exam_type mismatch: ${parsed.meta.exam_type} !== ${examType}`);
+          continue;
+        }
+
+        const title = this.extractTitle(parsed.body);
+
+        const name = this.sanitizeTemplateName(title ?? templateId);
+
+        out.push({
+          id: templateId,
+          name,
+          examType: parsed.meta.exam_type,
+        });
+        console.log(`[listTemplates] added ${templateId}`);
+      } catch (err: any) {
+        console.error(`[listTemplates] Error loading template ${templateId}:`, err.message);
+        continue;
       }
-
-      const title = this.extractTitle(parsed.body);
-
-      const name = this.sanitizeTemplateName(title ?? templateId);
-
-      out.push({
-        id: templateId,
-        name,
-        examType: parsed.meta.exam_type,
-      });
     }
 
+    console.log(`[listTemplates] returning ${out.length} templates`);
     return out;
   }
 
@@ -451,12 +465,21 @@ export class TemplatesService {
     const ast = this.parseConditionalsToAst(parsed.body);
     const withoutConditionals = this.evalAst(ast, flags);
 
+    const incidenciaMap: Record<string, string> = {
+      "PA e Perfil": "Radiografia em incidências posteroanterior (PA) e perfil",
+      "AP": "Radiografia em incidência anteroposterior (AP)",
+      "PA": "Radiografia em incidência posteroanterior (PA)",
+      "Perfil": "Radiografia em incidência de perfil",
+      "Obliqua": "Radiografia em incidência oblíqua",
+      "Ortostática": "Radiografia em incidência ortostática",
+    };
+
     const values: Record<string, string | undefined> = {
       INDICACAO: input.indication,
       NOTAS: input.notes,
       SEXO: input.sex === "F" ? "FEMININO" : input.sex === "M" ? "MASCULINO" : undefined,
       LADO: input.side === "RIGHT" ? "DIREITO" : input.side === "LEFT" ? "ESQUERDO" : undefined,
-      INCIDENCIA: input.incidence,
+      INCIDENCIA: input.incidence ? incidenciaMap[input.incidence] || input.incidence : undefined,
       DECUBITUS: input.decubitus ? (input.decubitus === "ventral" ? "VENTRAL" : input.decubitus === "dorsal" ? "DORSAL" : "LATERAL") : undefined,
     };
 

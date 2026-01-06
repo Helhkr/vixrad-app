@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE CRÂNIO
 
-**Técnica:** Radiografia de crânio em incidências posteroanterior e perfil.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

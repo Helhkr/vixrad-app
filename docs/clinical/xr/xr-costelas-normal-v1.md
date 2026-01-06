@@ -4,14 +4,14 @@ requires:
   indication: optional
   sex: none
   contrast: none
-  side: none
+  side: required
   incidence: required
   decubitus: none
 ---
 
 # RADIOGRAFIA DE COSTELAS
 
-**Técnica:** Radiografia de tórax em incidências posteroanterior e lateral com foco em costelas.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

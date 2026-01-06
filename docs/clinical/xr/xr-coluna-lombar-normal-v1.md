@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE COLUNA LOMBAR
 
-**Técnica:** Radiografias de coluna lombar em incidências anteroposterior e lateral.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

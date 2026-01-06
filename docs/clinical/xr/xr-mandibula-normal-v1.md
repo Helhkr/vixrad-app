@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE MANDÍBULA
 
-**Técnica:** Radiografia de mandíbula em incidência panorâmica ou anteroposterior.
+**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

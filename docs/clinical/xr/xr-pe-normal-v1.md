@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE PÉ {{LADO}}
 
-**Técnica:** Radiografias de pé em incidências anteroposterior e lateral.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

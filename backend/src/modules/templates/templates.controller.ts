@@ -32,6 +32,7 @@ export class TemplatesController {
   @UseGuards(JwtAuthGuard, TrialGuard)
   @Get()
   listTemplates(@Query("examType") examType?: string): TemplateListItem[] {
+    console.log(`[TemplatesController] listTemplates called with examType=${examType}`);
     if (!examType) {
       throw new BadRequestException("examType is required");
     }
@@ -41,7 +42,9 @@ export class TemplatesController {
       throw new BadRequestException("examType inválido");
     }
 
-    return this.templatesService.listTemplates(examType as ExamType).map((t) => ({
+    const templates = this.templatesService.listTemplates(examType as ExamType);
+    console.log(`[TemplatesController] Found ${templates.length} templates for ${examType}`);
+    return templates.map((t) => ({
       id: t.id,
       name: t.name,
       examType: t.examType,

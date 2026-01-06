@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE COLUNA DINÂMICA (FLEXÃO E EXTENSÃO)
 
-**Técnica:** Radiografia de coluna em incidências de flexão e extensão.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

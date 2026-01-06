@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE MÃO {{LADO}}
 
-**Técnica:** Radiografia de mão em incidência posteroanterior.
+**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

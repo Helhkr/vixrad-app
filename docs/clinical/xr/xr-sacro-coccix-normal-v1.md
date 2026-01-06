@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE SACRO E CÓCCIX
 
-**Técnica:** Radiografia de sacro e cóccix em incidência anteroposterior.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

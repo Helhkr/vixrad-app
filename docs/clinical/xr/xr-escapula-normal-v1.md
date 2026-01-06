@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE ESCÁPULA {{LADO}}
 
-**Técnica:** Radiografia de escápula em incidências posteroanterior e lateral.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

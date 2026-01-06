@@ -103,6 +103,18 @@ export default function ReportFormPage() {
   const showIncidence = requires ? requires.incidence !== "none" && requires.incidence !== "fixed" : false;
   const showDecubitus = requires ? requires.decubitus !== "none" && requires.decubitus !== "fixed" : false;
 
+  useEffect(() => {
+    if (showIncidence && !incidence) {
+      setIncidence("PA e Perfil");
+    }
+  }, [showIncidence, incidence, setIncidence]);
+
+  useEffect(() => {
+    if (showDecubitus && decubitus === null) {
+      setDecubitus(null);
+    }
+  }, [showDecubitus, decubitus, setDecubitus]);
+
   const templateLabel = useMemo(() => {
     if (!templateId) return "-";
     return template?.name ?? templateId;
@@ -275,20 +287,20 @@ export default function ReportFormPage() {
           ) : null}
 
           {showIncidence ? (
-            <FormControl fullWidth>
-              <InputLabel>Incidência</InputLabel>
-              <Select
+            <FormControl>
+              <FormLabel>Incidência</FormLabel>
+              <RadioGroup
+                row
                 value={incidence ?? ""}
                 onChange={(e) => setIncidence(e.target.value as Incidence)}
-                label="Incidência"
               >
-                <MenuItem value="AP">AP</MenuItem>
-                <MenuItem value="PA">PA</MenuItem>
-                <MenuItem value="Perfil">Perfil</MenuItem>
-                <MenuItem value="PA e Perfil">PA e Perfil</MenuItem>
-                <MenuItem value="Obliqua">Oblíqua</MenuItem>
-                <MenuItem value="Ortostática">Ortostática</MenuItem>
-              </Select>
+                <FormControlLabel value="PA e Perfil" control={<Radio />} label="PA e Perfil" />
+                <FormControlLabel value="AP" control={<Radio />} label="AP" />
+                <FormControlLabel value="PA" control={<Radio />} label="PA" />
+                <FormControlLabel value="Perfil" control={<Radio />} label="Perfil" />
+                <FormControlLabel value="Obliqua" control={<Radio />} label="Oblíqua" />
+                <FormControlLabel value="Ortostática" control={<Radio />} label="Ortostática" />
+              </RadioGroup>
             </FormControl>
           ) : null}
 
@@ -298,8 +310,9 @@ export default function ReportFormPage() {
               <RadioGroup
                 row
                 value={decubitus ?? ""}
-                onChange={(e) => setDecubitus(e.target.value as Decubitus)}
+                onChange={(e) => setDecubitus(e.target.value === "" ? null : (e.target.value as Decubitus))}
               >
+                <FormControlLabel value="" control={<Radio />} label="Não citar" />
                 <FormControlLabel value="ventral" control={<Radio />} label="Ventral" />
                 <FormControlLabel value="dorsal" control={<Radio />} label="Dorsal" />
                 <FormControlLabel value="lateral" control={<Radio />} label="Lateral" />

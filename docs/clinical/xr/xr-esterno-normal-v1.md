@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE ESTERNO
 
-**Técnica:** Radiografia de esterno em incidência oblíqua.
+**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

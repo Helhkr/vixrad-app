@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE TORNOZELO {{LADO}}
 
-**Técnica:** Radiografias de tornozelo em incidências anteroposterior, lateral e mortise.
+**Técnica:** {{INCIDENCIA}}, realizadas em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

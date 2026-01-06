@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE COLUNA TOTAL (PANORÂMICA)
 
-**Técnica:** Radiografia de coluna cervical, torácica e lombar em incidência posteroanterior.
+**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
