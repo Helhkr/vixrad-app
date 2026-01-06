@@ -211,12 +211,18 @@ export class TemplatesService {
     }
 
     const requires = meta.requires as Partial<TemplateRequires>;
-    const missing = (k: keyof TemplateRequires) => requires[k] === undefined;
-    if (missing("indication") || missing("sex") || missing("contrast") || missing("side") || missing("incidence") || missing("decubitus")) {
-      throw new BadRequestException("YAML: requires incompleto");
-    }
 
-    for (const [key, value] of Object.entries(requires)) {
+    // Validar que campos presentes têm valores válidos, usar "none" como padrão para campos faltantes
+    const fullRequires: TemplateRequires = {
+      indication: requires.indication ?? "none",
+      sex: requires.sex ?? "none",
+      contrast: requires.contrast ?? "none",
+      side: requires.side ?? "none",
+      incidence: requires.incidence ?? "none",
+      decubitus: requires.decubitus ?? "none",
+    };
+
+    for (const [key, value] of Object.entries(fullRequires)) {
       if (!SUPPORTED_REQUIRE_STATES.includes(value as RequireState)) {
         throw new BadRequestException(`YAML: requires.${key} inválido`);
       }
@@ -225,7 +231,7 @@ export class TemplatesService {
     return {
       meta: {
         exam_type: meta.exam_type as ExamType,
-        requires: requires as TemplateRequires,
+        requires: fullRequires,
       },
       body,
     };
