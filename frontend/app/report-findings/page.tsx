@@ -86,6 +86,7 @@ export default function ReportFindingsPage() {
     }
 
     setMicPermissionError(null);
+    lastProcessedTranscript.current = "";
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
