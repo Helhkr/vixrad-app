@@ -122,13 +122,13 @@ export default function ReportFindingsPage() {
     }
   };
 
-  useEffect(() => { && transcript !== lastProcessedTranscript.current) {
+  useEffect(() => {
+    if (transcript && !listening && transcript !== lastProcessedTranscript.current) {
       lastProcessedTranscript.current = transcript;
       setFindings((prev) => (prev ? `${prev} ${transcript}` : transcript));
       resetTranscript();
     }
-  }, [transcript, listening
-  }, [transcript, listening, findings, setFindings, resetTranscript]);
+  }, [transcript, listening, setFindings, resetTranscript]);
 
   useEffect(() => {
     if (!accessToken) router.replace("/");
