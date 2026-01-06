@@ -47,11 +47,25 @@ export default function ReportFindingsPage() {
   } = useAppState();
 
   const { showMessage } = useSnackbar();
-  const { transcript, listening, resetTranscript } = useSpeechRecognition();
+  const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } =
+    useSpeechRecognition();
 
   const [loading, setLoading] = useState(false);
   const [template, setTemplate] = useState<TemplateDetail | null>(null);
   const [loadingTemplate, setLoadingTemplate] = useState(false);
+  const [micSupported, setMicSupported] = useState(false);
+
+  useEffect(() => {
+    if (browserSupportsSpeechRecognition === false) {
+      setMicSupported(false);
+      showMessage(
+        "Seu navegador não suporta reconhecimento de voz. Use Chrome, Edge ou Opera.",
+        "warning",
+      );
+    } else {
+      setMicSupported(true);
+    }
+  }, [browserSupportsSpeechRecognition, showMessage]);
 
   const options: Array<{ label: string; format: CopyFormat }> = [
     { label: "Formatação padrão", format: "formatted" },
@@ -270,15 +284,32 @@ export default function ReportFindingsPage() {
                         language: "pt-BR",
                       })
                 }
+                disabled={!micSupported}
                 sx={{ mt: 1 }}
-                title={listening ? "Parar gravação" : "Iniciar gravação de voz"}
+                title={
+                  !micSupported
+                    ? "Seu navegador não suporta reconhecimento de voz"
+                    : listening
+                      ? "Parar gravação"
+                      : "Iniciar gravação de voz"
+                }
               >
                 {listening ? <MicIcon /> : <MicOffIcon />}
               </IconButton>
             </Stack>
+            {!micSupported && (
+              <Typography variant="caption" color="error">
+                ⚠️ Reconhecimento de voz não suportado neste navegador
+              </Typography>
+            )}
             {listening && (
               <Typography variant="caption" color="info.main">
                 🎤 Escutando...
+              </Typography>
+            )}
+            {transcript && !listening && (
+              <Typography variant="caption" color="success.main">
+                ✓ Texto capturado: {transcript.slice(0, 50)}...
               </Typography>
             )}
           </Stack>
