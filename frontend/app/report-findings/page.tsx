@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
@@ -55,6 +55,7 @@ export default function ReportFindingsPage() {
   const [loadingTemplate, setLoadingTemplate] = useState(false);
   const [micSupported, setMicSupported] = useState(false);
   const [micPermissionError, setMicPermissionError] = useState<string | null>(null);
+  const lastProcessedTranscript = useRef<string>("");
 
   useEffect(() => {
     if (browserSupportsSpeechRecognition === false) {
@@ -121,11 +122,12 @@ export default function ReportFindingsPage() {
     }
   };
 
-  useEffect(() => {
-    if (transcript && !listening) {
-      setFindings(findings ? `${findings} ${transcript}` : transcript);
+  useEffect(() => { && transcript !== lastProcessedTranscript.current) {
+      lastProcessedTranscript.current = transcript;
+      setFindings((prev) => (prev ? `${prev} ${transcript}` : transcript));
       resetTranscript();
     }
+  }, [transcript, listening
   }, [transcript, listening, findings, setFindings, resetTranscript]);
 
   useEffect(() => {
