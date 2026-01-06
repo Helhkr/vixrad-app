@@ -19,6 +19,8 @@ export class PromptBuilderService {
       "- NÃO utilize linguagem coloquial.",
       "- Utilize linguagem técnica médica formal.",
       "- Caso uma informação não tenha sido fornecida, NÃO a presuma, a não ser que explicitamente solicitado.",
+      "- Caso hajam alterações no exame, descreva-as alterações mais importantes primeiro na análise e em impressão diagnóstica",
+      "- Caso haja mais de uma impressão diagnóstica, coloque cada uma delas em uma linha própria e não utilize bullets ou numerações."
     ].join("\n");
   }
 
