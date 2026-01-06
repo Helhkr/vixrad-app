@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import * as pdf from 'pdf-parse';
 import { createWorker } from 'tesseract.js';
 
 @Injectable()
@@ -18,10 +17,11 @@ export class FileExtractionService {
 
   private async extractTextFromPDF(buffer: Buffer): Promise<string> {
     try {
+      const pdf = require('pdf-parse');
       const data = await pdf(buffer);
       return data.text;
-    } catch (error) {
-      throw new Error(`Erro ao extrair texto do PDF: ${error.message}`);
+    } catch (error: any) {
+      throw new Error(`Erro ao extrair texto do PDF: ${error?.message || 'erro desconhecido'}`);
     }
   }
 
@@ -31,8 +31,8 @@ export class FileExtractionService {
       const { data } = await worker.recognize(buffer);
       await worker.terminate();
       return data.text;
-    } catch (error) {
-      throw new Error(`Erro ao extrair texto da imagem: ${error.message}`);
+    } catch (error: any) {
+      throw new Error(`Erro ao extrair texto da imagem: ${error?.message || 'erro desconhecido'}`);
     }
   }
 }
