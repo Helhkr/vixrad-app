@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
@@ -55,7 +55,6 @@ export default function ReportFindingsPage() {
   const [loadingTemplate, setLoadingTemplate] = useState(false);
   const [micSupported, setMicSupported] = useState(false);
   const [micPermissionError, setMicPermissionError] = useState<string | null>(null);
-  const lastProcessedTranscript = useRef<string>("");
 
   useEffect(() => {
     if (browserSupportsSpeechRecognition === false) {
@@ -86,7 +85,6 @@ export default function ReportFindingsPage() {
     }
 
     setMicPermissionError(null);
-    lastProcessedTranscript.current = "";
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -124,12 +122,11 @@ export default function ReportFindingsPage() {
   };
 
   useEffect(() => {
-    if (transcript && !listening && transcript !== lastProcessedTranscript.current) {
-      lastProcessedTranscript.current = transcript;
-      setFindings((prev) => (prev ? `${prev} ${transcript}` : transcript));
+    if (!listening && transcript) {
+      setFindings((prev) => `${prev} ${transcript}`.trim());
       resetTranscript();
     }
-  }, [transcript, listening, setFindings, resetTranscript]);
+  }, [listening, transcript, setFindings, resetTranscript]);
 
   useEffect(() => {
     if (!accessToken) router.replace("/");
