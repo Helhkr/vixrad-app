@@ -274,17 +274,8 @@ export default function ReportFindingsPage() {
       const msg = e instanceof Error ? e.message : "Erro ao gerar laudo";
       const is429 = typeof msg === "string" && msg.includes("429");
       if (is429) {
+        // Cancelar a tentativa atual e orientar usuário a tentar novamente manualmente
         showMessage("Limite de requisições da IA. Tente novamente em ~1 minuto.", "warning");
-        // Tentar novamente após ~60s
-        await new Promise((r) => setTimeout(r, 60000));
-        try {
-          const data = await doGenerate();
-          setReportText(data.reportText);
-          showMessage("Laudo gerado com sucesso!", "success");
-          router.push("/report-result");
-        } catch (e2) {
-          showMessage(e2 instanceof Error ? e2.message : "Erro ao gerar laudo", "error");
-        }
       } else {
         showMessage(msg, "error");
       }
