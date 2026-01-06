@@ -79,7 +79,9 @@ export default function ReportResultPage() {
           Laudo
         </Typography>
 
-        <Paper sx={{ p: 2, whiteSpace: "pre-wrap" }}>{reportText}</Paper>
+        <Paper elevation={2} sx={{ p: 4, whiteSpace: "pre-wrap" }}>
+          {reportText}
+        </Paper>
 
         <ButtonGroup variant="contained">
           <Button onClick={() => copyReport(selectedFormat)}>COPIAR LAUDO</Button>

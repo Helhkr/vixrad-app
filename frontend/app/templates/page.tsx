@@ -97,7 +97,7 @@ export default function TemplatesPage() {
 
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
-      <Paper sx={{ p: 3 }}>
+      <Paper elevation={2} sx={{ p: 4 }}>
         <Stack spacing={2}>
           <IconButton onClick={() => router.back()}>
             <ArrowBackIcon />
