@@ -2,9 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import MicIcon from "@mui/icons-material/Mic";
+import MicOffIcon from "@mui/icons-material/MicOff";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
@@ -44,6 +47,7 @@ export default function ReportFindingsPage() {
   } = useAppState();
 
   const { showMessage } = useSnackbar();
+  const { transcript, listening, resetTranscript } = useSpeechRecognition();
 
   const [loading, setLoading] = useState(false);
   const [template, setTemplate] = useState<TemplateDetail | null>(null);
@@ -57,6 +61,13 @@ export default function ReportFindingsPage() {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFormat, setSelectedFormat] = useState<CopyFormat>("formatted");
+
+  useEffect(() => {
+    if (transcript && !listening) {
+      setFindings((prev) => (prev ? `${prev} ${transcript}` : transcript));
+      resetTranscript();
+    }
+  }, [transcript, listening, setFindings, resetTranscript]);
 
   useEffect(() => {
     if (!accessToken) router.replace("/");
@@ -239,14 +250,38 @@ export default function ReportFindingsPage() {
             </Box>
           ) : null}
 
-          <TextField
-            label="Achados"
-            fullWidth
-            multiline
-            minRows={6}
-            value={findings}
-            onChange={(e) => setFindings(e.target.value)}
-          />
+          <Stack spacing={1}>
+            <Stack direction="row" spacing={1} alignItems="flex-start">
+              <TextField
+                label="Achados"
+                fullWidth
+                multiline
+                minRows={6}
+                value={findings}
+                onChange={(e) => setFindings(e.target.value)}
+              />
+              <IconButton
+                color={listening ? "error" : "primary"}
+                onClick={() =>
+                  listening
+                    ? SpeechRecognition.stopListening()
+                    : SpeechRecognition.startListening({
+                        continuous: true,
+                        language: "pt-BR",
+                      })
+                }
+                sx={{ mt: 1 }}
+                title={listening ? "Parar gravação" : "Iniciar gravação de voz"}
+              >
+                {listening ? <MicIcon /> : <MicOffIcon />}
+              </IconButton>
+            </Stack>
+            {listening && (
+              <Typography variant="caption" color="info.main">
+                🎤 Escutando...
+              </Typography>
+            )}
+          </Stack>
 
           <Stack direction="row" spacing={2}>
             <ButtonGroup variant="contained" disabled={loading}>

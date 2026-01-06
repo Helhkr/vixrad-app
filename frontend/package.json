@@ -16,7 +16,8 @@
     "@mui/material": "^7.3.6",
     "next": "^15.5.9",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "react-speech-recognition": "^4.0.1"
   },
   "devDependencies": {
     "@types/node": "22.10.5",
