@@ -38,6 +38,7 @@ export default function ReportFindingsPage() {
     examType,
     templateId,
     indication,
+    indicationFile,
     contrast,
     sex,
     side,
@@ -237,21 +238,50 @@ export default function ReportFindingsPage() {
 
     setLoading(true);
     try {
-      const data = await apiPost<GenerateResponse>(
-        "/reports/generate",
-        {
-          examType,
-          templateId,
-          contrast,
-          indication: indication || undefined,
-          sex: sex || undefined,
-          side: side || undefined,
-          findings: trimmedFindings,
-        },
-        accessToken,
-      );
+      if (indicationFile) {
+        // Enviar com FormData quando há arquivo
+        const formData = new FormData();
+        formData.append("examType", examType);
+        formData.append("templateId", templateId);
+        formData.append("contrast", contrast);
+        if (indication) formData.append("indication", indication);
+        if (sex) formData.append("sex", sex);
+        if (side) formData.append("side", side);
+        formData.append("findings", trimmedFindings);
+        formData.append("indicationFile", indicationFile);
 
-      setReportText(data.reportText);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/reports/generate`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || `Erro ${response.status}`);
+        }
+
+        const data = await response.json();
+        setReportText(data.reportText);
+      } else {
+        // Enviar JSON quando não há arquivo
+        const data = await apiPost<GenerateResponse>(
+          "/reports/generate",
+          {
+            examType,
+            templateId,
+            contrast,
+            indication: indication || undefined,
+            sex: sex || undefined,
+            side: side || undefined,
+            findings: trimmedFindings,
+          },
+          accessToken,
+        );
+        setReportText(data.reportText);
+      }
 
       showMessage("Laudo gerado com sucesso!", "success");
       router.push("/report-result");

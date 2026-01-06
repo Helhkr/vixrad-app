@@ -1,4 +1,5 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, HttpCode, Post, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { Throttle } from "@nestjs/throttler";
 
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
@@ -15,7 +16,8 @@ export class ReportsController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @HttpCode(200)
   @Post("generate")
-  generate(@Body() dto: GenerateReportDto) {
+  @UseInterceptors(FileInterceptor("indicationFile"))
+  async generate(@Body() dto: GenerateReportDto, @UploadedFile() file?: Express.Multer.File) {
     return this.reportsService.generateStructuredBaseReport({
       examType: dto.examType,
       templateId: dto.templateId,
@@ -25,6 +27,7 @@ export class ReportsController {
       contrast: dto.contrast,
       notes: dto.notes,
       findings: dto.findings,
+      indicationFile: file,
     });
   }
 }

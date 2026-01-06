@@ -20,6 +20,9 @@ type AppState = {
   indication: string;
   setIndication: (value: string) => void;
 
+  indicationFile: File | null;
+  setIndicationFile: (value: File | null) => void;
+
   findings: string;
   setFindings: (value: string) => void;
 
@@ -51,6 +54,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [examType, setExamType] = useState<ExamType | null>(null);
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [indication, setIndication] = useState<string>("");
+  const [indicationFile, setIndicationFile] = useState<File | null>(null);
   const [findings, setFindings] = useState<string>("");
   const [contrast, setContrast] = useState<Contrast>("without");
   const [sex, setSex] = useState<Sex | null>(null);
@@ -66,6 +70,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const resetReport = () => {
     setIndication("");
+    setIndicationFile(null);
     setFindings("");
     setContrast("without");
     setSex(null);
@@ -83,6 +88,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setTemplateId,
       indication,
       setIndication,
+      indicationFile,
+      setIndicationFile,
       findings,
       setFindings,
       contrast,
@@ -95,7 +102,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setReportText,
       resetReport,
     }),
-    [accessToken, examType, templateId, indication, findings, contrast, sex, side, reportText],
+    [accessToken, examType, templateId, indication, indicationFile, findings, contrast, sex, side, reportText],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

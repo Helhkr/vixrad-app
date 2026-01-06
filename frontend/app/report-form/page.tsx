@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import DeleteIcon from "@mui/icons-material/Delete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -29,6 +31,8 @@ export default function ReportFormPage() {
     templateId,
     indication,
     setIndication,
+    indicationFile,
+    setIndicationFile,
     contrast,
     setContrast,
     sex,
@@ -93,6 +97,26 @@ export default function ReportFormPage() {
     return template?.name ?? templateId;
   }, [template?.name, templateId]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const file = e.target.files[0];
+      const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+      
+      if (!validTypes.includes(file.type)) {
+        showMessage("Tipo de arquivo inválido. Use PDF ou imagem (JPG/PNG).", "error");
+        return;
+      }
+      
+      setIndicationFile(file);
+      setIndication("Em anexo");
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setIndicationFile(null);
+    setIndication("");
+  };
+
   const validateAndContinue = () => {
     if (!requires) {
       showMessage("Aguarde carregar o modelo.", "error");
@@ -150,15 +174,41 @@ export default function ReportFormPage() {
           ) : null}
 
           {showIndication ? (
-            <TextField
-              label="Indicação"
-              placeholder="Qual a indicação do exame? (Opcional)"
-              fullWidth
-              multiline
-              minRows={2}
-              value={indication}
-              onChange={(e) => setIndication(e.target.value)}
-            />
+            <Stack direction="row" spacing={1} alignItems="flex-start">
+              <TextField
+                label="Indicação"
+                placeholder={indicationFile ? "Em anexo" : "Qual a indicação do exame? (Opcional)"}
+                fullWidth
+                multiline
+                minRows={2}
+                value={indication}
+                onChange={(e) => setIndication(e.target.value)}
+                disabled={!!indicationFile}
+              />
+              <input
+                type="file"
+                accept=".pdf,image/jpeg,image/jpg,image/png"
+                style={{ display: "none" }}
+                id="indication-file-input"
+                onChange={handleFileChange}
+              />
+              <label htmlFor="indication-file-input">
+                <IconButton component="span" color="primary" disabled={loading}>
+                  <AttachFileIcon />
+                </IconButton>
+              </label>
+              {indicationFile && (
+                <IconButton color="error" onClick={handleRemoveFile} disabled={loading}>
+                  <DeleteIcon />
+                </IconButton>
+              )}
+            </Stack>
+          ) : null}
+          
+          {indicationFile && (
+            <Typography variant="caption" color="text.secondary">
+              📎 {indicationFile.name} ({(indicationFile.size / 1024).toFixed(1)} KB)
+            </Typography>
           ) : null}
 
           {showContrast ? (

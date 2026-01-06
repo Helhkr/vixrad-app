@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 
 import { AiService } from "../ai/ai.service";
 import { PromptBuilderService } from "../ai/prompt-builder.service";
+import { FileExtractionService } from "../ai/file-extraction.service";
 import { TemplatesService } from "../templates/templates.service";
 
 @Injectable()
@@ -10,6 +11,7 @@ export class ReportsService {
     private readonly templatesService: TemplatesService,
     private readonly promptBuilderService: PromptBuilderService,
     private readonly aiService: AiService,
+    private readonly fileExtractionService: FileExtractionService,
   ) {}
 
   async generateStructuredBaseReport(params: {
@@ -21,11 +23,20 @@ export class ReportsService {
     contrast?: "with" | "without";
     notes?: string;
     findings?: string | null;
+    indicationFile?: Express.Multer.File;
   }) {
+    let indication = params.indication;
+
+    // Se houver arquivo, extrair texto e gerar indicação com IA
+    if (params.indicationFile) {
+      const extractedText = await this.fileExtractionService.extractTextFromFile(params.indicationFile);
+      indication = await this.aiService.generateIndicationFromText(extractedText);
+    }
+
     const baseInput = {
       examType: params.examType,
       templateId: params.templateId,
-      indication: params.indication,
+      indication,
       sex: params.sex,
       side: params.side,
       contrast: params.contrast,
@@ -45,7 +56,7 @@ export class ReportsService {
       examType: params.examType,
       templateId: params.templateId,
       templateBaseReport,
-      indication: params.indication,
+      indication,
       sex: params.sex,
       side: params.side,
       contrast: params.contrast,
