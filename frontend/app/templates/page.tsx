@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -100,7 +100,7 @@ export default function TemplatesPage() {
       <Paper elevation={2} sx={{ p: 4 }}>
         <Stack spacing={2}>
           <IconButton onClick={() => router.back()}>
-            <ArrowBackIcon />
+            <ArrowCircleLeftIcon />
           </IconButton>
 
           <Typography variant="h6" component="h1">

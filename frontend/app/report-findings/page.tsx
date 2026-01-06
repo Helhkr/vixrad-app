@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Box from "@mui/material/Box";
@@ -139,7 +139,7 @@ export default function ReportFindingsPage() {
       <Paper elevation={2} sx={{ p: 4 }}>
         <Stack spacing={2}>
           <IconButton onClick={() => router.back()}>
-            <ArrowBackIcon />
+            <ArrowCircleLeftIcon />
           </IconButton>
 
           <Typography variant="h6" component="h1">

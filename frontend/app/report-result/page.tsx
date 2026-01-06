@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -49,7 +49,7 @@ export default function ReportResultPage() {
       <Container maxWidth="sm" sx={{ py: 6 }}>
         <Stack spacing={2}>
           <IconButton onClick={() => router.back()}>
-            <ArrowBackIcon />
+            <ArrowCircleLeftIcon />
           </IconButton>
 
           <Alert severity="error">Nenhum laudo disponível. Gere um laudo novamente.</Alert>
@@ -72,7 +72,7 @@ export default function ReportResultPage() {
     <Container maxWidth="md" sx={{ py: 6 }}>
       <Stack spacing={2}>
         <IconButton onClick={() => router.back()}>
-          <ArrowBackIcon />
+          <ArrowCircleLeftIcon />
         </IconButton>
 
         <Typography variant="h6" component="h1">
