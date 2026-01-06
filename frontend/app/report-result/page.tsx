@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -25,6 +25,10 @@ export default function ReportResultPage() {
   const { reportText } = useAppState();
   const { showMessage } = useSnackbar();
   const [copied, setCopied] = useState(false);
+
+  const displayText = useMemo(() => {
+    return formatReportForCopy(reportText, "formatted");
+  }, [reportText]);
 
   const options: Array<{ label: string; format: CopyFormat }> = [
     { label: "Formatação padrão", format: "formatted" },
@@ -100,7 +104,7 @@ export default function ReportResultPage() {
         </Typography>
 
         <Paper elevation={2} sx={{ p: 4, whiteSpace: "pre-wrap" }}>
-          {reportText}
+          {displayText}
         </Paper>
 
         <ButtonGroup variant="contained">
