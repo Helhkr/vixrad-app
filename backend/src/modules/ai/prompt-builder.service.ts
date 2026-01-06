@@ -36,49 +36,55 @@ export class PromptBuilderService {
         return [
           "MODALIDADE: Radiografia",
           "Utilize estrutura típica de laudo radiográfico.",
-          "Priorize descrição objetiva dos achados.",
-          "Utilize terminologia radiológica padronizada.",
-          "Evite especulações.",
+          "Descreva ossos, articulações e partes moles de forma objetiva.",
+          "Use terminologia radiológica padronizada.",
+          "Evite inferências diagnósticas não solicitadas.",
         ].join("\n");
       case "US":
         return [
           "MODALIDADE: Ultrassonografia",
           "Utilize estrutura típica de laudo ultrassonográfico.",
-          "Priorize descrição objetiva dos achados.",
-          "Utilize terminologia radiológica padronizada.",
-          "Evite especulações.",
+          "Descreva órgãos e estruturas com base em ecogenicidade, contornos e dimensões.",
+          "Use terminologia ecográfica padronizada.",
+          "Evite especulações clínicas.",
         ].join("\n");
       case "MR":
         return [
           "MODALIDADE: Ressonância Magnética",
-          "Utilize estrutura típica de laudo de ressonância magnética.",
-          "Priorize descrição objetiva dos achados.",
-          "Utilize terminologia radiológica padronizada.",
-          "Evite especulações.",
+          "Utilize estrutura típica de laudo de RM.",
+          "Descreva sequências, planos e achados com clareza técnica.",
+          "Use terminologia radiológica padronizada.",
+          "Evite conclusões não solicitadas.",
         ].join("\n");
       case "MG":
         return [
           "MODALIDADE: Mamografia",
           "Utilize estrutura típica de laudo mamográfico.",
-          "Priorize descrição objetiva dos achados.",
-          "Utilize terminologia radiológica padronizada.",
-          "Evite especulações.",
+          "Descreva densidade, achados suspeitos e calcificações.",
+          "Use terminologia BI-RADS quando aplicável.",
+          "Evite recomendações clínicas não solicitadas.",
         ].join("\n");
       case "DXA":
         return [
           "MODALIDADE: Densitometria Óssea",
           "Utilize estrutura típica de laudo densitométrico.",
-          "Priorize descrição objetiva dos achados.",
-          "Utilize terminologia técnica padronizada.",
-          "Evite especulações.",
+          "Descreva valores de densidade mineral óssea e comparações com padrões.",
+          "Use terminologia técnica padronizada.",
+          "Evite interpretações clínicas não solicitadas.",
         ].join("\n");
       case "NM":
         return [
           "MODALIDADE: Medicina Nuclear",
-          "Utilize estrutura típica de laudo de medicina nuclear.",
-          "Priorize descrição objetiva dos achados.",
-          "Utilize terminologia técnica padronizada.",
-          "Evite especulações.",
+          "Utilize estrutura típica de laudo cintilográfico ou PET.",
+          "Descreva captação, distribuição e intensidade dos radiotraçadores.",
+          "Use terminologia nuclear padronizada.",
+          "Evite inferências terapêuticas não solicitadas.",
+        ].join("\n");
+      default:
+        return [
+          "MODALIDADE: Exame de imagem",
+          "Utilize estrutura típica de laudo médico técnico.",
+          "Descreva achados de forma objetiva e padronizada.",
         ].join("\n");
     }
   }
