@@ -93,13 +93,23 @@ export default function AuthPage() {
 					/>
 
 				<Stack direction="row" spacing={2} sx={{ justifyContent: "center" }}>
-							color="primary"
-							disabled={loading}
-							onClick={() => run("register")}
-						>
-							Registrar
-						</Button>
-					</Stack>
+					<Button
+						variant="contained"
+						color="primary"
+						disabled={loading}
+						onClick={() => run("login")}
+					>
+						Entrar
+					</Button>
+					<Button
+						variant="outlined"
+						color="primary"
+						disabled={loading}
+						onClick={() => run("register")}
+					>
+						Registrar
+					</Button>
+				</Stack>
 
 					{loading ? (
 						<Box display="flex" justifyContent="center" mt={2}>
