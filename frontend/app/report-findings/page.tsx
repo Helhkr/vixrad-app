@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import ArrowCircleLeftIcon from "@mui/icons-material/ArrowCircleLeft";
@@ -54,7 +54,7 @@ export default function ReportFindingsPage() {
   const [template, setTemplate] = useState<TemplateDetail | null>(null);
   const [loadingTemplate, setLoadingTemplate] = useState(false);
   const [micSupported, setMicSupported] = useState(false);
-  const [micPermissionError, setMicPermissionError] = useState<string | null>(null);
+  const listeningStateRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (browserSupportsSpeechRecognition === false) {
@@ -77,56 +77,40 @@ export default function ReportFindingsPage() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFormat, setSelectedFormat] = useState<CopyFormat>("formatted");
 
-  const handleMicrophoneToggle = async () => {
-    if (listening) {
-      SpeechRecognition.stopListening();
-      setMicPermissionError(null);
-      return;
-    }
-
-    setMicPermissionError(null);
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach((track) => track.stop());
-
-      SpeechRecognition.startListening({
-        continuous: true,
-        language: "pt-BR",
-      });
-    } catch (error: any) {
-      if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
-        setMicPermissionError(
-          "Permissão de microfone negada. Verifique as configurações do navegador.",
-        );
-        showMessage(
-          "Permissão de microfone negada. Clique no ícone de cadeado na barra de endereços e permita o acesso ao microfone.",
-          "error",
-        );
-      } else if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") {
-        setMicPermissionError(
-          "Nenhum microfone encontrado. Verifique se o microfone está conectado e ativado.",
-        );
-        showMessage(
-          "Nenhum microfone encontrado. Conecte um microfone ou verifique se está ativado (Fn + F4 em alguns notebooks).",
-          "error",
-        );
-      } else {
-        setMicPermissionError("Erro ao acessar o microfone. Tente novamente.");
-        showMessage(
-          `Erro ao acessar o microfone: ${error.message || "Tente novamente"}`,
-          "error",
-        );
-      }
-    }
-  };
-
+  // Detectar quando pára de gravar (transição de listening true -> false)
   useEffect(() => {
-    if (!listening && transcript) {
-      setFindings((prev) => `${prev} ${transcript}`.trim());
+    if (listeningStateRef.current && !listening && transcript) {
+      // Parou de gravar - adicionar transcript com ponto final
+      const trimmedTranscript = transcript.trim();
+      const textWithPeriod = trimmedTranscript.endsWith(".") ? trimmedTranscript : `${trimmedTranscript}.`;
+      setFindings((prev) => `${prev} ${textWithPeriod}`.trim());
       resetTranscript();
     }
+    
+    if (listening && !listeningStateRef.current) {
+      // Começou a gravar - limpar transcript anterior
+      resetTranscript();
+    }
+    
+    listeningStateRef.current = listening;
   }, [listening, transcript, setFindings, resetTranscript]);
+
+  // Atalho de teclado: SHIFT + G para ativar/desativar gravação
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key === "G") {
+        e.preventDefault();
+        if (listening) {
+          SpeechRecognition.stopListening();
+        } else if (micSupported) {
+          SpeechRecognition.startListening({ continuous: true, language: "pt-BR" });
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [listening, micSupported]);
 
   useEffect(() => {
     if (!accessToken) router.replace("/");
@@ -321,7 +305,13 @@ export default function ReportFindingsPage() {
               />
               <IconButton
                 color={listening ? "error" : "primary"}
-                onClick={handleMicrophoneToggle}
+                onClick={() => {
+                  if (listening) {
+                    SpeechRecognition.stopListening();
+                  } else {
+                    SpeechRecognition.startListening({ continuous: true, language: "pt-BR" });
+                  }
+                }}
                 disabled={!micSupported}
                 sx={{ mt: 1 }}
                 title={
@@ -340,21 +330,17 @@ export default function ReportFindingsPage() {
                 ⚠️ Reconhecimento de voz não suportado neste navegador
               </Typography>
             )}
-            {micPermissionError && (
-              <Typography variant="caption" color="error">
-                🎤 {micPermissionError}
-              </Typography>
-            )}
             {listening && (
               <Typography variant="caption" color="info.main">
-                🎤 Escutando...
+                🎤 Escutando... (SHIFT + G para parar)
               </Typography>
             )}
-            {transcript && !listening && (
-              <Typography variant="caption" color="success.main">
-                ✓ Texto capturado: {transcript.slice(0, 50)}...
+            {!listening && !transcript && micSupported && (
+              <Typography variant="caption" color="info.main">
+                📱 Pressione SHIFT + G ou clique no 🎤 para gravar
               </Typography>
             )}
+
           </Stack>
 
           <Stack direction="row" spacing={2}>
