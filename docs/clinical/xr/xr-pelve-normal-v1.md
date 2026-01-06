@@ -1,0 +1,33 @@
+---
+exam_type: XR
+requires:
+  indication: optional
+  sex: none
+  contrast: none
+  side: none
+---
+
+# RADIOGRAFIA DE PELVE
+
+**Técnica:** Radiografia de pelve em incidência anteroposterior.
+
+<!-- IF INDICACAO -->
+**Indicação:** {{INDICACAO}}
+<!-- ENDIF INDICACAO -->
+
+**Análise:**
+
+Estruturas ósseas da pelve com morfologia e densidade preservadas.
+
+Ausência de traços de fratura.
+
+Articulações sacroilíacas congruentes.
+
+Sinfise púbica íntegra.
+
+**Impressão diagnóstica:**
+Exame dentro dos limites da normalidade.
+
+<!-- IF NOTAS -->
+**Notas:** {{NOTAS}}
+<!-- ENDIF NOTAS -->

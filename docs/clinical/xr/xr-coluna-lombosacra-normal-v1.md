@@ -1,0 +1,33 @@
+---
+exam_type: XR
+requires:
+  indication: optional
+  sex: none
+  contrast: none
+  side: none
+---
+
+# RADIOGRAFIA DE COLUNA LOMBO-SACRA
+
+**Técnica:** Radiografia de coluna lombar e sacra em incidências posteroanterior e lateral.
+
+<!-- IF INDICACAO -->
+**Indicação:** {{INDICACAO}}
+<!-- ENDIF INDICACAO -->
+
+**Análise:**
+
+Alinhamento vertebral normal.
+
+Corpos vertebrais L5 e S1 com altura preservada.
+
+Espaço discal L5-S1 mantido.
+
+Ausência de traços de fratura.
+
+**Impressão diagnóstica:**
+Exame dentro dos limites da normalidade.
+
+<!-- IF NOTAS -->
+**Notas:** {{NOTAS}}
+<!-- ENDIF NOTAS -->

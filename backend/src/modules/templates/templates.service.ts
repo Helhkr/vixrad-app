@@ -11,6 +11,8 @@ export type TemplateRequires = {
   sex: RequireState;
   contrast: RequireState;
   side: RequireState;
+  incidence: RequireState;
+  decubitus: RequireState;
 };
 
 export type TemplateMeta = {
@@ -39,6 +41,8 @@ export type RenderInput = {
   side?: "RIGHT" | "LEFT";
   contrast?: "with" | "without";
   notes?: string;
+  incidence?: string;
+  decubitus?: "ventral" | "dorsal" | "lateral";
 };
 
 type IfNode = {
@@ -63,6 +67,8 @@ const SUPPORTED_CONDITIONS = new Set([
   "SEXO_MASCULINO",
   "SEXO_FEMININO",
   "NOTAS",
+  "INCIDENCIA",
+  "DECUBITUS",
 ]);
 
 const IF_TOKEN_RE = /<!--\s*(IF\s+[A-Z0-9_]+|ELSE|ENDIF\s+[A-Z0-9_]+)\s*-->/g;
@@ -206,7 +212,7 @@ export class TemplatesService {
 
     const requires = meta.requires as Partial<TemplateRequires>;
     const missing = (k: keyof TemplateRequires) => requires[k] === undefined;
-    if (missing("indication") || missing("sex") || missing("contrast") || missing("side")) {
+    if (missing("indication") || missing("sex") || missing("contrast") || missing("side") || missing("incidence") || missing("decubitus")) {
       throw new BadRequestException("YAML: requires incompleto");
     }
 
@@ -246,6 +252,14 @@ export class TemplatesService {
 
     if (req.contrast === "required" && !input.contrast) {
       throw new BadRequestException("requires.contrast: obrigatório");
+    }
+
+    if (req.incidence === "required" && !input.incidence) {
+      throw new BadRequestException("requires.incidence: obrigatório");
+    }
+
+    if (req.decubitus === "required" && !input.decubitus) {
+      throw new BadRequestException("requires.decubitus: obrigatório");
     }
   }
 
@@ -424,6 +438,8 @@ export class TemplatesService {
           : input.contrast === "with"
             ? true
             : false,
+      INCIDENCIA: Boolean(input.incidence),
+      DECUBITUS: Boolean(input.decubitus),
     };
 
     const ast = this.parseConditionalsToAst(parsed.body);
@@ -434,6 +450,8 @@ export class TemplatesService {
       NOTAS: input.notes,
       SEXO: input.sex === "F" ? "FEMININO" : input.sex === "M" ? "MASCULINO" : undefined,
       LADO: input.side === "RIGHT" ? "DIREITO" : input.side === "LEFT" ? "ESQUERDO" : undefined,
+      INCIDENCIA: input.incidence,
+      DECUBITUS: input.decubitus ? (input.decubitus === "ventral" ? "VENTRAL" : input.decubitus === "dorsal" ? "DORSAL" : "LATERAL") : undefined,
     };
 
     const resolved = this.resolvePlaceholders(withoutConditionals, values);

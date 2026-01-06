@@ -13,15 +13,19 @@ import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormLabel from "@mui/material/FormLabel";
 import IconButton from "@mui/material/IconButton";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
+import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import { fetchTemplateDetail, type TemplateDetail } from "@/features/templates";
 import { useAppState } from "../state";
+import type { Incidence, Decubitus } from "../state";
 import { useSnackbar } from "../snackbar";
 
 export default function ReportFormPage() {
@@ -40,6 +44,10 @@ export default function ReportFormPage() {
     setSex,
     side,
     setSide,
+    incidence,
+    setIncidence,
+    decubitus,
+    setDecubitus,
     resetReport,
   } = useAppState();
 
@@ -92,6 +100,8 @@ export default function ReportFormPage() {
   const showContrast = requires ? requires.contrast !== "none" && requires.contrast !== "fixed" : true;
   const showSex = requires ? requires.sex !== "none" && requires.sex !== "fixed" : false;
   const showSide = requires ? requires.side !== "none" && requires.side !== "fixed" : false;
+  const showIncidence = requires ? requires.incidence !== "none" && requires.incidence !== "fixed" : false;
+  const showDecubitus = requires ? requires.decubitus !== "none" && requires.decubitus !== "fixed" : false;
 
   const templateLabel = useMemo(() => {
     if (!templateId) return "-";
@@ -136,6 +146,16 @@ export default function ReportFormPage() {
 
     if (requires.side === "required" && !side) {
       showMessage("Selecione o lado.", "error");
+      return;
+    }
+
+    if (requires.incidence === "required" && !incidence) {
+      showMessage("Selecione a incidência.", "error");
+      return;
+    }
+
+    if (requires.decubitus === "required" && !decubitus) {
+      showMessage("Selecione o decúbito.", "error");
       return;
     }
 
@@ -250,6 +270,39 @@ export default function ReportFormPage() {
               >
                 <FormControlLabel value="RIGHT" control={<Radio />} label="Direito" />
                 <FormControlLabel value="LEFT" control={<Radio />} label="Esquerdo" />
+              </RadioGroup>
+            </FormControl>
+          ) : null}
+
+          {showIncidence ? (
+            <FormControl fullWidth>
+              <InputLabel>Incidência</InputLabel>
+              <Select
+                value={incidence ?? ""}
+                onChange={(e) => setIncidence(e.target.value as Incidence)}
+                label="Incidência"
+              >
+                <MenuItem value="AP">AP</MenuItem>
+                <MenuItem value="PA">PA</MenuItem>
+                <MenuItem value="Perfil">Perfil</MenuItem>
+                <MenuItem value="PA e Perfil">PA e Perfil</MenuItem>
+                <MenuItem value="Obliqua">Oblíqua</MenuItem>
+                <MenuItem value="Ortostática">Ortostática</MenuItem>
+              </Select>
+            </FormControl>
+          ) : null}
+
+          {showDecubitus ? (
+            <FormControl>
+              <FormLabel>Decúbito</FormLabel>
+              <RadioGroup
+                row
+                value={decubitus ?? ""}
+                onChange={(e) => setDecubitus(e.target.value as Decubitus)}
+              >
+                <FormControlLabel value="ventral" control={<Radio />} label="Ventral" />
+                <FormControlLabel value="dorsal" control={<Radio />} label="Dorsal" />
+                <FormControlLabel value="lateral" control={<Radio />} label="Lateral" />
               </RadioGroup>
             </FormControl>
           ) : null}

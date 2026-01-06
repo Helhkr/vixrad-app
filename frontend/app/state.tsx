@@ -7,6 +7,8 @@ export type ExamType = "CT" | "XR" | "US" | "MR" | "MG" | "DXA" | "NM";
 export type Contrast = "with" | "without";
 export type Sex = "M" | "F";
 export type Side = "RIGHT" | "LEFT";
+export type Incidence = "AP" | "PA" | "Perfil" | "PA e Perfil" | "Obliqua" | "Ortostática";
+export type Decubitus = "ventral" | "dorsal" | "lateral";
 
 type AppState = {
   accessToken: string | null;
@@ -35,6 +37,12 @@ type AppState = {
   side: Side | null;
   setSide: (value: Side | null) => void;
 
+  incidence: Incidence | null;
+  setIncidence: (value: Incidence | null) => void;
+
+  decubitus: Decubitus | null;
+  setDecubitus: (value: Decubitus | null) => void;
+
   reportText: string;
   setReportText: (value: string) => void;
 
@@ -59,6 +67,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [contrast, setContrast] = useState<Contrast>("without");
   const [sex, setSex] = useState<Sex | null>(null);
   const [side, setSide] = useState<Side | null>(null);
+  const [incidence, setIncidence] = useState<Incidence | null>(null);
+  const [decubitus, setDecubitus] = useState<Decubitus | null>(null);
   const [reportText, setReportText] = useState<string>("");
 
   const setAccessToken = (token: string | null) => {
@@ -75,6 +85,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setContrast("without");
     setSex(null);
     setSide(null);
+    setIncidence(null);
+    setDecubitus(null);
     setReportText("");
   };
 
@@ -98,11 +110,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setSex,
       side,
       setSide,
+      incidence,
+      setIncidence,
+      decubitus,
+      setDecubitus,
       reportText,
       setReportText,
       resetReport,
     }),
-    [accessToken, examType, templateId, indication, indicationFile, findings, contrast, sex, side, reportText],
+    [accessToken, examType, templateId, indication, indicationFile, findings, contrast, sex, side, incidence, decubitus, reportText],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

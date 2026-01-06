@@ -21,6 +21,8 @@ export class ReportsService {
     sex?: "M" | "F";
     side?: "RIGHT" | "LEFT";
     contrast?: "with" | "without";
+    incidence?: string;
+    decubitus?: "ventral" | "dorsal" | "lateral";
     notes?: string;
     findings?: string | null;
     indicationFile?: Express.Multer.File;
@@ -48,6 +50,8 @@ export class ReportsService {
       sex: params.sex,
       side: params.side,
       contrast: params.contrast,
+      incidence: params.incidence,
+      decubitus: params.decubitus,
       notes: params.notes,
     } as const;
 

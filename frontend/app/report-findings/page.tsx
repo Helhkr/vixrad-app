@@ -42,6 +42,8 @@ export default function ReportFindingsPage() {
     contrast,
     sex,
     side,
+    incidence,
+    decubitus,
     findings,
     setFindings,
     setReportText,
@@ -189,6 +191,18 @@ export default function ReportFindingsPage() {
       return false;
     }
 
+    if (requires.incidence === "required" && !incidence) {
+      showMessage("Selecione a incidência no formulário.", "error");
+      router.push("/report-form");
+      return false;
+    }
+
+    if (requires.decubitus === "required" && !decubitus) {
+      showMessage("Selecione o decúbito no formulário.", "error");
+      router.push("/report-form");
+      return false;
+    }
+
     if (opts.requireFindings && !findings.trim()) {
       showMessage("Preencha os achados.", "error");
       return false;
@@ -212,6 +226,8 @@ export default function ReportFindingsPage() {
           indication: indication || undefined,
           sex: sex || undefined,
           side: side || undefined,
+          incidence: incidence || undefined,
+          decubitus: decubitus || undefined,
           findings: null,
         },
         accessToken,
@@ -245,6 +261,8 @@ export default function ReportFindingsPage() {
         if (indication) formData.append("indication", indication);
         if (sex) formData.append("sex", sex);
         if (side) formData.append("side", side);
+        if (incidence) formData.append("incidence", incidence);
+        if (decubitus) formData.append("decubitus", decubitus);
         formData.append("findings", trimmedFindings);
         formData.append("indicationFile", indicationFile);
         return await apiPostForm<GenerateResponse>("/reports/generate", formData, accessToken);
@@ -258,6 +276,8 @@ export default function ReportFindingsPage() {
           indication: indication || undefined,
           sex: sex || undefined,
           side: side || undefined,
+          incidence: incidence || undefined,
+          decubitus: decubitus || undefined,
           findings: trimmedFindings,
         },
         accessToken,

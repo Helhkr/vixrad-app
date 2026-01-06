@@ -1,0 +1,33 @@
+---
+exam_type: XR
+requires:
+  indication: optional
+  sex: none
+  contrast: none
+  side: required
+---
+
+# RADIOGRAFIA DE ESCÁPULA {{LADO}}
+
+**Técnica:** Radiografia de escápula em incidências posteroanterior e lateral.
+
+<!-- IF INDICACAO -->
+**Indicação:** {{INDICACAO}}
+<!-- ENDIF INDICACAO -->
+
+**Análise:**
+
+Estrutura óssea com morfologia normal.
+
+Ausência de traços de fratura.
+
+Processo coracoide integro.
+
+Cavidade glenoidea normal.
+
+**Impressão diagnóstica:**
+Exame dentro dos limites da normalidade.
+
+<!-- IF NOTAS -->
+**Notas:** {{NOTAS}}
+<!-- ENDIF NOTAS -->

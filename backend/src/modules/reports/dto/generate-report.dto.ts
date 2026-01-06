@@ -31,6 +31,16 @@ export class GenerateReportDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(128)
+  incidence?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(["ventral", "dorsal", "lateral"], { message: "decubitus inválido" })
+  decubitus?: "ventral" | "dorsal" | "lateral";
+
+  @IsOptional()
+  @IsString()
   @MaxLength(2000)
   notes?: string;
 

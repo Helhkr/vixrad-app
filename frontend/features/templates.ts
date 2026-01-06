@@ -17,6 +17,8 @@ export type TemplateRequires = {
   sex: "required" | "optional" | "none" | "fixed";
   contrast: "required" | "optional" | "none" | "fixed";
   side: "required" | "optional" | "none" | "fixed";
+  incidence: "required" | "optional" | "none" | "fixed";
+  decubitus: "required" | "optional" | "none" | "fixed";
 };
 
 export type TemplateDetail = {
