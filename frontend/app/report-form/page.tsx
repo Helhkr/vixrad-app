@@ -19,6 +19,7 @@ import RadioGroup from "@mui/material/RadioGroup";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import Tooltip from "@mui/material/Tooltip";
 import { fetchTemplateDetail, type TemplateDetail } from "@/features/templates";
 import { useAppState } from "../state";
 import { useSnackbar } from "../snackbar";
@@ -193,9 +194,13 @@ export default function ReportFormPage() {
                 onChange={handleFileChange}
               />
               <label htmlFor="indication-file-input">
-                <IconButton component="span" color="primary" disabled={loading}>
-                  <AttachFileIcon />
-                </IconButton>
+                <Tooltip title="Apenas PDF (até 25MB)">
+                  <span>
+                    <IconButton component="span" color="primary" disabled={loading}>
+                      <AttachFileIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
               </label>
               {indicationFile && (
                 <IconButton color="error" onClick={handleRemoveFile} disabled={loading}>
