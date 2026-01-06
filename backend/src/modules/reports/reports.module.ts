@@ -6,6 +6,7 @@ import { TrialModule } from "../trial/trial.module";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { TrialGuard } from "../auth/guards/trial.guard";
 import { TemplatesModule } from "../templates/templates.module";
+import { AiModule } from "../ai/ai.module";
 import { ReportsRateLimitGuard } from "../security/reports-rate-limit.guard";
 
 import { ReportsController } from "./reports.controller";
@@ -15,6 +16,7 @@ import { ReportsService } from "./reports.service";
 	imports: [
 		AuthModule,
 		TrialModule,
+		AiModule,
 		TemplatesModule,
 		ThrottlerModule.forRoot([
 			{

@@ -6,23 +6,44 @@ const makeTemplatesServiceStub = (opts: { normal: string; full: string }) =>
     renderFullReport: () => opts.full,
   }) as any;
 
-describe("ReportsService routing (normal vs full)", () => {
-  it("returns normal report when no findings", () => {
-    const svc = new ReportsService(makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any);
+const makePromptBuilderStub = () =>
+  ({
+    buildPrompt: () => "PROMPT\n",
+  }) as any;
 
-    const result = svc.generateStructuredBaseReport({
+const makeAiServiceStub = (reportText: string) =>
+  ({
+    generateReport: jest.fn(async () => reportText),
+  }) as any;
+
+describe("ReportsService routing (normal vs full)", () => {
+  it("returns normal report when no findings", async () => {
+    const ai = makeAiServiceStub("AI\n");
+    const svc = new ReportsService(
+      makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any,
+      makePromptBuilderStub(),
+      ai,
+    );
+
+    const result = await svc.generateStructuredBaseReport({
       examType: "CT",
       templateId: "ct-cranio-normal-v1",
       contrast: "without",
     });
 
     expect(result.reportText).toBe("NORMAL\n");
+    expect(ai.generateReport).not.toHaveBeenCalled();
   });
 
-  it("returns normal report when findings is null", () => {
-    const svc = new ReportsService(makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any);
+  it("returns normal report when findings is null", async () => {
+    const ai = makeAiServiceStub("AI\n");
+    const svc = new ReportsService(
+      makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any,
+      makePromptBuilderStub(),
+      ai,
+    );
 
-    const result = svc.generateStructuredBaseReport({
+    const result = await svc.generateStructuredBaseReport({
       examType: "CT",
       templateId: "ct-cranio-normal-v1",
       contrast: "without",
@@ -30,12 +51,18 @@ describe("ReportsService routing (normal vs full)", () => {
     });
 
     expect(result.reportText).toBe("NORMAL\n");
+    expect(ai.generateReport).not.toHaveBeenCalled();
   });
 
-  it("returns normal report when findings is empty/whitespace", () => {
-    const svc = new ReportsService(makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any);
+  it("returns normal report when findings is empty/whitespace", async () => {
+    const ai = makeAiServiceStub("AI\n");
+    const svc = new ReportsService(
+      makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any,
+      makePromptBuilderStub(),
+      ai,
+    );
 
-    const result = svc.generateStructuredBaseReport({
+    const result = await svc.generateStructuredBaseReport({
       examType: "CT",
       templateId: "ct-cranio-normal-v1",
       contrast: "without",
@@ -43,18 +70,25 @@ describe("ReportsService routing (normal vs full)", () => {
     });
 
     expect(result.reportText).toBe("NORMAL\n");
+    expect(ai.generateReport).not.toHaveBeenCalled();
   });
 
-  it("returns full report when findings is provided", () => {
-    const svc = new ReportsService(makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any);
+  it("routes to AI when findings is provided", async () => {
+    const ai = makeAiServiceStub("AI\n");
+    const svc = new ReportsService(
+      makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any,
+      makePromptBuilderStub(),
+      ai,
+    );
 
-    const result = svc.generateStructuredBaseReport({
+    const result = await svc.generateStructuredBaseReport({
       examType: "CT",
       templateId: "ct-cranio-normal-v1",
       contrast: "without",
       findings: "Achados compatíveis com hérnia discal",
     });
 
-    expect(result.reportText).toBe("FULL\n");
+    expect(result.reportText).toBe("AI\n");
+    expect(ai.generateReport).toHaveBeenCalledTimes(1);
   });
 });
