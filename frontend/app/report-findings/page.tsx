@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -167,8 +168,9 @@ export default function ReportFindingsPage() {
             </ButtonGroup>
 
             <Button
-              variant="outlined"
-              color="secondary"
+              variant="contained"
+              color="primary"
+              endIcon={<ArrowCircleRightIcon />}
               disabled={loading}
               onClick={handleGenerateWithAI}
             >
