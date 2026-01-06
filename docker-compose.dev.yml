@@ -20,6 +20,7 @@ services:
       - "3002:3002"
     volumes:
       - ./backend:/app/backend
+      - ./docs:/app/docs
       - /app/backend/node_modules
     command: >
       sh -c "npx prisma migrate deploy &&
