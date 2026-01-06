@@ -129,12 +129,6 @@ export default function ReportResultPage() {
           ))}
         </Menu>
 
-        {copied ? (
-          <Typography variant="body2" color="text.secondary">
-            Copiado.
-          </Typography>
-        ) : null}
-
         <Box mt={4} textAlign="center">
           <Button variant="text" color="error" onClick={() => router.push("/templates")}>
             INICIAR NOVO LAUDO
