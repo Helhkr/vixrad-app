@@ -44,6 +44,7 @@ export default function ReportFindingsPage() {
     findings,
     setFindings,
     setReportText,
+    resetReport,
   } = useAppState();
 
   const { showMessage } = useSnackbar();
@@ -389,7 +390,10 @@ export default function ReportFindingsPage() {
         <Button
           variant="text"
           color="error"
-          onClick={() => router.push("/templates")}
+          onClick={() => {
+            resetReport();
+            router.push("/templates");
+          }}
         >
           INICIAR NOVO LAUDO
         </Button>

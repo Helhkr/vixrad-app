@@ -35,6 +35,7 @@ export default function ReportFormPage() {
     setSex,
     side,
     setSide,
+    resetReport,
   } = useAppState();
 
   const { showMessage } = useSnackbar();
@@ -209,7 +210,10 @@ export default function ReportFormPage() {
       </Paper>
 
       <Box mt={4} textAlign="center">
-        <Button variant="text" color="error" onClick={() => router.push("/templates")}>
+        <Button variant="text" color="error" onClick={() => {
+          resetReport();
+          router.push("/templates");
+        }}>
           INICIAR NOVO LAUDO
         </Button>
       </Box>

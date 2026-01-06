@@ -22,7 +22,7 @@ import { formatReportForCopy, type CopyFormat } from "@/features/reportCopyForma
 
 export default function ReportResultPage() {
   const router = useRouter();
-  const { reportText } = useAppState();
+  const { reportText, resetReport } = useAppState();
   const { showMessage } = useSnackbar();
   const [copied, setCopied] = useState(false);
 
@@ -130,7 +130,10 @@ export default function ReportResultPage() {
         </Menu>
 
         <Box mt={4} textAlign="center">
-          <Button variant="text" color="error" onClick={() => router.push("/templates")}>
+          <Button variant="text" color="error" onClick={() => {
+            resetReport();
+            router.push("/templates");
+          }}>
             INICIAR NOVO LAUDO
           </Button>
         </Box>
