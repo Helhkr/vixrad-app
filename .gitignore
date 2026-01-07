@@ -9,5 +9,4 @@ out/
 
 /.env
 /.env.*
-
 !/.env.example

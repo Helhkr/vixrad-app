@@ -18,6 +18,7 @@ Estas regras **não podem ser violadas**:
 2. **Nenhum dado pessoal de paciente** transita pelo sistema.
 3. O backend é **stateless** em relação a conteúdo clínico.
 4. **Não utilizar localStorage, sessionStorage ou IndexedDB** para texto médico ou dados clínicos.
+  - É permitido usar storage do browser apenas para **preferências não-clínicas** (ex.: última seleção de incidência), desde que não contenha texto médico.
 5. A IA **somente é chamada** quando o usuário explicitamente solicita geração de laudo.
 6. Templates médicos representam **exames normais** e podem ser copiados sem IA.
 7. Auditoria registra apenas **eventos técnicos**, nunca conteúdo médico.
@@ -47,31 +48,32 @@ Qualquer código que viole esses princípios está incorreto.
 ## Estrutura do Repositório
 
 ```txt
-vixrad/
+vixrad-app/
+├── docs/
+│   └── clinical/
+│       ├── spec.md
+│       └── ct/
+│           └── *.md
 ├── frontend/
 │   ├── app/
-│   ├── components/
-│   ├── features/
-│   │   └── reports/
-│   ├── services/
-│   └── types/
-│
+│   └── features/
 ├── backend/
-│   ├── src/
-│   │   ├── modules/
-│   │   │   ├── auth/
-│   │   │   ├── users/
-│   │   │   ├── trial/
-│   │   │   ├── billing/
-│   │   │   ├── templates/
-│   │   │   ├── reports/
-│   │   │   ├── ai/
-│   │   │   ├── audit/
-│   │   │   └── security/
-│   │   ├── common/
-│   │   └── main.ts
-│
-└── README.md
+│   ├── prisma/
+│   └── src/
+│       ├── modules/
+│       │   ├── auth/
+│       │   ├── users/
+│       │   ├── billing/
+│       │   ├── templates/
+│       │   ├── reports/
+│       │   ├── ai/
+│       │   ├── audit/
+│       │   └── security/
+│       ├── common/
+│       └── main.ts
+├── docker-compose.yml
+├── docker-compose.dev.yml
+└── readme.md
 ```
 
 Essa estrutura **não é sugestão**, é o padrão esperado para o projeto.
@@ -150,6 +152,10 @@ docker compose -f docker-compose.dev.yml down
 
 - Login
 - Registro com **trial gratuito de 7 dias**
+- Acesso é controlado por **papéis (roles)**:
+  - `TRIAL`: janela de 7 dias
+  - `BLUE`: assinatura paga com janela configurada
+  - `ADMIN`: acesso sempre ativo
 
 ### Fluxo Principal
 
@@ -213,8 +219,21 @@ O Editor é o componente central do sistema e **deve conter**:
 
 **Regras:**
 - JWT obrigatório
-- Trial ativo ou assinatura válida
+- Acesso ativo (trial/assinatura) ou role `ADMIN`
 - Nenhum dado pessoal permitido
+
+### Acesso, Assinaturas e Quota de IA
+
+- O acesso às rotas de templates e geração de laudos é protegido por um guard de acesso (papel + janela ativa).
+- Para usuários `TRIAL` e `BLUE`, há controle de custo por quota: após **3000** chamadas **bem-sucedidas** ao modelo preferido dentro da janela ativa, o sistema roteia automaticamente para um modelo de fallback.
+- `ADMIN` não sofre limitação de quota (mas as chamadas ainda são registradas tecnicamente).
+
+#### Endpoint Admin (DEV/operacional)
+
+`PATCH /billing/admin/users/:userId/subscription`
+
+- Requer JWT de `ADMIN`
+- Permite ajustar `role` e (para `BLUE`) a janela de assinatura
 
 ---
 
@@ -253,10 +272,12 @@ O Editor é o componente central do sistema e **deve conter**:
 
 - Defina a chave via variável de ambiente (não commite chaves no repositório):
   - `GEMINI_API_KEY`
-  - (opcional) `GEMINI_MODEL` (default: `gemini-2.5-pro`)
+  - (opcional) `GEMINI_MODEL` (modelo preferido; default: `gemini-3-flash-preview`)
+  - (opcional) `GEMINI_FALLBACK_MODEL` (default: `gemini-2.5-flash-lite`)
+  - (opcional) `GEMINI_PREFERRED_MODEL_REQUEST_LIMIT` (default: `3000`)
   - (opcional) `GEMINI_TIMEOUT_MS` (default: `20000`)
 
-Obs: os modelos disponíveis dependem da sua chave/conta. Se receber erro de modelo não encontrado, troque `GEMINI_MODEL` para um modelo existente (ex.: `gemini-2.5-pro` ou `gemini-2.5-flash`).
+Obs: os modelos disponíveis dependem da sua chave/conta. Se receber erro de modelo não encontrado, ajuste `GEMINI_MODEL`/`GEMINI_FALLBACK_MODEL` para modelos existentes na sua conta.
 
 No stack de dev (`docker-compose.dev.yml`), o backend lê essas variáveis do seu ambiente local (incluindo `.env` na raiz do projeto).
 
