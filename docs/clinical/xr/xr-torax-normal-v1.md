@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE TÓRAX
 
-**Técnica:** {{INCIDENCIA}}, realizado em sistema digital.
+**Técnica:** {{INCIDENCIA}}<!-- IF DECUBITUS --> em decúbito {{DECUBITUS}}<!-- ENDIF DECUBITUS -->, realizado em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

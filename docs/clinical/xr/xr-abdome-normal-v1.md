@@ -11,7 +11,7 @@ requires:
 
 # RADIOGRAFIA DE ABDOME
 
-**Técnica:** {{INCIDENCIA}}, realizada em sistema digital.
+**Técnica:** {{INCIDENCIA}}<!-- IF DECUBITUS --> em decúbito {{DECUBITUS}}<!-- ENDIF DECUBITUS -->, realizada em sistema digital.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
