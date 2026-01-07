@@ -73,11 +73,16 @@ export default function ReportResultPage() {
         const html = convertMarkdownToHtml(reportText);
         const plain = stripMarkdown(reportText);
         if ("ClipboardItem" in window) {
-          const item = new ClipboardItem({
-            "text/html": new Blob([html], { type: "text/html" }),
-            "text/plain": new Blob([plain], { type: "text/plain" }),
-          });
-          await (navigator.clipboard as any).write([item]);
+          try {
+            const item = new ClipboardItem({
+              "text/html": new Blob([html], { type: "text/html" }),
+              "text/plain": new Blob([plain], { type: "text/plain" }),
+            });
+            await (navigator.clipboard as any).write([item]);
+          } catch {
+            const ok = await copyHtmlViaExecCommand(html, plain);
+            if (!ok) throw new Error("Falha ao copiar em modo formatado");
+          }
         } else {
           const ok = await copyHtmlViaExecCommand(html, plain);
           if (!ok) throw new Error("Falha ao copiar em modo formatado");
