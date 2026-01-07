@@ -31,9 +31,11 @@ export function convertMarkdownToHtml(md: string): string {
 
   const flushParagraph = () => {
     if (buffer.length === 0) return;
-    const text = buffer.join(" ");
+    // Join with explicit newlines so we can preserve them as <br/>
+    const text = buffer.join("\n");
     const withBold = text.replace(/\*\*(.*?)\*\*/g, (_m, t: string) => `<strong>${escapeHtml(t)}</strong>`);
-    blocks.push(`<p>${withBold}</p>`);
+    const withLineBreaks = withBold.replace(/\n/g, "<br />");
+    blocks.push(`<p>${withLineBreaks}</p>`);
     buffer = [];
   };
 
