@@ -30,15 +30,14 @@ export function convertMarkdownToHtml(md: string): string {
   let buffer: string[] = [];
 
   const baseStyle = "font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.3;";
-  const blankLine = `<p style="margin: 0; ${baseStyle}">&nbsp;</p>`;
 
   const flushParagraph = () => {
     if (buffer.length === 0) return;
-    // Join with explicit newlines so we can preserve them as <br/>
+    // Join with explicit newlines so we can preserve them as <br />
     const text = buffer.join("\n");
     const withBold = text.replace(/\*\*(.*?)\*\*/g, (_m, t: string) => `<strong>${escapeHtml(t)}</strong>`);
     const withLineBreaks = withBold.replace(/\n/g, "<br />");
-    blocks.push(`<p style="margin: 0; ${baseStyle}">${withLineBreaks}</p>`);
+    blocks.push(`<p style="margin: 0 0 8px 0; ${baseStyle}">${withLineBreaks}</p>`);
     buffer = [];
   };
 
@@ -48,16 +47,12 @@ export function convertMarkdownToHtml(md: string): string {
       flushParagraph();
       const title = line.replace(/^#\s+/, "");
       blocks.push(
-        `<h1 style="margin: 0; ${baseStyle} font-weight: bold;">${escapeHtml(title)}</h1>`,
+        `<h1 style="margin: 0 0 12px 0; ${baseStyle} font-weight: bold;">${escapeHtml(title)}</h1>`,
       );
-      // Literal blank line after title
-      blocks.push(blankLine);
       continue;
     }
     if (line.trim() === "") {
       flushParagraph();
-      // Preserve explicit blank lines
-      blocks.push(blankLine);
       continue;
     }
     const plain = escapeHtml(line);
