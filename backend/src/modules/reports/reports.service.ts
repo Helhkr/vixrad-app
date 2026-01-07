@@ -14,19 +14,91 @@ export class ReportsService {
     private readonly fileExtractionService: FileExtractionService,
   ) {}
 
-  private sanitizeAiReport(text: string, opts: { hasFindings: boolean }): string {
+  private sanitizeAiReport(
+    text: string,
+    opts: {
+      hasFindings: boolean;
+      templateBaseReport?: string;
+    },
+  ): string {
     let out = (text ?? "").replace(/\r\n/g, "\n");
+
+    const extractTemplateTitle = (src?: string): string | null => {
+      const s = (src ?? "").replace(/\r\n/g, "\n");
+      const m = s.match(/^\s*#\s+.+$/m);
+      return m ? m[0].trim() : null;
+    };
+
+    const ensureTitleAtTop = (src: string, title: string | null): string => {
+      if (!title) return src;
+      const trimmedStart = src.replace(/^\s+/, "");
+      const firstNonEmptyLine = (trimmedStart.match(/^\s*[^\n]+/m)?.[0] ?? "").trim();
+      const hasTitleAlready = /^#\s+/.test(firstNonEmptyLine);
+      if (hasTitleAlready) return src;
+      return `${title}\n${src.trimStart()}`;
+    };
+
+    const normalizeSectionLabels = (src: string): string => {
+      let s = src;
+
+      // Normalize label spellings and remove accidental bold markers around labels
+      // Technique/Indication should be inline: **Label:** text
+      const inlineLabels: Array<{ re: RegExp; replacement: string }> = [
+        { re: /^\s*(?:\*\*)?\s*T[eé]cnica\s*:\s*(?:\*\*)?\s*$/gim, replacement: "**Técnica:**" },
+        { re: /^\s*(?:\*\*)?\s*Indica[cç][aã]o\s*:\s*(?:\*\*)?\s*$/gim, replacement: "**Indicação:**" },
+        { re: /^\s*(?:\*\*)?\s*Notas\s*:\s*(?:\*\*)?\s*$/gim, replacement: "**Notas:**" },
+      ];
+
+      for (const { re, replacement } of inlineLabels) {
+        // If label is alone on a line and the next line has content, join them.
+        s = s.replace(new RegExp(`${re.source}\\n+([^\\n].*)`, re.flags), (_m, nextLine: string) => {
+          return `${replacement} ${nextLine.trim()}`;
+        });
+        // If label already has text on same line, just normalize bolding.
+        s = s.replace(
+          new RegExp(`^\\s*(?:\\*\\*)?\\s*(${replacement.replace(/\*\*/g, "").replace(/\s+/g, "\\s+")})\\s*:\\s*(?:\\*\\*)?\\s*(.+)$`, "gim"),
+          (_m, _label: string, rest: string) => `${replacement} ${rest.trim()}`,
+        );
+      }
+
+      // Analysis/Impression should be block-style:
+      // **Análise:**\n\ntext
+      // **Impressão diagnóstica:**\ntext (but we keep a blank line too for readability)
+      s = s.replace(/^\s*(?:\*\*)?\s*An[aá]lise\s*:\s*(?:\*\*)?\s*$/gim, "**Análise:**");
+      s = s.replace(/^\s*(?:\*\*)?\s*Impress[aã]o\s+diagn[oó]stica\s*:\s*(?:\*\*)?\s*$/gim, "**Impressão diagnóstica:**");
+
+      // Ensure spacing after block labels
+      s = s.replace(/^(\*\*Análise:\*\*)\s*\n(?!\n)/gim, "$1\n\n");
+      s = s.replace(/^(\*\*Impressão diagnóstica:\*\*)\s*\n(?!\n)/gim, "$1\n");
+
+      return s;
+    };
+
+    out = ensureTitleAtTop(out, extractTemplateTitle(opts.templateBaseReport));
+    out = normalizeSectionLabels(out);
 
     // Ensure one blank line before section labels 'Análise:' and 'Impressão diagnóstica:'
     const ensureBlankBefore = (labelRe: RegExp) => {
       out = out.replace(new RegExp(`([^\n])\n(${labelRe.source})`, labelRe.flags), (_m, prev: string, label: string) => {
         return `${prev}\n\n${label}`;
       });
+
+      // Also handle cases where the model places the label mid-line with lots of spaces.
+      out = out.replace(new RegExp(`([^\n])\s+(${labelRe.source})`, labelRe.flags), (_m, prev: string, label: string) => {
+        return `${prev}\n\n${label}`;
+      });
     };
 
     // Match bolded or plain labels, with optional surrounding asterisks
+    const tecnicaLabel = /\s*(?:\*\*)?\s*Técnica:\s*(?:\*\*)?/;
+    const indicacaoLabel = /\s*(?:\*\*)?\s*Indicação:\s*(?:\*\*)?/;
+    const notasLabel = /\s*(?:\*\*)?\s*Notas:\s*(?:\*\*)?/;
     const analiseLabel = /\s*(?:\*\*)?\s*Análise:\s*(?:\*\*)?/;
     const impLabel = /\s*(?:\*\*)?\s*Impressão diagnóstica:\s*(?:\*\*)?/;
+
+    ensureBlankBefore(tecnicaLabel);
+    ensureBlankBefore(indicacaoLabel);
+    ensureBlankBefore(notasLabel);
     ensureBlankBefore(analiseLabel);
     ensureBlankBefore(impLabel);
 
@@ -148,7 +220,10 @@ export class ReportsService {
     let reportText = gen.text;
 
     // Normalize spacing and remove redundant impression sentences when findings exist
-    reportText = this.sanitizeAiReport(reportText, { hasFindings: findings.length > 0 });
+    reportText = this.sanitizeAiReport(reportText, {
+      hasFindings: findings.length > 0,
+      templateBaseReport,
+    });
 
     return { reportText, aiCalls };
   }
