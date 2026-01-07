@@ -68,6 +68,8 @@ export class ReportsController {
       sex: dto.sex,
       side: dto.side,
       contrast: dto.contrast,
+      incidence: dto.incidence,
+      decubitus: dto.decubitus,
       notes: dto.notes,
       findings: dto.findings,
       indicationFile: file,
