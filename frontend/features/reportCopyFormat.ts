@@ -37,8 +37,8 @@ export function convertMarkdownToHtml(md: string): string {
     // Join with explicit newlines so we can preserve them as <br />
     const text = buffer.join("\n");
     
-    // Check if this paragraph starts with section labels that need spacing before
-    const needsBlankBefore = /^\*\*\s*(Técnica|Análise|Impressão diagnóstica):/.test(text);
+    // Check if this paragraph starts with a bold section marker (any ** label)
+    const needsBlankBefore = /^\*\*/.test(text);
     
     if (needsBlankBefore && blocks.length > 0) {
       blocks.push(blankLine);
