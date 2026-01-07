@@ -19,6 +19,11 @@ export type TemplateRequires = {
   side: "required" | "optional" | "none" | "fixed";
   incidence: "required" | "optional" | "none" | "fixed";
   decubitus: "required" | "optional" | "none" | "fixed";
+  ecg_gating: "required" | "optional" | "none" | "fixed";
+  phases: "required" | "optional" | "none" | "fixed";
+  coil: "required" | "optional" | "none" | "fixed";
+  sedation: "required" | "optional" | "none" | "fixed";
+  artifact_source: "required" | "optional" | "none" | "fixed";
 };
 
 export type TemplateDetail = {

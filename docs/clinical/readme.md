@@ -145,7 +145,7 @@ Valores possíveis:
 
 * `required` — pergunta se foi com ou sem contraste
 * `optional` — pergunta opcional
-* `fixed` — contraste implícito (ex.: angiotomografias)
+* `fixed` — contraste implícito (ex.: angiotomografias e angiorressonâncias)
 * `none` — não aplicável à modalidade
 
 ---

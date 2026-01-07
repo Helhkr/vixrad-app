@@ -5,11 +5,12 @@ requires:
   sex: none
   contrast: fixed
   side: required
+  artifact_source: optional
 ---
 
 # ANGIOTOMOGRAFIA ARTERIAL DO MEMBRO INFERIOR {{LADO}}
 
-**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica direcionada ao membro inferior {{LADO}}, antes e após a administração de meio de contraste iodado endovenoso. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).
+**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica direcionada ao membro inferior {{LADO}}, antes e após a administração de meio de contraste iodado endovenoso. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{artifact_source}}
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->

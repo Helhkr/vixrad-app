@@ -18,6 +18,11 @@ export type TemplateRequires = {
   side: string;
   incidence: string;
   decubitus: string;
+  ecg_gating: string;
+  phases: string;
+  coil: string;
+  sedation: string;
+  artifact_source: string;
 };
 
 export type TemplateDefaults = {
@@ -39,7 +44,6 @@ export class TemplatesController {
   @UseGuards(JwtAuthGuard, AccessGuard)
   @Get()
   listTemplates(@Query("examType") examType?: string): TemplateListItem[] {
-    console.log(`[TemplatesController] listTemplates called with examType=${examType}`);
     if (!examType) {
       throw new BadRequestException("examType is required");
     }
@@ -50,7 +54,6 @@ export class TemplatesController {
     }
 
     const templates = this.templatesService.listTemplates(examType as ExamType);
-    console.log(`[TemplatesController] Found ${templates.length} templates for ${examType}`);
     return templates.map((t) => ({
       id: t.id,
       name: t.name,

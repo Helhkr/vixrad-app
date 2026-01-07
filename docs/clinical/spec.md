@@ -88,7 +88,7 @@ Condições suportadas:
 
 ## Regras Específicas
 
-### Contraste em Tomografia
+### Contraste em Tomografia e Ressonância
 - Sempre obrigatório na seção Técnica.
 - Controlado por `requires.contrast`.
 - Exemplo:
@@ -102,6 +102,7 @@ sem a administração de meio de contraste iodado endovenoso.
 ```
 
 - Em angiotomografias: `contrast: fixed`.
+- Em angiorressonâncias: `contrast: fixed`.
 
 ### Sexo do Paciente
 Exemplo:

@@ -1,9 +1,10 @@
 import { ReportsService } from "./reports.service";
 
-const makeTemplatesServiceStub = (opts: { normal: string; full: string }) =>
+const makeTemplatesServiceStub = (opts: { normal: string; full: string; contrast?: "required" | "fixed" }) =>
   ({
     renderNormalReport: () => opts.normal,
     renderFullReport: () => opts.full,
+    getTemplateDetail: () => ({ requires: { contrast: opts.contrast ?? "required" } }),
   }) as any;
 
 const makePromptBuilderStub = () =>

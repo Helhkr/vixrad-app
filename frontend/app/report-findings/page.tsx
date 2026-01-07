@@ -44,6 +44,12 @@ export default function ReportFindingsPage() {
     side,
     incidence,
     decubitus,
+    ecgGating,
+    phases,
+    coil,
+    sedation,
+    artifactSourceEnabled,
+    artifactSourceTypes,
     findings,
     setFindings,
     setReportText,
@@ -264,6 +270,12 @@ export default function ReportFindingsPage() {
           side: side || undefined,
           incidence: incidence ?? undefined,
           decubitus: decubitus ?? undefined,
+          ecgGating,
+          phases,
+          coil,
+          sedation,
+          artifactSourceEnabled,
+          artifactSourceTypes,
           findings: null,
         },
         accessToken,
@@ -335,6 +347,12 @@ export default function ReportFindingsPage() {
         if (side) formData.append("side", side);
         if (incidence) formData.append("incidence", incidence);
         if (decubitus) formData.append("decubitus", decubitus);
+        formData.append("ecgGating", ecgGating);
+        formData.append("phases", phases);
+        formData.append("coil", coil);
+        formData.append("sedation", sedation);
+        formData.append("artifactSourceEnabled", String(artifactSourceEnabled));
+        for (const t of artifactSourceTypes) formData.append("artifactSourceTypes", t);
         formData.append("findings", trimmedFindings);
         formData.append("indicationFile", indicationFile);
         return await apiPostForm<GenerateResponse>("/reports/generate", formData, accessToken);
@@ -350,6 +368,12 @@ export default function ReportFindingsPage() {
           side: side || undefined,
           incidence: incidence ?? undefined,
           decubitus: decubitus ?? undefined,
+          ecgGating,
+          phases,
+          coil,
+          sedation,
+          artifactSourceEnabled,
+          artifactSourceTypes,
           findings: trimmedFindings,
         },
         accessToken,

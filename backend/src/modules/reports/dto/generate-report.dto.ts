@@ -1,4 +1,5 @@
-import { IsIn, IsOptional, IsString, MaxLength } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsArray, IsBoolean, IsIn, IsOptional, IsString, MaxLength } from "class-validator";
 
 export class GenerateReportDto {
   @IsString()
@@ -48,4 +49,81 @@ export class GenerateReportDto {
   @IsString()
   @MaxLength(8000)
   findings?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(["omit", "without", "with"], { message: "ecgGating inválido" })
+  ecgGating?: "omit" | "without" | "with";
+
+  @IsOptional()
+  @IsString()
+  @IsIn(["omit", "without", "with"], { message: "phases inválido" })
+  phases?: "omit" | "without" | "with";
+
+  @IsOptional()
+  @IsString()
+  @IsIn(["omit", "1.5T", "3.0T"], { message: "coil inválido" })
+  coil?: "omit" | "1.5T" | "3.0T";
+
+  @IsOptional()
+  @IsString()
+  @IsIn(["omit", "without", "with"], { message: "sedation inválido" })
+  sedation?: "omit" | "without" | "with";
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === "true") return true;
+    if (value === "false") return false;
+    return value;
+  })
+  @IsBoolean({ message: "artifactSourceEnabled inválido" })
+  artifactSourceEnabled?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return value;
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string") {
+      // Support either repeated keys (string) or JSON array as a string.
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {}
+      return [value];
+    }
+    return value;
+  })
+  @IsArray({ message: "artifactSourceTypes inválido" })
+  @IsString({ each: true })
+  @IsIn(
+    [
+      "Movimento",
+      "Beam hardening",
+      "Susceptibilidade magnética",
+      "Aliasing",
+      "Deslocamento químico",
+      "Volume parcial",
+      "Ghosting",
+      "Truncamento",
+      "Zipper",
+      "Ruído",
+      "Interferência de radiofrequência",
+      "Crosstalk",
+    ],
+    { each: true, message: "artifactSourceTypes inválido" },
+  )
+  artifactSourceTypes?: Array<
+    | "Movimento"
+    | "Beam hardening"
+    | "Susceptibilidade magnética"
+    | "Aliasing"
+    | "Deslocamento químico"
+    | "Volume parcial"
+    | "Ghosting"
+    | "Truncamento"
+    | "Zipper"
+    | "Ruído"
+    | "Interferência de radiofrequência"
+    | "Crosstalk"
+  >;
 }

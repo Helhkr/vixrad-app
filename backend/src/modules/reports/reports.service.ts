@@ -142,6 +142,25 @@ export class ReportsService {
     notes?: string;
     findings?: string | null;
     indicationFile?: Express.Multer.File;
+    ecgGating?: "omit" | "without" | "with";
+    phases?: "omit" | "without" | "with";
+    coil?: "omit" | "1.5T" | "3.0T";
+    sedation?: "omit" | "without" | "with";
+    artifactSourceEnabled?: boolean;
+    artifactSourceTypes?: Array<
+      | "Movimento"
+      | "Beam hardening"
+      | "Susceptibilidade magnética"
+      | "Aliasing"
+      | "Deslocamento químico"
+      | "Volume parcial"
+      | "Ghosting"
+      | "Truncamento"
+      | "Zipper"
+      | "Ruído"
+      | "Interferência de radiofrequência"
+      | "Crosstalk"
+    >;
   }) {
     const aiCalls: Array<{
       purpose: "indication_from_file" | "report_generation";
@@ -201,10 +220,19 @@ export class ReportsService {
       indication,
       sex: params.sex,
       side: params.side,
-      contrast: params.contrast,
+      contrast: (() => {
+        const tpl = this.templatesService.getTemplateDetail(params.templateId, params.examType);
+        return tpl.requires.contrast === "fixed" ? "with" : params.contrast;
+      })(),
       incidence: params.incidence,
       decubitus: params.decubitus,
       notes: params.notes,
+      ecgGating: params.ecgGating,
+      phases: params.phases,
+      coil: params.coil,
+      sedation: params.sedation,
+      artifactSourceEnabled: params.artifactSourceEnabled,
+      artifactSourceTypes: params.artifactSourceTypes,
     } as const;
 
     const findings = typeof params.findings === "string" ? params.findings.trim() : "";

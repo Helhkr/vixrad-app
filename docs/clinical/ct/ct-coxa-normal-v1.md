@@ -6,11 +6,12 @@ requires:
   sex: none
   contrast: required
   side: required
+  artifact_source: optional
 ---
 
 # TOMOGRAFIA COMPUTADORIZADA DA COXA {{LADO}}
 
-**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica <!-- IF CONTRASTE -->antes e após a administração de meio de contraste iodado endovenoso.<!-- ELSE -->sem a administração de meio de contraste iodado endovenoso.<!-- ENDIF CONTRASTE -->
+**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica <!-- IF CONTRASTE -->antes e após a administração de meio de contraste iodado endovenoso.<!-- ELSE -->sem a administração de meio de contraste iodado endovenoso.<!-- ENDIF CONTRASTE -->{{artifact_source}}
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}

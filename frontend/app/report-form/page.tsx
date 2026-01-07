@@ -7,25 +7,44 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import FormGroup from "@mui/material/FormGroup";
 import FormLabel from "@mui/material/FormLabel";
 import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import Stack from "@mui/material/Stack";
+import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import { fetchTemplateDetail, type TemplateDetail } from "@/features/templates";
 import { useAppState } from "../state";
-import type { Incidence, Decubitus } from "../state";
+import type { ArtifactType, Decubitus, Incidence, MrFieldStrength, MrRadio } from "../state";
 import { useSnackbar } from "../snackbar";
 
 const INCIDENCES: Incidence[] = ["PA e Perfil", "AP", "PA", "Perfil", "Obliqua", "Ortostática", "Axial"];
+
+const CT_ARTIFACT_TYPES: ArtifactType[] = ["Movimento", "Beam hardening"];
+
+const MR_ARTIFACT_TYPES: ArtifactType[] = [
+  "Movimento",
+  "Susceptibilidade magnética",
+  "Aliasing",
+  "Deslocamento químico",
+  "Volume parcial",
+  "Ghosting",
+  "Truncamento",
+  "Zipper",
+  "Ruído",
+  "Interferência de radiofrequência",
+  "Crosstalk",
+];
 
 function isIncidence(value: unknown): value is Incidence {
   return typeof value === "string" && (INCIDENCES as readonly string[]).includes(value);
@@ -51,6 +70,18 @@ export default function ReportFormPage() {
     setIncidence,
     decubitus,
     setDecubitus,
+    ecgGating,
+    setEcgGating,
+    phases,
+    setPhases,
+    coil,
+    setCoil,
+    sedation,
+    setSedation,
+    artifactSourceEnabled,
+    setArtifactSourceEnabled,
+    artifactSourceTypes,
+    setArtifactSourceTypes,
     resetReport,
   } = useAppState();
 
@@ -99,12 +130,27 @@ export default function ReportFormPage() {
 
   const requires = template?.requires;
 
+  const artifactTypeOptions = useMemo<ArtifactType[]>(() => {
+    if (examType === "CT") return CT_ARTIFACT_TYPES;
+    if (examType === "MR") return MR_ARTIFACT_TYPES;
+    return [];
+  }, [examType]);
+
   const showIndication = requires ? requires.indication !== "none" && requires.indication !== "fixed" : true;
   const showContrast = requires ? requires.contrast !== "none" && requires.contrast !== "fixed" : true;
   const showSex = requires ? requires.sex !== "none" && requires.sex !== "fixed" : false;
   const showSide = requires ? requires.side !== "none" && requires.side !== "fixed" : false;
   const showIncidence = requires ? requires.incidence !== "none" && requires.incidence !== "fixed" : false;
   const showDecubitus = requires ? requires.decubitus !== "none" && requires.decubitus !== "fixed" : false;
+  const showEcgGating = requires ? requires.ecg_gating !== "none" && requires.ecg_gating !== "fixed" : false;
+  const showPhases = requires ? requires.phases !== "none" && requires.phases !== "fixed" : false;
+  const showCoil = requires ? requires.coil !== "none" && requires.coil !== "fixed" : false;
+  const showSedation = requires ? requires.sedation !== "none" && requires.sedation !== "fixed" : false;
+  const showArtifactSource = requires
+    ? requires.artifact_source !== "none" && requires.artifact_source !== "fixed"
+    : false;
+
+  const effectiveContrast = requires?.contrast === "fixed" ? "with" : contrast;
 
   useEffect(() => {
     // When switching templates, don't keep the previous report's incidence in memory.
@@ -141,6 +187,26 @@ export default function ReportFormPage() {
     }
   }, [showDecubitus, decubitus, setDecubitus]);
 
+  useEffect(() => {
+    // Keep contrast consistent for templates that force it.
+    if (requires?.contrast === "fixed" && contrast !== "with") {
+      setContrast("with");
+    }
+  }, [requires?.contrast, contrast, setContrast]);
+
+  useEffect(() => {
+    // Phases only makes sense when contrast is used.
+    if (!showPhases || effectiveContrast !== "with") {
+      if (phases !== "omit") setPhases("omit");
+      return;
+    }
+
+    // When phases becomes applicable, default to "Não" (without) instead of omitting.
+    if (phases === "omit") {
+      setPhases("without");
+    }
+  }, [showPhases, effectiveContrast, phases, setPhases]);
+
   const templateLabel = useMemo(() => {
     if (!templateId) return "-";
     return template?.name ?? templateId;
@@ -164,6 +230,14 @@ export default function ReportFormPage() {
   const handleRemoveFile = () => {
     setIndicationFile(null);
     setIndication("");
+  };
+
+  const toggleArtifactType = (t: ArtifactType) => {
+    setArtifactSourceTypes(
+      artifactSourceTypes.includes(t)
+        ? artifactSourceTypes.filter((x) => x !== t)
+        : [...artifactSourceTypes, t],
+    );
   };
 
   const validateAndContinue = () => {
@@ -277,14 +351,14 @@ export default function ReportFormPage() {
           {showContrast ? (
             <FormControl>
               <FormLabel>Contraste</FormLabel>
-              <RadioGroup
-                row
-                value={contrast}
-                onChange={(e) => setContrast(e.target.value as "with" | "without")}
-              >
-                <FormControlLabel value="with" control={<Radio />} label="COM" />
-                <FormControlLabel value="without" control={<Radio />} label="SEM" />
-              </RadioGroup>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="body2">Sem</Typography>
+                <Switch
+                  checked={contrast === "with"}
+                  onChange={(e) => setContrast(e.target.checked ? "with" : "without")}
+                />
+                <Typography variant="body2">Com</Typography>
+              </Stack>
             </FormControl>
           ) : null}
 
@@ -345,6 +419,88 @@ export default function ReportFormPage() {
                 <FormControlLabel value="dorsal" control={<Radio />} label="Dorsal" />
                 <FormControlLabel value="lateral" control={<Radio />} label="Lateral" />
               </RadioGroup>
+            </FormControl>
+          ) : null}
+
+          {showEcgGating ? (
+            <FormControl>
+              <FormLabel>Sincronização ECG (gating)</FormLabel>
+              <RadioGroup
+                row
+                value={ecgGating}
+                onChange={(e) => setEcgGating(e.target.value as MrRadio)}
+              >
+                <FormControlLabel value="omit" control={<Radio />} label="Não citar" />
+                <FormControlLabel value="without" control={<Radio />} label="Sem" />
+                <FormControlLabel value="with" control={<Radio />} label="Com" />
+              </RadioGroup>
+            </FormControl>
+          ) : null}
+
+          {showPhases && effectiveContrast === "with" ? (
+            <FormControl>
+              <FormLabel>Aquisição dinâmica pós contraste?</FormLabel>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="body2">Não</Typography>
+                <Switch
+                  checked={phases === "with"}
+                  onChange={(e) => setPhases(e.target.checked ? "with" : "without")}
+                />
+                <Typography variant="body2">Sim</Typography>
+              </Stack>
+            </FormControl>
+          ) : null}
+
+          {showCoil ? (
+            <FormControl>
+              <FormLabel>Bobina</FormLabel>
+              <RadioGroup row value={coil} onChange={(e) => setCoil(e.target.value as MrFieldStrength)}>
+                <FormControlLabel value="omit" control={<Radio />} label="Não citar" />
+                <FormControlLabel value="1.5T" control={<Radio />} label="1,5T" />
+                <FormControlLabel value="3.0T" control={<Radio />} label="3,0T" />
+              </RadioGroup>
+            </FormControl>
+          ) : null}
+
+          {showSedation ? (
+            <FormControl>
+              <FormLabel>Sedação</FormLabel>
+              <RadioGroup row value={sedation} onChange={(e) => setSedation(e.target.value as MrRadio)}>
+                <FormControlLabel value="omit" control={<Radio />} label="Não citar" />
+                <FormControlLabel value="without" control={<Radio />} label="Sem" />
+                <FormControlLabel value="with" control={<Radio />} label="Com" />
+              </RadioGroup>
+            </FormControl>
+          ) : null}
+
+          {showArtifactSource ? (
+            <FormControl>
+              <FormLabel>Artefatos de aquisição</FormLabel>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={artifactSourceEnabled}
+                    onChange={(e) => {
+                      const enabled = e.target.checked;
+                      setArtifactSourceEnabled(enabled);
+                      if (!enabled) setArtifactSourceTypes([]);
+                    }}
+                  />
+                }
+                label={artifactSourceEnabled ? "Com" : "Sem"}
+              />
+
+              {artifactSourceEnabled ? (
+                <FormGroup>
+                  {artifactTypeOptions.map((t) => (
+                    <FormControlLabel
+                      key={t}
+                      control={<Checkbox checked={artifactSourceTypes.includes(t)} onChange={() => toggleArtifactType(t)} />}
+                      label={t}
+                    />
+                  ))}
+                </FormGroup>
+              ) : null}
             </FormControl>
           ) : null}
 

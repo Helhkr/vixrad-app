@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { load as yamlLoad } from "js-yaml";
@@ -14,6 +14,11 @@ export type TemplateRequires = {
   side: RequireState;
   incidence: RequireState;
   decubitus: RequireState;
+  ecg_gating: RequireState;
+  phases: RequireState;
+  coil: RequireState;
+  sedation: RequireState;
+  artifact_source: RequireState;
 };
 
 export type TemplateMeta = {
@@ -51,7 +56,41 @@ export type RenderInput = {
   notes?: string;
   incidence?: string;
   decubitus?: "ventral" | "dorsal" | "lateral";
+  ecgGating?: "omit" | "without" | "with";
+  phases?: "omit" | "without" | "with";
+  coil?: "omit" | "1.5T" | "3.0T";
+  sedation?: "omit" | "without" | "with";
+  artifactSourceEnabled?: boolean;
+  artifactSourceTypes?: Array<
+    | "Movimento"
+    | "Beam hardening"
+    | "Susceptibilidade magnética"
+    | "Aliasing"
+    | "Deslocamento químico"
+    | "Volume parcial"
+    | "Ghosting"
+    | "Truncamento"
+    | "Zipper"
+    | "Ruído"
+    | "Interferência de radiofrequência"
+    | "Crosstalk"
+  >;
 };
+
+const CT_ARTIFACT_TYPES = ["Movimento", "Beam hardening"] as const;
+const MR_ARTIFACT_TYPES = [
+  "Movimento",
+  "Susceptibilidade magnética",
+  "Aliasing",
+  "Deslocamento químico",
+  "Volume parcial",
+  "Ghosting",
+  "Truncamento",
+  "Zipper",
+  "Ruído",
+  "Interferência de radiofrequência",
+  "Crosstalk",
+] as const;
 
 type IfNode = {
   type: "if";
@@ -88,6 +127,8 @@ const ENDIF_RE = /^<!--\s*ENDIF\s+([A-Z0-9_]+)\s*-->$/;
 
 @Injectable()
 export class TemplatesService {
+  private readonly logger = new Logger(TemplatesService.name);
+
   private stripDiacritics(input: string): string {
     return input.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
@@ -254,6 +295,11 @@ export class TemplatesService {
       side: requires.side ?? "none",
       incidence: requires.incidence ?? "none",
       decubitus: requires.decubitus ?? "none",
+      ecg_gating: (requires as any).ecg_gating ?? "none",
+      phases: (requires as any).phases ?? "none",
+      coil: (requires as any).coil ?? "none",
+      sedation: (requires as any).sedation ?? "none",
+      artifact_source: (requires as any).artifact_source ?? "none",
     };
 
     for (const [key, value] of Object.entries(fullRequires)) {
@@ -302,6 +348,26 @@ export class TemplatesService {
 
     if (req.decubitus === "required" && !input.decubitus) {
       throw new BadRequestException("requires.decubitus: obrigatório");
+    }
+
+    if (req.ecg_gating === "required" && !input.ecgGating) {
+      throw new BadRequestException("requires.ecg_gating: obrigatório");
+    }
+
+    if (req.phases === "required" && !input.phases) {
+      throw new BadRequestException("requires.phases: obrigatório");
+    }
+
+    if (req.coil === "required" && !input.coil) {
+      throw new BadRequestException("requires.coil: obrigatório");
+    }
+
+    if (req.sedation === "required" && !input.sedation) {
+      throw new BadRequestException("requires.sedation: obrigatório");
+    }
+
+    if (req.artifact_source === "required" && input.artifactSourceEnabled === undefined) {
+      throw new BadRequestException("requires.artifact_source: obrigatório");
     }
   }
 
@@ -387,13 +453,39 @@ export class TemplatesService {
   }
 
   private resolvePlaceholders(markdown: string, values: Record<string, string | undefined>): string {
-    return markdown.replace(/\{\{([A-Z0-9_]+)\}\}/g, (full, key: string) => {
+    return markdown.replace(/\{\{([A-Za-z0-9_]+)\}\}/g, (full, key: string) => {
       const value = values[key];
       if (value === undefined) {
         throw new BadRequestException(`Placeholder sem valor: {{${key}}}`);
       }
       return value;
     });
+  }
+
+  private toRadioFragment(choice: "omit" | "without" | "with" | undefined, fragments: { without: string; with: string }): string {
+    if (!choice || choice === "omit") return "";
+    return choice === "with" ? fragments.with : fragments.without;
+  }
+
+  private toFieldStrengthFragment(choice: "omit" | "1.5T" | "3.0T" | undefined): string {
+    if (!choice || choice === "omit") return "";
+    if (choice === "1.5T") return " Em magneto de 1,5T.";
+    return " Em magneto de 3,0T.";
+  }
+
+  private formatArtifactList(items: string[]): string {
+    const cleaned = items.map((s) => s.trim()).filter(Boolean);
+    const unique = Array.from(new Set(cleaned));
+    if (unique.length === 0) return "";
+    if (unique.length === 1) return unique[0]!;
+    if (unique.length === 2) return `${unique[0]} e ${unique[1]}`;
+    return `${unique.slice(0, -1).join(", ")} e ${unique[unique.length - 1]}`;
+  }
+
+  private toCtArtifactLabel(value: string): string {
+    if (value === "Movimento") return "movimento";
+    if (value === "Beam hardening") return "endurecimento do feixe (beam hardening)";
+    return value;
   }
 
   private enforceBoldSectionLabels(markdown: string): string {
@@ -421,32 +513,26 @@ export class TemplatesService {
   }
 
   listTemplates(examType: ExamType): TemplateListItem[] {
-    console.log(`[listTemplates] examType=${examType}`);
     if (!SUPPORTED_EXAM_TYPES.includes(examType)) {
       throw new BadRequestException("examType inválido");
     }
 
     const dir = this.resolveTemplatesDir(examType);
-    console.log(`[listTemplates] dir=${dir}`);
     if (!dir) return [];
     const entries = fs
       .readdirSync(dir)
       .filter((name) => name.endsWith(".md"))
       .sort((a, b) => a.localeCompare(b));
 
-    console.log(`[listTemplates] found ${entries.length} .md files`);
-
     const out: TemplateListItem[] = [];
     for (const fileName of entries) {
       const templateId = fileName.replace(/\.md$/, "");
-      console.log(`[listTemplates] processing ${templateId}...`);
       try {
         const source = this.loadTemplateSource(templateId, examType);
-        console.log(`[listTemplates] loaded source for ${templateId}, parsing...`);
         const parsed = this.parseFrontMatter(source);
 
         if (parsed.meta.exam_type !== examType) {
-          console.warn(`[listTemplates] Template ${templateId} exam_type mismatch: ${parsed.meta.exam_type} !== ${examType}`);
+          this.logger.warn(`Template ${templateId} exam_type mismatch: ${parsed.meta.exam_type} !== ${examType}`);
           continue;
         }
 
@@ -459,14 +545,11 @@ export class TemplatesService {
           name,
           examType: parsed.meta.exam_type,
         });
-        console.log(`[listTemplates] added ${templateId}`);
       } catch (err: any) {
-        console.error(`[listTemplates] Error loading template ${templateId}:`, err.message);
+        this.logger.warn(`Error loading template ${templateId}: ${err?.message ?? String(err)}`);
         continue;
       }
     }
-
-    console.log(`[listTemplates] returning ${out.length} templates`);
     return out;
   }
 
@@ -555,6 +638,51 @@ export class TemplatesService {
       DECUBITUS: input.decubitus ? (input.decubitus === "ventral" ? "ventral" : input.decubitus === "dorsal" ? "dorsal" : "lateral") : undefined,
       DECUBITUS_UPPER: input.decubitus ? (input.decubitus === "ventral" ? "VENTRAL" : input.decubitus === "dorsal" ? "DORSAL" : "LATERAL") : undefined,
     };
+
+    // MR-specific technical fragments
+    const ecg = this.toRadioFragment(input.ecgGating, {
+      without: " Sem sincronização eletrocardiográfica.",
+      with: " Com sincronização eletrocardiográfica.",
+    });
+    const phases = this.toRadioFragment(input.phases, {
+      without: " Sem aquisição dinâmica pós-contraste.",
+      with: " Com aquisição dinâmica pós-contraste em múltiplas fases.",
+    });
+    const coil = this.toFieldStrengthFragment(input.coil);
+    const sedation = this.toRadioFragment(input.sedation, {
+      without: " Exame realizado sem sedação.",
+      with: " Exame realizado sob sedação.",
+    });
+
+    const artifactEnabled = Boolean(input.artifactSourceEnabled);
+    const artifactTypes = Array.isArray(input.artifactSourceTypes) ? (input.artifactSourceTypes as string[]) : [];
+
+    if (artifactEnabled && artifactTypes.length > 0) {
+      const allowed = new Set<string>(input.examType === "CT" ? CT_ARTIFACT_TYPES : input.examType === "MR" ? MR_ARTIFACT_TYPES : []);
+      for (const t of artifactTypes) {
+        if (!allowed.has(t)) {
+          throw new BadRequestException(`artifactSourceTypes inválido para ${input.examType}: ${t}`);
+        }
+      }
+    }
+    const artifactListRaw = input.examType === "CT" ? artifactTypes.map((t) => this.toCtArtifactLabel(t)) : artifactTypes;
+    const artifactList = this.formatArtifactList(artifactListRaw);
+    const artifact = artifactEnabled
+      ? artifactList
+        ? ` Observam-se artefatos de ${artifactList}, que limitam parcialmente a avaliação.`
+        : " Observam-se artefatos que limitam parcialmente a avaliação."
+      : "";
+
+    values.ecg_gating = ecg;
+    values.ECG_GATING = ecg;
+    values.phases = phases;
+    values.PHASES = phases;
+    values.coil = coil;
+    values.COIL = coil;
+    values.sedation = sedation;
+    values.SEDATION = sedation;
+    values.artifact_source = artifact;
+    values.ARTIFACT_SOURCE = artifact;
 
     const resolved = this.resolvePlaceholders(withoutConditionals, values);
     const formatted = this.enforceBoldSectionLabels(resolved);

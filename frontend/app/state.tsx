@@ -9,6 +9,21 @@ export type Sex = "M" | "F";
 export type Side = "RIGHT" | "LEFT" | "BILATERAL";
 export type Incidence = "AP" | "PA" | "Perfil" | "PA e Perfil" | "Obliqua" | "Ortostática" | "Axial";
 export type Decubitus = "ventral" | "dorsal" | "lateral";
+export type MrRadio = "omit" | "without" | "with";
+export type MrFieldStrength = "omit" | "1.5T" | "3.0T";
+export type ArtifactType =
+  | "Movimento"
+  | "Beam hardening"
+  | "Susceptibilidade magnética"
+  | "Aliasing"
+  | "Deslocamento químico"
+  | "Volume parcial"
+  | "Ghosting"
+  | "Truncamento"
+  | "Zipper"
+  | "Ruído"
+  | "Interferência de radiofrequência"
+  | "Crosstalk";
 
 type AppState = {
   accessToken: string | null;
@@ -44,6 +59,24 @@ type AppState = {
 
   decubitus: Decubitus | null;
   setDecubitus: (value: Decubitus | null) => void;
+
+  ecgGating: MrRadio;
+  setEcgGating: (value: MrRadio) => void;
+
+  phases: MrRadio;
+  setPhases: (value: MrRadio) => void;
+
+  coil: MrFieldStrength;
+  setCoil: (value: MrFieldStrength) => void;
+
+  sedation: MrRadio;
+  setSedation: (value: MrRadio) => void;
+
+  artifactSourceEnabled: boolean;
+  setArtifactSourceEnabled: (value: boolean) => void;
+
+  artifactSourceTypes: ArtifactType[];
+  setArtifactSourceTypes: (value: ArtifactType[]) => void;
 
   reportText: string;
   setReportText: (value: string) => void;
@@ -94,6 +127,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [side, setSide] = useState<Side | null>(null);
   const [incidence, setIncidence] = useState<Incidence | null>(null);
   const [decubitus, setDecubitus] = useState<Decubitus | null>(null);
+  const [ecgGating, setEcgGating] = useState<MrRadio>("omit");
+  const [phases, setPhases] = useState<MrRadio>("omit");
+  const [coil, setCoil] = useState<MrFieldStrength>("omit");
+  const [sedation, setSedation] = useState<MrRadio>("omit");
+  const [artifactSourceEnabled, setArtifactSourceEnabled] = useState<boolean>(false);
+  const [artifactSourceTypes, setArtifactSourceTypes] = useState<ArtifactType[]>([]);
   const [reportText, setReportText] = useState<string>("");
 
   const setAccessToken = useCallback((token: string | null) => {
@@ -149,6 +188,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setSide(null);
     setIncidence(null);
     setDecubitus(null);
+    setEcgGating("omit");
+    setPhases("omit");
+    setCoil("omit");
+    setSedation("omit");
+    setArtifactSourceEnabled(false);
+    setArtifactSourceTypes([]);
     setReportText("");
   }, []);
 
@@ -178,6 +223,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setIncidence,
       decubitus,
       setDecubitus,
+      ecgGating,
+      setEcgGating,
+      phases,
+      setPhases,
+      coil,
+      setCoil,
+      sedation,
+      setSedation,
+      artifactSourceEnabled,
+      setArtifactSourceEnabled,
+      artifactSourceTypes,
+      setArtifactSourceTypes,
       reportText,
       setReportText,
       resetReport,
@@ -197,6 +254,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       side,
       incidence,
       decubitus,
+      ecgGating,
+      phases,
+      coil,
+      sedation,
+      artifactSourceEnabled,
+      artifactSourceTypes,
       reportText,
       resetReport,
     ],

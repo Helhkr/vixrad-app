@@ -74,6 +74,12 @@ export class ReportsController {
       incidence: dto.incidence,
       decubitus: dto.decubitus,
       notes: dto.notes,
+      ecgGating: dto.ecgGating,
+      phases: dto.phases,
+      coil: dto.coil,
+      sedation: dto.sedation,
+      artifactSourceEnabled: dto.artifactSourceEnabled,
+      artifactSourceTypes: dto.artifactSourceTypes,
       findings: dto.findings,
       indicationFile: file,
     });
