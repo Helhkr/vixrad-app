@@ -28,6 +28,7 @@ export function convertMarkdownToHtml(md: string): string {
   const lines = md.split(/\r?\n/);
   const blocks: string[] = [];
   let buffer: string[] = [];
+  let extraTopMargin = false; // Track if we need extra spacing after blank line
 
   const baseStyle = "font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.3;";
 
@@ -37,7 +38,10 @@ export function convertMarkdownToHtml(md: string): string {
     const text = buffer.join("\n");
     const withBold = text.replace(/\*\*(.*?)\*\*/g, (_m, t: string) => `<strong>${escapeHtml(t)}</strong>`);
     const withLineBreaks = withBold.replace(/\n/g, "<br />");
-    blocks.push(`<p style="margin: 0 0 8px 0; ${baseStyle}">${withLineBreaks}</p>`);
+    // Add extra top margin if previous line was blank
+    const topMargin = extraTopMargin ? "12px" : "0";
+    blocks.push(`<p style="margin: ${topMargin} 0 8px 0; ${baseStyle}">${withLineBreaks}</p>`);
+    extraTopMargin = false;
     buffer = [];
   };
 
@@ -49,10 +53,12 @@ export function convertMarkdownToHtml(md: string): string {
       blocks.push(
         `<h1 style="margin: 0 0 12px 0; ${baseStyle} font-weight: bold;">${escapeHtml(title)}</h1>`,
       );
+      extraTopMargin = false;
       continue;
     }
     if (line.trim() === "") {
       flushParagraph();
+      extraTopMargin = true; // Next paragraph should have extra top margin
       continue;
     }
     const plain = escapeHtml(line);
