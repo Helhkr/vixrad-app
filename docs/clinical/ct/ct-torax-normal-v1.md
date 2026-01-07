@@ -14,6 +14,7 @@ requires:
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->
+
 **Análise:**
 
 Parênquima pulmonar sem alterações significativas.

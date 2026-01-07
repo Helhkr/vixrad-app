@@ -39,6 +39,7 @@ export default function ReportResultPage() {
   const [selectedFormat, setSelectedFormat] = useState<CopyFormat>("formatted");
 
   const copyReport = async (format: CopyFormat) => {
+    let usedRichDom = false;
     const copyHtmlViaExecCommand = async (html: string, plainFallback: string) => {
       try {
         const el = document.createElement("div");
@@ -72,26 +73,34 @@ export default function ReportResultPage() {
       if (format === "formatted") {
         const html = convertMarkdownToHtml(reportText);
         const plain = stripMarkdown(reportText);
-        if ("ClipboardItem" in window) {
-          try {
-            const item = new ClipboardItem({
-              "text/html": new Blob([html], { type: "text/html" }),
-              "text/plain": new Blob([plain], { type: "text/plain" }),
-            });
-            await (navigator.clipboard as any).write([item]);
-          } catch {
-            const ok = await copyHtmlViaExecCommand(html, plain);
-            if (!ok) throw new Error("Falha ao copiar em modo formatado");
+
+        // Prefer DOM selection copy for Word compatibility
+        const okDom = await copyHtmlViaExecCommand(html, plain);
+        usedRichDom = okDom;
+
+        if (!okDom) {
+          // Fallback to ClipboardItem (may work on Chromium)
+          if ("ClipboardItem" in window) {
+            try {
+              const item = new ClipboardItem({
+                "text/html": new Blob([html], { type: "text/html" }),
+                "text/plain": new Blob([plain], { type: "text/plain" }),
+              });
+              await (navigator.clipboard as any).write([item]);
+            } catch {
+              // Last resort: plain text
+              await navigator.clipboard.writeText(plain);
+            }
+          } else {
+            // Last resort when neither DOM copy nor ClipboardItem is available
+            await navigator.clipboard.writeText(plain);
           }
-        } else {
-          const ok = await copyHtmlViaExecCommand(html, plain);
-          if (!ok) throw new Error("Falha ao copiar em modo formatado");
         }
       } else {
         const output = formatReportForCopy(reportText, format);
         await navigator.clipboard.writeText(output);
       }
-      showMessage("Laudo copiado com sucesso!", "success");
+      showMessage(usedRichDom ? "Laudo copiado com formatação." : "Laudo copiado.", "success");
     } catch (e) {
       showMessage(e instanceof Error ? e.message : "Falha ao copiar laudo", "error");
     }
