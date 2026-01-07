@@ -22,30 +22,35 @@ echo "TEMPLATE_ID=$TEMPLATE_ID"
 echo "INCIDENCE_VALUE=$INCIDENCE_VALUE"
 echo
 
-EMAIL="smoke+$(date +%s)@vixrad.local"
-PASSWORD="SmokeTest#$(date +%s)"
+EMAIL="${SMOKE_EMAIL:-smoke+$(date +%s)@vixrad.local}"
+PASSWORD="${SMOKE_PASSWORD:-SmokeTest#$(date +%s)}"
 
-echo "1) Registering temp user ($EMAIL)..."
-REGISTER_RESPONSE=$(curl -sS -X POST "$API_BASE_URL/auth/register" \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
+if [ -z "${SMOKE_EMAIL:-}" ] || [ -z "${SMOKE_PASSWORD:-}" ]; then
+  echo "1) Registering temp user ($EMAIL)..."
+  REGISTER_RESPONSE=$(curl -sS -X POST "$API_BASE_URL/auth/register" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
 
-REGISTER_ERROR=$(printf '%s' "$REGISTER_RESPONSE" | python3 -c 'import json,sys
+  REGISTER_ERROR=$(printf '%s' "$REGISTER_RESPONSE" | python3 -c 'import json,sys
 try:
   data=json.load(sys.stdin)
   print(data.get("error") or "")
 except Exception:
   print("")')
 
-if [ -n "$REGISTER_ERROR" ]; then
-  echo "❌ Register failed: $REGISTER_RESPONSE" >&2
-  exit 1
+  if [ -n "$REGISTER_ERROR" ]; then
+    echo "❌ Register failed: $REGISTER_RESPONSE" >&2
+    exit 1
+  fi
+
+  echo "✓ Registered"
+  echo
+else
+  echo "1) Using existing credentials from SMOKE_EMAIL/SMOKE_PASSWORD"
+  echo
 fi
 
-echo "✓ Registered"
-echo
-
-echo "2) Logging in..."
+echo "2) Logging in as $EMAIL..."
 LOGIN_RESPONSE=$(curl -sS -X POST "$API_BASE_URL/auth/login" \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
