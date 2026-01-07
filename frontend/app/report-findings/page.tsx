@@ -59,6 +59,7 @@ export default function ReportFindingsPage() {
   const [loadingTemplate, setLoadingTemplate] = useState(false);
   const [micSupported, setMicSupported] = useState(false);
   const listeningStateRef = useRef<boolean>(false);
+  const copyHtmlRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (browserSupportsSpeechRecognition === false) {
@@ -215,11 +216,9 @@ export default function ReportFindingsPage() {
     if (!accessToken || !examType || !templateId) return;
     if (!validateTemplateInputs({ requireFindings: false })) return;
 
-    const copyFormatted = async (md: string) => {
-      const html = convertMarkdownToHtml(md);
-      const plain = stripMarkdown(md);
-
-      const copyViaDom = async () => {
+    const copyHtmlViaExecCommand = async (html: string, plainFallback: string) => {
+      try {
+        // Create temporary container and render HTML to DOM
         const el = document.createElement("div");
         el.setAttribute("contenteditable", "true");
         el.style.position = "fixed";
@@ -228,37 +227,29 @@ export default function ReportFindingsPage() {
         el.style.whiteSpace = "pre-wrap";
         el.innerHTML = html;
         document.body.appendChild(el);
+
+        // Select the rendered content
         const range = document.createRange();
         range.selectNodeContents(el);
         const sel = window.getSelection();
         sel?.removeAllRanges();
         sel?.addRange(range);
+
+        // Copy via execCommand
         const ok = document.execCommand("copy");
         sel?.removeAllRanges();
         document.body.removeChild(el);
-        return ok;
-      };
 
-      // Try DOM copy first (best for Word)
-      if (await copyViaDom()) return true;
-
-      // Fallback to ClipboardItem if available
-      if ("ClipboardItem" in window) {
+        if (!ok) throw new Error("execCommand copy returned false");
+        return true;
+      } catch {
         try {
-          const item = new ClipboardItem({
-            "text/html": new Blob([html], { type: "text/html" }),
-            "text/plain": new Blob([plain], { type: "text/plain" }),
-          });
-          await (navigator.clipboard as any).write([item]);
+          await navigator.clipboard.writeText(plainFallback);
           return true;
         } catch {
-          // ignore
+          return false;
         }
       }
-
-      // Last resort: plain text to avoid HTML tags
-      await navigator.clipboard.writeText(plain);
-      return false;
     };
 
     setLoading(true);
@@ -282,8 +273,32 @@ export default function ReportFindingsPage() {
       setReportText(data.reportText);
 
       if (format === "formatted") {
-        const rich = await copyFormatted(data.reportText);
-        showMessage(rich ? "Laudo normal copiado com formatação." : "Laudo normal copiado em texto.", "success");
+        const html = convertMarkdownToHtml(data.reportText);
+        const plain = stripMarkdown(data.reportText);
+
+        // Prefer DOM selection copy for Word compatibility
+        const okDom = await copyHtmlViaExecCommand(html, plain);
+
+        if (!okDom) {
+          // Fallback to ClipboardItem (may work on Chromium)
+          if ("ClipboardItem" in window) {
+            try {
+              const item = new ClipboardItem({
+                "text/html": new Blob([html], { type: "text/html" }),
+                "text/plain": new Blob([plain], { type: "text/plain" }),
+              });
+              await (navigator.clipboard as any).write([item]);
+            } catch {
+              // Last resort: plain text
+              await navigator.clipboard.writeText(plain);
+            }
+          } else {
+            // Last resort when neither DOM copy nor ClipboardItem is available
+            await navigator.clipboard.writeText(plain);
+          }
+        }
+
+        showMessage(okDom ? "Laudo normal copiado com formatação." : "Laudo normal copiado.", "success");
       } else {
         const output = formatReportForCopy(data.reportText, format);
         await navigator.clipboard.writeText(output);
