@@ -3,7 +3,7 @@ import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { TrialGuard } from "../auth/guards/trial.guard";
+import { AccessGuard } from "../auth/guards/access.guard";
 import { TemplatesController } from "./templates.controller";
 import { TemplatesService } from "./templates.service";
 
@@ -37,7 +37,7 @@ describe("TemplatesController", () => {
     });
 
     moduleBuilder.overrideGuard(JwtAuthGuard).useValue({ canActivate: () => true });
-    moduleBuilder.overrideGuard(TrialGuard).useValue({ canActivate: () => true });
+    moduleBuilder.overrideGuard(AccessGuard).useValue({ canActivate: () => true });
 
     const moduleRef = await moduleBuilder.compile();
 

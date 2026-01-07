@@ -1,7 +1,7 @@
 import { BadRequestException, Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
 
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { TrialGuard } from "../auth/guards/trial.guard";
+import { AccessGuard } from "../auth/guards/access.guard";
 import { TemplatesService } from "./templates.service";
 import type { ExamType } from "./templates.service";
 
@@ -36,7 +36,7 @@ export type TemplateDetailItem = {
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 
-  @UseGuards(JwtAuthGuard, TrialGuard)
+  @UseGuards(JwtAuthGuard, AccessGuard)
   @Get()
   listTemplates(@Query("examType") examType?: string): TemplateListItem[] {
     console.log(`[TemplatesController] listTemplates called with examType=${examType}`);
@@ -58,7 +58,7 @@ export class TemplatesController {
     }));
   }
 
-  @UseGuards(JwtAuthGuard, TrialGuard)
+  @UseGuards(JwtAuthGuard, AccessGuard)
   @Get(":id")
   getTemplate(@Param("id") id: string, @Query("examType") examType?: string): TemplateDetailItem {
     const allowed: ExamType[] = ["CT", "XR", "US", "MR", "MG", "DXA", "NM"];

@@ -12,9 +12,9 @@ import { sign, verify } from "jsonwebtoken";
 import * as request from "supertest";
 
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { TrialGuard } from "../auth/guards/trial.guard";
+import { AccessGuard } from "../auth/guards/access.guard";
 import { ReportsRateLimitGuard } from "../security/reports-rate-limit.guard";
-import { TrialService } from "../trial/trial.service";
+import { AccessService } from "../auth/access.service";
 import { ReportsController } from "./reports.controller";
 import { ReportsService } from "./reports.service";
 import { AiService } from "../ai/ai.service";
@@ -68,7 +68,7 @@ describe("Reports security", () => {
       controllers: [ReportsController],
       providers: [
         ReportsRateLimitGuard,
-        TrialGuard,
+        AccessGuard,
         {
           provide: AiService,
           useValue: {
@@ -78,9 +78,9 @@ describe("Reports security", () => {
           },
         },
         {
-          provide: TrialService,
+          provide: AccessService,
           useValue: {
-            assertTrialActive: async () => undefined,
+            assertUserActive: async () => undefined,
           },
         },
         { provide: ReportsService, useClass: StubReportsService },

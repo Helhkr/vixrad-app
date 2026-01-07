@@ -348,15 +348,16 @@ export class AiService {
     prompt: string;
     baseInput: RenderInput;
     findings: string;
+    modelCandidates?: string[];
   }): Promise<GeminiGenerateResult> {
     const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey) {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
     }
 
-    const envModel = this.normalizeModel(process.env.GEMINI_MODEL);
-    const available = await this.fetchAvailableModels(apiKey);
-    const candidates = this.buildCandidates(envModel, available);
+    const candidates = Array.isArray(params.modelCandidates) && params.modelCandidates.length > 0
+      ? params.modelCandidates.map((m) => this.normalizeModel(m))
+      : this.buildCandidates(this.normalizeModel(process.env.GEMINI_MODEL), await this.fetchAvailableModels(apiKey));
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
 
     const result = await this.tryModelsGenerate({
@@ -375,15 +376,15 @@ export class AiService {
     return result;
   }
 
-  async generateIndicationFromText(extractedText: string): Promise<GeminiGenerateResult> {
+  async generateIndicationFromText(extractedText: string, opts?: { modelCandidates?: string[] }): Promise<GeminiGenerateResult> {
     const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey) {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
     }
 
-    const envModel = this.normalizeModel(process.env.GEMINI_MODEL);
-    const available = await this.fetchAvailableModels(apiKey);
-    const candidates = this.buildCandidates(envModel, available);
+    const candidates = Array.isArray(opts?.modelCandidates) && opts!.modelCandidates!.length > 0
+      ? opts!.modelCandidates!.map((m) => this.normalizeModel(m))
+      : this.buildCandidates(this.normalizeModel(process.env.GEMINI_MODEL), await this.fetchAvailableModels(apiKey));
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
 
     const prompt = `Leia o texto abaixo (pedido/prontuário) e escreva APENAS UMA frase curta com a indicação clínica, em português brasileiro.
@@ -416,15 +417,15 @@ export class AiService {
     return { ...result, text: out };
   }
 
-  async generateIndicationFromFile(file: Express.Multer.File): Promise<GeminiGenerateResult> {
+  async generateIndicationFromFile(file: Express.Multer.File, opts?: { modelCandidates?: string[] }): Promise<GeminiGenerateResult> {
     const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey) {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
     }
 
-    const envModel = this.normalizeModel(process.env.GEMINI_MODEL);
-    const available = await this.fetchAvailableModels(apiKey);
-    const candidates = this.buildCandidates(envModel, available);
+    const candidates = Array.isArray(opts?.modelCandidates) && opts!.modelCandidates!.length > 0
+      ? opts!.modelCandidates!.map((m) => this.normalizeModel(m))
+      : this.buildCandidates(this.normalizeModel(process.env.GEMINI_MODEL), await this.fetchAvailableModels(apiKey));
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
 
     const prompt = `Leia o documento anexado (pedido/prontuário) e escreva APENAS UMA frase curta com a indicação clínica, em português brasileiro.

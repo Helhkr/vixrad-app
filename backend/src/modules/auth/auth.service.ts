@@ -3,6 +3,7 @@ import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcryptjs";
 
 import { TrialService } from "../trial/trial.service";
+import { AccessService } from "./access.service";
 import { UsersService } from "../users/users.service";
 
 @Injectable()
@@ -10,6 +11,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly trialService: TrialService,
+    private readonly accessService: AccessService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -49,7 +51,7 @@ export class AuthService {
     });
 
     await this.trialService.ensureTrialForUser(user.id);
-    await this.trialService.assertTrialActive(user.id);
+    await this.accessService.assertUserActive(user.id);
 
     return this.issueTokens({ userId: user.id, email: user.email });
   }
@@ -68,7 +70,7 @@ export class AuthService {
       throw new UnauthorizedException("Credenciais inválidas");
     }
 
-    await this.trialService.assertTrialActive(user.id);
+    await this.accessService.assertUserActive(user.id);
 
     return this.issueTokens({ userId: user.id, email: user.email });
   }
@@ -93,7 +95,7 @@ export class AuthService {
       throw new UnauthorizedException("Refresh token inválido");
     }
 
-    await this.trialService.assertTrialActive(user.id);
+    await this.accessService.assertUserActive(user.id);
 
     return this.issueTokens({ userId: user.id, email: user.email });
   }

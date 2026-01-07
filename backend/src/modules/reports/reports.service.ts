@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 
 import { AiService } from "../ai/ai.service";
+import { AiPolicyService } from "../ai/ai-policy.service";
 import { PromptBuilderService } from "../ai/prompt-builder.service";
 import { FileExtractionService } from "../ai/file-extraction.service";
 import { TemplatesService } from "../templates/templates.service";
@@ -11,6 +12,7 @@ export class ReportsService {
     private readonly templatesService: TemplatesService,
     private readonly promptBuilderService: PromptBuilderService,
     private readonly aiService: AiService,
+    private readonly aiPolicyService: AiPolicyService,
     private readonly fileExtractionService: FileExtractionService,
   ) {}
 
@@ -128,6 +130,7 @@ export class ReportsService {
   }
 
   async generateStructuredBaseReport(params: {
+    userId?: string;
     examType: "CT" | "XR" | "US" | "MR" | "MG" | "DXA" | "NM";
     templateId: string;
     indication?: string;
@@ -155,8 +158,24 @@ export class ReportsService {
 
     // Se houver arquivo, enviar para a IA para gerar indicação diretamente do documento
     if (params.indicationFile) {
+      let usageId: string | null = null;
       try {
-        const ind = await this.aiService.generateIndicationFromFile(params.indicationFile);
+        const route = await this.aiPolicyService.beginAiCall({
+          userId: params.userId ?? "unknown",
+          purpose: "INDICATION_FROM_FILE",
+        });
+        usageId = route.usageId;
+
+        const ind = await this.aiService.generateIndicationFromFile(params.indicationFile, {
+          modelCandidates: route.modelCandidates,
+        });
+
+        await this.aiPolicyService.markSuccess({
+          usageId,
+          usedModel: ind.usedModel,
+          usage: ind.usage,
+        });
+
         indication = ind.text;
         aiCalls.push({
           purpose: "indication_from_file",
@@ -164,6 +183,9 @@ export class ReportsService {
           usage: ind.usage,
         });
       } catch (err: any) {
+        try {
+          await this.aiPolicyService.markFailure({ usageId, error: err });
+        } catch {}
         // Preserve upstream HTTP errors (e.g., 429 rate limit) and map unknowns to 400
         if (err && typeof err === "object" && (err.name === "HttpException" || err.status)) {
           throw err;
@@ -194,6 +216,10 @@ export class ReportsService {
       };
     }
 
+    if (!params.userId) {
+      throw new BadRequestException("Usuário inválido para chamada de IA");
+    }
+
     const templateBaseReport = this.templatesService.renderNormalReport(baseInput);
     const prompt = this.promptBuilderService.buildPrompt({
       examType: params.examType,
@@ -206,18 +232,39 @@ export class ReportsService {
       findings,
     });
 
-    const gen = await this.aiService.generateReport({
-      prompt,
-      baseInput,
-      findings,
-    });
-    aiCalls.push({
-      purpose: "report_generation",
-      model: gen.usedModel,
-      usage: gen.usage,
+    const route = await this.aiPolicyService.beginAiCall({
+      userId: params.userId,
+      purpose: "REPORT_GENERATION",
     });
 
-    let reportText = gen.text;
+    let reportText = "";
+
+    try {
+      const gen = await this.aiService.generateReport({
+        prompt,
+        baseInput,
+        findings,
+        modelCandidates: route.modelCandidates,
+      });
+
+      await this.aiPolicyService.markSuccess({
+        usageId: route.usageId,
+        usedModel: gen.usedModel,
+        usage: gen.usage,
+      });
+      aiCalls.push({
+        purpose: "report_generation",
+        model: gen.usedModel,
+        usage: gen.usage,
+      });
+
+      reportText = gen.text;
+    } catch (err: any) {
+      try {
+        await this.aiPolicyService.markFailure({ usageId: route.usageId, error: err });
+      } catch {}
+      throw err;
+    }
 
     // Normalize spacing and remove redundant impression sentences when findings exist
     reportText = this.sanitizeAiReport(reportText, {

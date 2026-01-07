@@ -1,10 +1,11 @@
-import { Body, Controller, HttpCode, Post, UploadedFile, UseGuards, UseInterceptors, Res, Logger } from "@nestjs/common";
+import { Body, Controller, HttpCode, Post, UploadedFile, UseGuards, UseInterceptors, Res, Logger, Req } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Throttle } from "@nestjs/throttler";
 import type { Response } from "express";
+import type { Request } from "express";
 
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { TrialGuard } from "../auth/guards/trial.guard";
+import { AccessGuard } from "../auth/guards/access.guard";
 import { ReportsRateLimitGuard } from "../security/reports-rate-limit.guard";
 import { GenerateReportDto } from "./dto/generate-report.dto";
 import { ReportsService } from "./reports.service";
@@ -18,7 +19,7 @@ export class ReportsController {
   ) {}
   private readonly logger = new Logger(ReportsController.name);
 
-  @UseGuards(JwtAuthGuard, TrialGuard, ReportsRateLimitGuard)
+  @UseGuards(JwtAuthGuard, AccessGuard, ReportsRateLimitGuard)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @HttpCode(200)
   @Post("generate")
@@ -41,6 +42,7 @@ export class ReportsController {
   async generate(
     @Body() dto: GenerateReportDto,
     @UploadedFile() file?: Express.Multer.File,
+    @Req() req?: Request,
     @Res({ passthrough: true }) res?: Response,
   ) {
     // Set model header early so it is present even if an exception is thrown later
@@ -62,6 +64,7 @@ export class ReportsController {
     } catch {}
 
     const result = await this.reportsService.generateStructuredBaseReport({
+      userId: (req as any)?.user?.sub,
       examType: dto.examType,
       templateId: dto.templateId,
       indication: dto.indication,

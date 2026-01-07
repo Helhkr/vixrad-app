@@ -2,9 +2,8 @@ import { Module } from "@nestjs/common";
 import { ThrottlerModule } from "@nestjs/throttler";
 
 import { AuthModule } from "../auth/auth.module";
-import { TrialModule } from "../trial/trial.module";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { TrialGuard } from "../auth/guards/trial.guard";
+import { AccessGuard } from "../auth/guards/access.guard";
 import { TemplatesModule } from "../templates/templates.module";
 import { AiModule } from "../ai/ai.module";
 import { ReportsRateLimitGuard } from "../security/reports-rate-limit.guard";
@@ -15,7 +14,6 @@ import { ReportsService } from "./reports.service";
 @Module({
 	imports: [
 		AuthModule,
-		TrialModule,
 		AiModule,
 		TemplatesModule,
 		ThrottlerModule.forRoot([
@@ -26,6 +24,6 @@ import { ReportsService } from "./reports.service";
 		]),
 	],
 	controllers: [ReportsController],
-	providers: [ReportsService, JwtAuthGuard, TrialGuard, ReportsRateLimitGuard],
+	providers: [ReportsService, JwtAuthGuard, AccessGuard, ReportsRateLimitGuard],
 })
 export class ReportsModule {}

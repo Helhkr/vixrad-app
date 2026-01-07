@@ -20,6 +20,23 @@ const makeAiServiceStub = (reportText: string) =>
     })),
   }) as any;
 
+const makeAiPolicyServiceStub = () =>
+  ({
+    beginAiCall: jest.fn(async () => ({
+      usageId: "usage-1",
+      requestedModel: "gemini-test",
+      fallbackModel: "gemini-test",
+      modelCandidates: ["gemini-test"],
+      windowStart: new Date("2026-01-01T00:00:00.000Z"),
+      windowEnd: new Date("2026-02-01T00:00:00.000Z"),
+      role: "BLUE",
+      quotaLimited: false,
+      failSafeUsed: false,
+    })),
+    markSuccess: jest.fn(async () => undefined),
+    markFailure: jest.fn(async () => undefined),
+  }) as any;
+
 const makeFileExtractionServiceStub = () =>
   ({
     // Not used in these tests
@@ -32,6 +49,7 @@ describe("ReportsService routing (normal vs full)", () => {
       makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any,
       makePromptBuilderStub(),
       ai,
+      makeAiPolicyServiceStub(),
       makeFileExtractionServiceStub(),
     );
 
@@ -51,6 +69,7 @@ describe("ReportsService routing (normal vs full)", () => {
       makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any,
       makePromptBuilderStub(),
       ai,
+      makeAiPolicyServiceStub(),
       makeFileExtractionServiceStub(),
     );
 
@@ -71,6 +90,7 @@ describe("ReportsService routing (normal vs full)", () => {
       makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any,
       makePromptBuilderStub(),
       ai,
+      makeAiPolicyServiceStub(),
       makeFileExtractionServiceStub(),
     );
 
@@ -91,10 +111,12 @@ describe("ReportsService routing (normal vs full)", () => {
       makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any,
       makePromptBuilderStub(),
       ai,
+      makeAiPolicyServiceStub(),
       makeFileExtractionServiceStub(),
     );
 
     const result = await svc.generateStructuredBaseReport({
+      userId: "user-1",
       examType: "CT",
       templateId: "ct-cranio-normal-v1",
       contrast: "without",
@@ -117,10 +139,12 @@ describe("ReportsService routing (normal vs full)", () => {
       makeTemplatesServiceStub({ normal: "# TOMOGRAFIA COMPUTADORIZADA DO CRÂNIO\n**Técnica:** X\n", full: "FULL\n" }) as any,
       makePromptBuilderStub(),
       ai,
+      makeAiPolicyServiceStub(),
       makeFileExtractionServiceStub(),
     );
 
     const result = await svc.generateStructuredBaseReport({
+      userId: "user-1",
       examType: "CT",
       templateId: "ct-cranio-normal-v1",
       contrast: "without",

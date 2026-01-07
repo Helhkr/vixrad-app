@@ -7,13 +7,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  ADMIN
+  TRIAL
+  BLUE
+}
+
+enum AiPurpose {
+  REPORT_GENERATION
+  INDICATION_FROM_TEXT
+  INDICATION_FROM_FILE
+}
+
+enum AiRequestStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now())
 
+  role UserRole @default(TRIAL)
+
+  // Used for paid users (BLUE). Trial window is stored in Trial.
+  subscriptionStartedAt DateTime?
+  subscriptionEndsAt    DateTime?
+
   trial Trial?
+
+  aiRequests AiRequestUsage[]
 }
 
 model Trial {
@@ -23,4 +49,40 @@ model Trial {
   endsAt    DateTime
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AiRequestUsage {
+  id        String          @id @default(uuid())
+  createdAt DateTime        @default(now())
+
+  userId String
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  purpose AiPurpose
+  status  AiRequestStatus
+
+  // Window used for quota calculations (rolling, based on subscription/trial)
+  windowStart DateTime
+  windowEnd   DateTime
+
+  // The model we intended to call (used for quota decisions)
+  requestedModel String
+  // The model actually used (may differ if we fail-safe)
+  usedModel String?
+
+  // Reservation TTL for concurrency control
+  expiresAt DateTime?
+
+  // Token usage when available
+  promptTokens Int?
+  outputTokens Int?
+  totalTokens  Int?
+  usageSource  String?
+
+  failSafeUsed Boolean @default(false)
+  errorMessage String?
+
+  @@index([userId, createdAt])
+  @@index([userId, requestedModel, status])
+  @@index([userId, requestedModel, windowStart, windowEnd, status])
 }
