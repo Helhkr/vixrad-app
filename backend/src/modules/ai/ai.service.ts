@@ -9,9 +9,21 @@ import {
 
 import type { RenderInput } from "../templates/templates.service";
 
+type GeminiTokenUsage = {
+  promptTokens: number | null;
+  outputTokens: number | null;
+  totalTokens: number | null;
+  source: "usageMetadata" | "countTokens" | "none";
+};
+
+type GeminiGenerateResult = {
+  text: string;
+  usedModel: string;
+  usage: GeminiTokenUsage;
+};
+
 @Injectable()
 export class AiService {
-  private lastUsedModel?: string;
   private sanitizeIndication(raw: string): string {
     let s = typeof raw === "string" ? raw : "";
     s = s.trim();
@@ -110,7 +122,52 @@ export class AiService {
 
   // Expose the last actually-used model (after a successful request)
   public getLastUsedModel(): string | undefined {
-    return this.lastUsedModel;
+    // NOTE: kept for backwards compatibility with older controller logic.
+    // Prefer returning the used model from the call result to avoid cross-request races.
+    return undefined;
+  }
+
+  private parseUsageMetadata(data: any): GeminiTokenUsage {
+    const u = data?.usageMetadata;
+    const prompt = typeof u?.promptTokenCount === "number" ? u.promptTokenCount : null;
+    const output = typeof u?.candidatesTokenCount === "number" ? u.candidatesTokenCount : null;
+    const total = typeof u?.totalTokenCount === "number" ? u.totalTokenCount : null;
+    const hasAny = prompt !== null || output !== null || total !== null;
+    return {
+      promptTokens: prompt,
+      outputTokens: output,
+      totalTokens: total,
+      source: hasAny ? "usageMetadata" : "none",
+    };
+  }
+
+  private isCountTokensFallbackEnabled(): boolean {
+    const raw = (process.env.GEMINI_COUNT_TOKENS_FALLBACK ?? "1").trim().toLowerCase();
+    return raw !== "0" && raw !== "false" && raw !== "no";
+  }
+
+  private async countTokens(params: { apiKey: string; model: string; body: any; timeoutMs: number }): Promise<number | null> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), Math.max(1000, params.timeoutMs));
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+        params.model,
+      )}:countTokens?key=${encodeURIComponent(params.apiKey)}`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params.body),
+        signal: controller.signal,
+      });
+      if (!res.ok) return null;
+      const json = (await res.json()) as any;
+      const n = typeof json?.totalTokens === "number" ? json.totalTokens : null;
+      return n;
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   private buildCandidates(envModel: string | undefined, available: string[]): string[] {
@@ -138,7 +195,7 @@ export class AiService {
     timeoutMs: number;
     candidates: string[];
     buildBody: (model: string) => any;
-  }): Promise<{ text: string; usedModel: string }> {
+  }): Promise<GeminiGenerateResult> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), Number.isFinite(timeoutMs) ? timeoutMs : 20000);
     let lastErr: Error | HttpException | BadGatewayException | undefined;
@@ -148,10 +205,11 @@ export class AiService {
           model,
         )}:generateContent?key=${encodeURIComponent(apiKey)}`;
         try {
+          const requestBody = buildBody(model);
           const res = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(buildBody(model)),
+            body: JSON.stringify(requestBody),
             signal: controller.signal,
           });
 
@@ -207,8 +265,40 @@ export class AiService {
             continue;
           }
 
-          this.lastUsedModel = model;
-          return { text: out.endsWith("\n") ? out : `${out}\n`, usedModel: model };
+          let usage = this.parseUsageMetadata(data);
+          if (usage.source === "none" && this.isCountTokensFallbackEnabled()) {
+            const ctTimeout = Math.min(8000, Math.max(1500, Number.isFinite(timeoutMs) ? timeoutMs / 2 : 8000));
+            const promptTokens = await this.countTokens({ apiKey, model, body: requestBody, timeoutMs: ctTimeout });
+            const outputTokens = await this.countTokens({
+              apiKey,
+              model,
+              timeoutMs: ctTimeout,
+              body: {
+                contents: [
+                  {
+                    role: "user",
+                    parts: [{ text: out }],
+                  },
+                ],
+              },
+            });
+            const total =
+              typeof promptTokens === "number" && typeof outputTokens === "number"
+                ? promptTokens + outputTokens
+                : null;
+            usage = {
+              promptTokens: promptTokens ?? null,
+              outputTokens: outputTokens ?? null,
+              totalTokens: total,
+              source: "countTokens",
+            };
+          }
+
+          return {
+            text: out.endsWith("\n") ? out : `${out}\n`,
+            usedModel: model,
+            usage,
+          };
         } catch (e) {
           const isAbortError = typeof e === "object" && e !== null && (e as any).name === "AbortError";
           if (isAbortError) {
@@ -258,7 +348,7 @@ export class AiService {
     prompt: string;
     baseInput: RenderInput;
     findings: string;
-  }): Promise<string> {
+  }): Promise<GeminiGenerateResult> {
     const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey) {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
@@ -282,10 +372,10 @@ export class AiService {
         ],
       }),
     });
-    return result.text;
+    return result;
   }
 
-  async generateIndicationFromText(extractedText: string): Promise<string> {
+  async generateIndicationFromText(extractedText: string): Promise<GeminiGenerateResult> {
     const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey) {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
@@ -323,10 +413,10 @@ export class AiService {
     if (!out) {
       throw new BadGatewayException("IA retornou indicação vazia");
     }
-    return out;
+    return { ...result, text: out };
   }
 
-  async generateIndicationFromFile(file: Express.Multer.File): Promise<string> {
+  async generateIndicationFromFile(file: Express.Multer.File): Promise<GeminiGenerateResult> {
     const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey) {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
@@ -371,6 +461,6 @@ export class AiService {
     if (!out) {
       throw new BadGatewayException("IA retornou indicação vazia");
     }
-    return out;
+    return { ...result, text: out };
   }
 }

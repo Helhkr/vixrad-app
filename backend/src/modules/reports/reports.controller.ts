@@ -74,11 +74,27 @@ export class ReportsController {
       findings: dto.findings,
       indicationFile: file,
     });
+
+    // If Gemini was used, expose model + token usage for observability
     try {
-      const usedModel = this.aiService.getLastUsedModel();
-      if (usedModel && res) {
-        res.setHeader("X-Gemini-Model", usedModel);
-        this.logger.log(`Final model used for request: ${usedModel}`);
+      const calls = (result as any)?.aiCalls as
+        | Array<{ purpose: string; model: string; usage?: { promptTokens: number | null; outputTokens: number | null; totalTokens: number | null } }>
+        | undefined;
+      if (calls && calls.length > 0 && res) {
+        res.setHeader("X-Gemini-Calls", String(calls.length));
+
+        const reportCall = calls.find((c) => c.purpose === "report_generation") ?? calls[0];
+        if (reportCall?.model) {
+          res.setHeader("X-Gemini-Model", reportCall.model);
+          this.logger.log(`Final model used for request: ${reportCall.model}`);
+        }
+
+        const usage = reportCall?.usage;
+        if (usage) {
+          if (usage.promptTokens !== null) res.setHeader("X-Gemini-Prompt-Tokens", String(usage.promptTokens));
+          if (usage.outputTokens !== null) res.setHeader("X-Gemini-Output-Tokens", String(usage.outputTokens));
+          if (usage.totalTokens !== null) res.setHeader("X-Gemini-Total-Tokens", String(usage.totalTokens));
+        }
       }
     } catch {}
     return result;

@@ -13,7 +13,11 @@ const makePromptBuilderStub = () =>
 
 const makeAiServiceStub = (reportText: string) =>
   ({
-    generateReport: jest.fn(async () => reportText),
+    generateReport: jest.fn(async () => ({
+      text: reportText,
+      usedModel: "gemini-test",
+      usage: { promptTokens: 10, outputTokens: 20, totalTokens: 30, source: "usageMetadata" },
+    })),
   }) as any;
 
 const makeFileExtractionServiceStub = () =>

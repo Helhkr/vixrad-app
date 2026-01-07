@@ -7,6 +7,7 @@ TEMPLATE_ID="${TEMPLATE_ID:-xr-abdome-normal-v1}"
 INCIDENCE_VALUE="${INCIDENCE_VALUE:-PA e Perfil}"
 DECUBITUS_VALUE="${DECUBITUS_VALUE:-}"
 SIDE_VALUE="${SIDE_VALUE:-}"
+FINDINGS_TEXT="${FINDINGS_TEXT:-}"
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -113,6 +114,69 @@ echo "Preview (first 200 chars):"
 echo "---"
 echo "$REPORT_TEXT" | head -c 200
 echo
+
+if [ -n "$FINDINGS_TEXT" ]; then
+  echo "3b) Calling /reports/generate WITH findings (should use Gemini + return token usage)..."
+  REPORT_AI_BODY=$(python3 -c 'import json,os
+body={
+  "examType":"XR",
+  "templateId":os.environ["TEMPLATE_ID"],
+  "contrast":"without",
+  "incidence":os.environ["INCIDENCE_VALUE"],
+  "findings":os.environ["FINDINGS_TEXT"],
+}
+sv=os.environ.get("SIDE_VALUE")
+if sv:
+  body["side"]=sv
+dv=os.environ.get("DECUBITUS_VALUE")
+if dv:
+  body["decubitus"]=dv
+print(json.dumps(body, ensure_ascii=False))')
+
+  # Capture headers + body
+  TMP_HEADERS=$(mktemp)
+  TMP_BODY=$(mktemp)
+  set +e
+  curl -sS -D "$TMP_HEADERS" -o "$TMP_BODY" -X POST "$API_BASE_URL/reports/generate" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $ACCESS_TOKEN" \
+    -d "$REPORT_AI_BODY"
+  CURL_STATUS=$?
+  set -e
+
+  if [ $CURL_STATUS -ne 0 ]; then
+    echo "❌ Gemini smoke call failed (curl exit $CURL_STATUS)" >&2
+    cat "$TMP_BODY" >&2 || true
+    exit 1
+  fi
+
+  AI_REPORT_TEXT=$(python3 -c 'import json,sys
+data=json.load(open(sys.argv[1], "r", encoding="utf-8"))
+print(data.get("reportText") or "")' "$TMP_BODY")
+
+  if [ -z "$AI_REPORT_TEXT" ]; then
+    echo "❌ Expected reportText from AI call but got:" >&2
+    cat "$TMP_BODY" >&2
+    exit 1
+  fi
+
+  # Check token headers (may be missing if Gemini key not configured or API doesn't provide usage)
+  PROMPT_TOKENS=$(grep -i "^X-Gemini-Prompt-Tokens:" "$TMP_HEADERS" | tail -n1 | awk '{print $2}' | tr -d '\r')
+  OUTPUT_TOKENS=$(grep -i "^X-Gemini-Output-Tokens:" "$TMP_HEADERS" | tail -n1 | awk '{print $2}' | tr -d '\r')
+  TOTAL_TOKENS=$(grep -i "^X-Gemini-Total-Tokens:" "$TMP_HEADERS" | tail -n1 | awk '{print $2}' | tr -d '\r')
+
+  if [ -z "$PROMPT_TOKENS" ] && [ -z "$OUTPUT_TOKENS" ] && [ -z "$TOTAL_TOKENS" ]; then
+    echo "⚠ Did not receive token usage headers. This can happen if GEMINI_API_KEY is missing or the API doesn't return usageMetadata and countTokens fallback is disabled." >&2
+    echo "Response body:" >&2
+    cat "$TMP_BODY" >&2
+    exit 1
+  fi
+
+  echo "✓ AI report generated"
+  echo "Token usage headers: prompt=$PROMPT_TOKENS output=$OUTPUT_TOKENS total=$TOTAL_TOKENS"
+  rm -f "$TMP_HEADERS" "$TMP_BODY"
+  echo
+fi
 echo "---"
 echo
 

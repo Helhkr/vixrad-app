@@ -68,12 +68,29 @@ export class ReportsService {
     findings?: string | null;
     indicationFile?: Express.Multer.File;
   }) {
+    const aiCalls: Array<{
+      purpose: "indication_from_file" | "report_generation";
+      model: string;
+      usage: {
+        promptTokens: number | null;
+        outputTokens: number | null;
+        totalTokens: number | null;
+        source: "usageMetadata" | "countTokens" | "none";
+      };
+    }> = [];
+
     let indication = params.indication;
 
     // Se houver arquivo, enviar para a IA para gerar indicação diretamente do documento
     if (params.indicationFile) {
       try {
-        indication = await this.aiService.generateIndicationFromFile(params.indicationFile);
+        const ind = await this.aiService.generateIndicationFromFile(params.indicationFile);
+        indication = ind.text;
+        aiCalls.push({
+          purpose: "indication_from_file",
+          model: ind.usedModel,
+          usage: ind.usage,
+        });
       } catch (err: any) {
         // Preserve upstream HTTP errors (e.g., 429 rate limit) and map unknowns to 400
         if (err && typeof err === "object" && (err.name === "HttpException" || err.status)) {
@@ -101,6 +118,7 @@ export class ReportsService {
     if (!findings || findings.length === 0) {
       return {
         reportText: this.templatesService.renderNormalReport(baseInput),
+        aiCalls: aiCalls.length > 0 ? aiCalls : undefined,
       };
     }
 
@@ -116,15 +134,22 @@ export class ReportsService {
       findings,
     });
 
-    let reportText = await this.aiService.generateReport({
+    const gen = await this.aiService.generateReport({
       prompt,
       baseInput,
       findings,
     });
+    aiCalls.push({
+      purpose: "report_generation",
+      model: gen.usedModel,
+      usage: gen.usage,
+    });
+
+    let reportText = gen.text;
 
     // Normalize spacing and remove redundant impression sentences when findings exist
     reportText = this.sanitizeAiReport(reportText, { hasFindings: findings.length > 0 });
 
-    return { reportText };
+    return { reportText, aiCalls };
   }
 }
