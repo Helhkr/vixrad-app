@@ -254,19 +254,24 @@ export default function ReportFindingsPage() {
 
     setLoading(true);
     try {
+      const requestPayload = {
+        examType,
+        templateId,
+        contrast,
+        indication: indication || undefined,
+        sex: sex || undefined,
+        side: side || undefined,
+        incidence: incidence ?? undefined,
+        decubitus: decubitus ?? undefined,
+        findings: null,
+      };
+      
+      console.log("[handleCopyNormal] Request payload:", requestPayload);
+      console.log("[handleCopyNormal] incidence value:", incidence, "type:", typeof incidence);
+      
       const data = await apiPost<GenerateResponse>(
         "/reports/generate",
-        {
-          examType,
-          templateId,
-          contrast,
-          indication: indication || undefined,
-          sex: sex || undefined,
-          side: side || undefined,
-          incidence: incidence ?? undefined,
-          decubitus: decubitus ?? undefined,
-          findings: null,
-        },
+        requestPayload,
         accessToken,
       );
 
