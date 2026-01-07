@@ -16,6 +16,11 @@ const makeAiServiceStub = (reportText: string) =>
     generateReport: jest.fn(async () => reportText),
   }) as any;
 
+const makeFileExtractionServiceStub = () =>
+  ({
+    // Not used in these tests
+  }) as any;
+
 describe("ReportsService routing (normal vs full)", () => {
   it("returns normal report when no findings", async () => {
     const ai = makeAiServiceStub("AI\n");
@@ -23,6 +28,7 @@ describe("ReportsService routing (normal vs full)", () => {
       makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any,
       makePromptBuilderStub(),
       ai,
+      makeFileExtractionServiceStub(),
     );
 
     const result = await svc.generateStructuredBaseReport({
@@ -41,6 +47,7 @@ describe("ReportsService routing (normal vs full)", () => {
       makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any,
       makePromptBuilderStub(),
       ai,
+      makeFileExtractionServiceStub(),
     );
 
     const result = await svc.generateStructuredBaseReport({
@@ -60,6 +67,7 @@ describe("ReportsService routing (normal vs full)", () => {
       makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any,
       makePromptBuilderStub(),
       ai,
+      makeFileExtractionServiceStub(),
     );
 
     const result = await svc.generateStructuredBaseReport({
@@ -79,6 +87,7 @@ describe("ReportsService routing (normal vs full)", () => {
       makeTemplatesServiceStub({ normal: "NORMAL\n", full: "FULL\n" }) as any,
       makePromptBuilderStub(),
       ai,
+      makeFileExtractionServiceStub(),
     );
 
     const result = await svc.generateStructuredBaseReport({

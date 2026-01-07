@@ -494,7 +494,8 @@ export class TemplatesService {
       SEXO: input.sex === "F" ? "FEMININO" : input.sex === "M" ? "MASCULINO" : undefined,
       LADO: input.side === "RIGHT" ? "DIREITO" : input.side === "LEFT" ? "ESQUERDO" : undefined,
       INCIDENCIA: input.incidence ? incidenciaMap[input.incidence] || input.incidence : undefined,
-      DECUBITUS: input.decubitus ? (input.decubitus === "ventral" ? "VENTRAL" : input.decubitus === "dorsal" ? "DORSAL" : "LATERAL") : undefined,
+      DECUBITUS: input.decubitus ? (input.decubitus === "ventral" ? "ventral" : input.decubitus === "dorsal" ? "dorsal" : "lateral") : undefined,
+      DECUBITUS_UPPER: input.decubitus ? (input.decubitus === "ventral" ? "VENTRAL" : input.decubitus === "dorsal" ? "DORSAL" : "LATERAL") : undefined,
     };
 
     const resolved = this.resolvePlaceholders(withoutConditionals, values);

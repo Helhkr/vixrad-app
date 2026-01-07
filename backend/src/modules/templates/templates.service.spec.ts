@@ -166,4 +166,37 @@ describe("TemplatesService", () => {
     expect(male.markdown).toContain("Texto masculino.");
     expect(male.markdown).not.toContain("Texto feminino.");
   });
+
+  it("resolves DECUBITUS placeholders with context-friendly casing", () => {
+    const src = [
+      "---",
+      "exam_type: XR",
+      "requires:",
+      "  indication: none",
+      "  sex: none",
+      "  contrast: none",
+      "  side: none",
+      "  incidence: required",
+      "  decubitus: optional",
+      "---",
+      "# XR",
+      "**Técnica:** {{INCIDENCIA}}<!-- IF DECUBITUS --> em decúbito {{DECUBITUS}} ({{DECUBITUS_UPPER}})<!-- ENDIF DECUBITUS -->.",
+      "**Análise:**",
+      "ok",
+      "**Impressão diagnóstica:**",
+      "ok",
+    ].join("\n");
+
+    const svc = new InMemoryTemplatesService(src);
+
+    const rendered = svc.renderResolvedMarkdown({
+      examType: "XR",
+      templateId: "any",
+      incidence: "PA",
+      decubitus: "dorsal",
+    });
+
+    expect(rendered.markdown).toContain("em decúbito dorsal");
+    expect(rendered.markdown).toContain("(DORSAL)");
+  });
 });

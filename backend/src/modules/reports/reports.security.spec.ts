@@ -17,6 +17,7 @@ import { ReportsRateLimitGuard } from "../security/reports-rate-limit.guard";
 import { TrialService } from "../trial/trial.service";
 import { ReportsController } from "./reports.controller";
 import { ReportsService } from "./reports.service";
+import { AiService } from "../ai/ai.service";
 
 @Injectable()
 class TestJwtAuthGuard implements CanActivate {
@@ -68,6 +69,14 @@ describe("Reports security", () => {
       providers: [
         ReportsRateLimitGuard,
         TrialGuard,
+        {
+          provide: AiService,
+          useValue: {
+            getResolvedModel: async () => "test-model",
+            estimateTokensForGenerate: () => 1,
+            getLastUsedModel: () => "test-model",
+          },
+        },
         {
           provide: TrialService,
           useValue: {
