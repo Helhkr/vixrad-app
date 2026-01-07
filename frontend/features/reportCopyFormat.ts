@@ -34,16 +34,7 @@ export function convertMarkdownToHtml(md: string): string {
 
   const flushParagraph = () => {
     if (buffer.length === 0) return;
-    // Join with explicit newlines so we can preserve them as <br />
     const text = buffer.join("\n");
-    
-    // Check if this paragraph starts with a bold section marker (any ** label)
-    const needsBlankBefore = /^\*\*/.test(text);
-    
-    if (needsBlankBefore && blocks.length > 0) {
-      blocks.push(blankLine);
-    }
-    
     const withBold = text.replace(/\*\*(.*?)\*\*/g, (_m, t: string) => `<strong>${escapeHtml(t)}</strong>`);
     const withLineBreaks = withBold.replace(/\n/g, "<br />");
     blocks.push(`<p style="margin: 0 0 8px 0; ${baseStyle}">${withLineBreaks}</p>`);
@@ -63,6 +54,11 @@ export function convertMarkdownToHtml(md: string): string {
     if (line.trim() === "") {
       flushParagraph();
       continue;
+    }
+    // Check if this line starts a new section (bold marker at line start)
+    if (/^\*\*/.test(line) && blocks.length > 0) {
+      flushParagraph();
+      blocks.push(blankLine);
     }
     const plain = escapeHtml(line);
     buffer.push(plain);
