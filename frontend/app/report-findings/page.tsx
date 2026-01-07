@@ -22,7 +22,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
 import { apiPost, apiPostForm } from "@/features/api";
-import { formatReportForCopy, type CopyFormat } from "@/features/reportCopyFormat";
+import { formatReportForCopy, convertMarkdownToHtml, stripMarkdown, type CopyFormat } from "@/features/reportCopyFormat";
 import { fetchTemplateDetail, type TemplateDetail } from "@/features/templates";
 import { useAppState } from "../state";
 import { useSnackbar } from "../snackbar";
@@ -215,6 +215,52 @@ export default function ReportFindingsPage() {
     if (!accessToken || !examType || !templateId) return;
     if (!validateTemplateInputs({ requireFindings: false })) return;
 
+    const copyFormatted = async (md: string) => {
+      const html = convertMarkdownToHtml(md);
+      const plain = stripMarkdown(md);
+
+      const copyViaDom = async () => {
+        const el = document.createElement("div");
+        el.setAttribute("contenteditable", "true");
+        el.style.position = "fixed";
+        el.style.left = "-9999px";
+        el.style.top = "0";
+        el.style.whiteSpace = "pre-wrap";
+        el.innerHTML = html;
+        document.body.appendChild(el);
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+        const ok = document.execCommand("copy");
+        sel?.removeAllRanges();
+        document.body.removeChild(el);
+        return ok;
+      };
+
+      // Try DOM copy first (best for Word)
+      if (await copyViaDom()) return true;
+
+      // Fallback to ClipboardItem if available
+      if ("ClipboardItem" in window) {
+        try {
+          const item = new ClipboardItem({
+            "text/html": new Blob([html], { type: "text/html" }),
+            "text/plain": new Blob([plain], { type: "text/plain" }),
+          });
+          await (navigator.clipboard as any).write([item]);
+          return true;
+        } catch {
+          // ignore
+        }
+      }
+
+      // Last resort: plain text to avoid HTML tags
+      await navigator.clipboard.writeText(plain);
+      return false;
+    };
+
     setLoading(true);
     try {
       const data = await apiPost<GenerateResponse>(
@@ -235,9 +281,14 @@ export default function ReportFindingsPage() {
 
       setReportText(data.reportText);
 
-      const output = formatReportForCopy(data.reportText, format);
-      await navigator.clipboard.writeText(output);
-      showMessage("Laudo normal copiado!", "success");
+      if (format === "formatted") {
+        const rich = await copyFormatted(data.reportText);
+        showMessage(rich ? "Laudo normal copiado com formatação." : "Laudo normal copiado em texto.", "success");
+      } else {
+        const output = formatReportForCopy(data.reportText, format);
+        await navigator.clipboard.writeText(output);
+        showMessage("Laudo normal copiado!", "success");
+      }
     } catch (e) {
       showMessage(e instanceof Error ? e.message : "Erro ao gerar laudo", "error");
     } finally {
