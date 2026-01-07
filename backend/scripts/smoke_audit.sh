@@ -111,7 +111,7 @@ REPORT_CODE=$(curl -sS -o "$REPORT_JSON" -w '%{http_code}' \
   -X POST "$API_BASE_URL/reports/generate" \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $TOKEN" \
-  -d '{"examType":"CT","templateId":"ct-cranio-normal-v1","contrast":"without","indication":"Dor lombar","findings":"Achados compatíveis com hérnia discal"}')
+  -d '{"examType":"CT","templateId":"ct-cranio-normal-v1","contrast":"without","indication":"Dor lombar. Achados compatíveis com hérnia discal.","findings":null}')
 
 echo "report_http_code=$REPORT_CODE"
 if [[ "$REPORT_CODE" != "200" ]]; then
