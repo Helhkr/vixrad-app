@@ -41,6 +41,17 @@ requires:
 ---
 ```
 
+### Campos opcionais adicionais
+
+Além do bloco mínimo, um template pode declarar:
+
+```yaml
+side_gender: feminine # ou masculine (controla concordância de {{LADO}})
+
+defaults:
+  incidence: "PA e Perfil" # pré-seleção sugerida na UI (se aplicável)
+```
+
 ---
 
 ## 2. exam_type
@@ -82,6 +93,8 @@ requires:
   sex:
   side:
   contrast:
+  incidence:
+  decubitus:
 ```
 
 ---
@@ -120,6 +133,8 @@ Valores possíveis:
 * `optional`
 * `none`
 
+Observação: a UI pode oferecer a opção `BILATERAL` quando `side` é aplicável.
+
 ---
 
 ### contrast
@@ -132,6 +147,32 @@ Valores possíveis:
 * `optional` — pergunta opcional
 * `fixed` — contraste implícito (ex.: angiotomografias)
 * `none` — não aplicável à modalidade
+
+---
+
+### incidence
+
+Utilizado em radiografias em que o texto varia conforme a incidência.
+
+Valores possíveis:
+
+* `required`
+* `optional`
+* `none`
+* `fixed`
+
+---
+
+### decubitus
+
+Utilizado quando o texto varia conforme o decúbito.
+
+Valores possíveis:
+
+* `required`
+* `optional`
+* `none`
+* `fixed`
 
 ---
 

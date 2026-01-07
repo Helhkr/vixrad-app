@@ -60,7 +60,7 @@ export class ReportsService {
     templateId: string;
     indication?: string;
     sex?: "M" | "F";
-    side?: "RIGHT" | "LEFT";
+    side?: "RIGHT" | "LEFT" | "BILATERAL";
     contrast?: "with" | "without";
     incidence?: string;
     decubitus?: "ventral" | "dorsal" | "lateral";

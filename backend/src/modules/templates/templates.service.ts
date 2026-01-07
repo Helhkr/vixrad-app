@@ -5,6 +5,7 @@ import { load as yamlLoad } from "js-yaml";
 
 export type ExamType = "CT" | "XR" | "US" | "MR" | "MG" | "DXA" | "NM";
 export type RequireState = "required" | "optional" | "none" | "fixed";
+export type SideGender = "masculine" | "feminine";
 
 export type TemplateRequires = {
   indication: RequireState;
@@ -18,6 +19,12 @@ export type TemplateRequires = {
 export type TemplateMeta = {
   exam_type: ExamType;
   requires: TemplateRequires;
+  side_gender?: SideGender;
+  defaults?: TemplateDefaults;
+};
+
+export type TemplateDefaults = {
+  incidence?: string;
 };
 
 export type TemplateListItem = {
@@ -31,6 +38,7 @@ export type TemplateDetail = {
   name: string;
   examType: ExamType;
   requires: TemplateRequires;
+  defaults?: TemplateDefaults;
 };
 
 export type RenderInput = {
@@ -38,7 +46,7 @@ export type RenderInput = {
   templateId: string;
   indication?: string;
   sex?: "M" | "F";
-  side?: "RIGHT" | "LEFT";
+  side?: "RIGHT" | "LEFT" | "BILATERAL";
   contrast?: "with" | "without";
   notes?: string;
   incidence?: string;
@@ -61,6 +69,8 @@ type AstNode = IfNode | TextNode;
 
 const SUPPORTED_EXAM_TYPES: ExamType[] = ["CT", "XR", "US", "MR", "MG", "DXA", "NM"];
 const SUPPORTED_REQUIRE_STATES: RequireState[] = ["required", "optional", "none", "fixed"];
+const SUPPORTED_SIDE_GENDERS: SideGender[] = ["masculine", "feminine"];
+const SUPPORTED_INCIDENCES = ["PA e Perfil", "AP", "PA", "Perfil", "Obliqua", "Ortostática", "Axial"] as const;
 const SUPPORTED_CONDITIONS = new Set([
   "INDICACAO",
   "CONTRASTE",
@@ -210,6 +220,30 @@ export class TemplatesService {
       throw new BadRequestException("YAML: requires inválido");
     }
 
+    const sideGender = (meta as any).side_gender as unknown;
+    if (sideGender !== undefined) {
+      if (typeof sideGender !== "string" || !SUPPORTED_SIDE_GENDERS.includes(sideGender as SideGender)) {
+        throw new BadRequestException("YAML: side_gender inválido");
+      }
+    }
+
+    const defaultsRaw = (meta as any).defaults as unknown;
+    let defaults: TemplateDefaults | undefined;
+    if (defaultsRaw !== undefined) {
+      if (!defaultsRaw || typeof defaultsRaw !== "object") {
+        throw new BadRequestException("YAML: defaults inválido");
+      }
+      const incidence = (defaultsRaw as any).incidence as unknown;
+      if (incidence !== undefined) {
+        if (typeof incidence !== "string" || !(SUPPORTED_INCIDENCES as readonly string[]).includes(incidence)) {
+          throw new BadRequestException("YAML: defaults.incidence inválido");
+        }
+        defaults = { incidence };
+      } else {
+        defaults = {};
+      }
+    }
+
     const requires = meta.requires as Partial<TemplateRequires>;
 
     // Validar que campos presentes têm valores válidos, usar "none" como padrão para campos faltantes
@@ -232,6 +266,8 @@ export class TemplatesService {
       meta: {
         exam_type: meta.exam_type as ExamType,
         requires: fullRequires,
+        side_gender: sideGender as SideGender | undefined,
+        defaults,
       },
       body,
     };
@@ -448,6 +484,7 @@ export class TemplatesService {
       name,
       examType: parsed.meta.exam_type,
       requires: parsed.meta.requires,
+      defaults: parsed.meta.defaults,
     };
   }
 
@@ -486,13 +523,34 @@ export class TemplatesService {
       "Perfil": "Radiografia em incidência de perfil",
       "Obliqua": "Radiografia em incidência oblíqua",
       "Ortostática": "Radiografia em incidência ortostática",
+      "Axial": "Radiografia em incidência axial",
     };
+
+    const sideLabel = (() => {
+      if (!input.side) return undefined;
+
+      const agreement = parsed.meta.side_gender ?? "masculine";
+      const isFeminine = agreement === "feminine";
+
+      if (input.side === "BILATERAL") {
+        return "BILATERAL";
+      }
+
+      if (input.side === "RIGHT") {
+        return isFeminine ? "DIREITA" : "DIREITO";
+      }
+
+      if (input.side === "LEFT") {
+        return isFeminine ? "ESQUERDA" : "ESQUERDO";
+      }
+      return undefined;
+    })();
 
     const values: Record<string, string | undefined> = {
       INDICACAO: input.indication,
       NOTAS: input.notes,
       SEXO: input.sex === "F" ? "FEMININO" : input.sex === "M" ? "MASCULINO" : undefined,
-      LADO: input.side === "RIGHT" ? "DIREITO" : input.side === "LEFT" ? "ESQUERDO" : undefined,
+      LADO: sideLabel,
       INCIDENCIA: input.incidence ? incidenciaMap[input.incidence] || input.incidence : undefined,
       DECUBITUS: input.decubitus ? (input.decubitus === "ventral" ? "ventral" : input.decubitus === "dorsal" ? "dorsal" : "lateral") : undefined,
       DECUBITUS_UPPER: input.decubitus ? (input.decubitus === "ventral" ? "VENTRAL" : input.decubitus === "dorsal" ? "DORSAL" : "LATERAL") : undefined,

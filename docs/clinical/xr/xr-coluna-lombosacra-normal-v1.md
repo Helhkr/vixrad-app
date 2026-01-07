@@ -1,5 +1,7 @@
 ---
 exam_type: XR
+defaults:
+  incidence: "AP"
 requires:
   indication: optional
   sex: none

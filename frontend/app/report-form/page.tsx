@@ -13,12 +13,9 @@ import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormLabel from "@mui/material/FormLabel";
 import IconButton from "@mui/material/IconButton";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
-import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -27,6 +24,12 @@ import { fetchTemplateDetail, type TemplateDetail } from "@/features/templates";
 import { useAppState } from "../state";
 import type { Incidence, Decubitus } from "../state";
 import { useSnackbar } from "../snackbar";
+
+const INCIDENCES: Incidence[] = ["PA e Perfil", "AP", "PA", "Perfil", "Obliqua", "Ortostática", "Axial"];
+
+function isIncidence(value: unknown): value is Incidence {
+  return typeof value === "string" && (INCIDENCES as readonly string[]).includes(value);
+}
 
 export default function ReportFormPage() {
   const router = useRouter();
@@ -104,10 +107,33 @@ export default function ReportFormPage() {
   const showDecubitus = requires ? requires.decubitus !== "none" && requires.decubitus !== "fixed" : false;
 
   useEffect(() => {
-    if (showIncidence && !incidence) {
-      setIncidence("PA e Perfil");
-    }
-  }, [showIncidence, incidence, setIncidence]);
+    // When switching templates, don't keep the previous report's incidence in memory.
+    // This allows defaults.incidence (and per-template last selection) to be applied correctly.
+    setIncidence(null);
+  }, [templateId, setIncidence]);
+
+  useEffect(() => {
+    if (!showIncidence || incidence) return;
+
+    const defaultFromTemplate = template?.defaults?.incidence;
+    const lastFromUser = (() => {
+      if (typeof window === "undefined" || !templateId) return null;
+      return window.localStorage.getItem(`vixrad.lastIncidence.${templateId}`);
+    })();
+
+    const chosen =
+      (isIncidence(defaultFromTemplate) ? defaultFromTemplate : null) ??
+      (isIncidence(lastFromUser) ? lastFromUser : null) ??
+      "PA e Perfil";
+
+    setIncidence(chosen);
+  }, [showIncidence, incidence, setIncidence, template?.defaults?.incidence, templateId]);
+
+  useEffect(() => {
+    if (!templateId || !incidence) return;
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(`vixrad.lastIncidence.${templateId}`, incidence);
+  }, [templateId, incidence]);
 
   useEffect(() => {
     if (showDecubitus && decubitus === null) {
@@ -278,10 +304,11 @@ export default function ReportFormPage() {
               <RadioGroup
                 row
                 value={side ?? ""}
-                onChange={(e) => setSide(e.target.value as "RIGHT" | "LEFT")}
+                onChange={(e) => setSide(e.target.value as "RIGHT" | "LEFT" | "BILATERAL")}
               >
                 <FormControlLabel value="RIGHT" control={<Radio />} label="Direito" />
                 <FormControlLabel value="LEFT" control={<Radio />} label="Esquerdo" />
+                <FormControlLabel value="BILATERAL" control={<Radio />} label="Bilateral" />
               </RadioGroup>
             </FormControl>
           ) : null}
@@ -300,6 +327,7 @@ export default function ReportFormPage() {
                 <FormControlLabel value="Perfil" control={<Radio />} label="Perfil" />
                 <FormControlLabel value="Obliqua" control={<Radio />} label="Oblíqua" />
                 <FormControlLabel value="Ortostática" control={<Radio />} label="Ortostática" />
+                <FormControlLabel value="Axial" control={<Radio />} label="Axial" />
               </RadioGroup>
             </FormControl>
           ) : null}

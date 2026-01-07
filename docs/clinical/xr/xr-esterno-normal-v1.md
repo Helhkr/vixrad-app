@@ -1,5 +1,7 @@
 ---
 exam_type: XR
+defaults:
+  incidence: "Perfil"
 requires:
   indication: optional
   sex: none

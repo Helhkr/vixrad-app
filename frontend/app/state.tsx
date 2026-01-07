@@ -1,13 +1,13 @@
 "use client";
 
 import type { ReactNode } from "react";
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 
 export type ExamType = "CT" | "XR" | "US" | "MR" | "MG" | "DXA" | "NM";
 export type Contrast = "with" | "without";
 export type Sex = "M" | "F";
-export type Side = "RIGHT" | "LEFT";
-export type Incidence = "AP" | "PA" | "Perfil" | "PA e Perfil" | "Obliqua" | "Ortostática";
+export type Side = "RIGHT" | "LEFT" | "BILATERAL";
+export type Incidence = "AP" | "PA" | "Perfil" | "PA e Perfil" | "Obliqua" | "Ortostática" | "Axial";
 export type Decubitus = "ventral" | "dorsal" | "lateral";
 
 type AppState = {
@@ -56,6 +56,24 @@ const AppStateContext = createContext<AppState | null>(null);
 const ACCESS_TOKEN_KEY = "vixrad.accessToken";
 const REFRESH_TOKEN_KEY = "vixrad.refreshToken";
 
+// Decode JWT exp (seconds since epoch)
+function decodeJwtExp(token: string | null): number | null {
+  if (!token) return null;
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const json =
+      typeof window !== "undefined"
+        ? window.atob(base64)
+        : Buffer.from(base64, "base64").toString("utf8");
+    const payload = JSON.parse(json);
+    return typeof payload.exp === "number" ? payload.exp : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [accessToken, setAccessTokenState] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
@@ -78,35 +96,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [decubitus, setDecubitus] = useState<Decubitus | null>(null);
   const [reportText, setReportText] = useState<string>("");
 
-  const setAccessToken = (token: string | null) => {
+  const setAccessToken = useCallback((token: string | null) => {
     setAccessTokenState(token);
     if (typeof window === "undefined") return;
     if (token) window.localStorage.setItem(ACCESS_TOKEN_KEY, token);
     else window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-  };
-  const setRefreshToken = (token: string | null) => {
+  }, []);
+  const setRefreshToken = useCallback((token: string | null) => {
     setRefreshTokenState(token);
     if (typeof window === "undefined") return;
     if (token) window.localStorage.setItem(REFRESH_TOKEN_KEY, token);
     else window.localStorage.removeItem(REFRESH_TOKEN_KEY);
-  };
+  }, []);
 
-  // Decode JWT exp and schedule silent refresh before expiry
-  function decodeJwtExp(token: string | null): number | null {
-    if (!token) return null;
-    try {
-      const parts = token.split(".");
-      if (parts.length !== 3) return null;
-      const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-      const json = typeof window !== "undefined" ? window.atob(base64) : Buffer.from(base64, "base64").toString("utf8");
-      const payload = JSON.parse(json);
-      return typeof payload.exp === "number" ? payload.exp : null;
-    } catch {
-      return null;
-    }
-  }
-
-  async function performRefresh(): Promise<void> {
+  const performRefresh = useCallback(async (): Promise<void> => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:3002"}/auth/refresh`, {
         method: "POST",
@@ -122,7 +125,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setAccessToken(null);
       setRefreshToken(null);
     }
-  }
+  }, [refreshToken, setAccessToken, setRefreshToken]);
 
   React.useEffect(() => {
     if (!accessToken || !refreshToken) return;
@@ -135,9 +138,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       performRefresh();
     }, msUntilRefresh);
     return () => clearTimeout(timer);
-  }, [accessToken, refreshToken]);
+  }, [accessToken, refreshToken, performRefresh]);
 
-  const resetReport = () => {
+  const resetReport = useCallback(() => {
     setIndication("");
     setIndicationFile(null);
     setFindings("");
@@ -147,7 +150,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setIncidence(null);
     setDecubitus(null);
     setReportText("");
-  };
+  }, []);
 
   const value = useMemo<AppState>(
     () => ({
@@ -179,7 +182,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setReportText,
       resetReport,
     }),
-    [accessToken, refreshToken, examType, templateId, indication, indicationFile, findings, contrast, sex, side, incidence, decubitus, reportText],
+    [
+      accessToken,
+      setAccessToken,
+      refreshToken,
+      setRefreshToken,
+      examType,
+      templateId,
+      indication,
+      indicationFile,
+      findings,
+      contrast,
+      sex,
+      side,
+      incidence,
+      decubitus,
+      reportText,
+      resetReport,
+    ],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

@@ -6,6 +6,7 @@ API_BASE_URL="${API_BASE_URL:-http://localhost:3002}"
 TEMPLATE_ID="${TEMPLATE_ID:-xr-abdome-normal-v1}"
 INCIDENCE_VALUE="${INCIDENCE_VALUE:-PA e Perfil}"
 DECUBITUS_VALUE="${DECUBITUS_VALUE:-}"
+SIDE_VALUE="${SIDE_VALUE:-}"
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -21,6 +22,9 @@ echo "=== Smoke Test: Copy Normal Report with Incidence ==="
 echo "API_BASE_URL=$API_BASE_URL"
 echo "TEMPLATE_ID=$TEMPLATE_ID"
 echo "INCIDENCE_VALUE=$INCIDENCE_VALUE"
+if [ -n "$SIDE_VALUE" ]; then
+  echo "SIDE_VALUE=$SIDE_VALUE"
+fi
 if [ -n "$DECUBITUS_VALUE" ]; then
   echo "DECUBITUS_VALUE=$DECUBITUS_VALUE"
 fi
@@ -81,6 +85,9 @@ body={
   "incidence":os.environ["INCIDENCE_VALUE"],
   "findings":None,
 }
+sv=os.environ.get("SIDE_VALUE")
+if sv:
+  body["side"]=sv
 dv=os.environ.get("DECUBITUS_VALUE")
 if dv:
   body["decubitus"]=dv
@@ -111,10 +118,22 @@ echo
 
 echo "4) Calling /reports/generate WITHOUT incidence (should 400)..."
 set +e
+REPORT_BAD_BODY=$(python3 -c 'import json,os
+body={
+  "examType":"XR",
+  "templateId":os.environ["TEMPLATE_ID"],
+  "contrast":"without",
+  "findings":None,
+}
+sv=os.environ.get("SIDE_VALUE")
+if sv:
+  body["side"]=sv
+print(json.dumps(body, ensure_ascii=False))')
+
 REPORT_BAD_RESPONSE=$(curl -sS -X POST "$API_BASE_URL/reports/generate" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -d "{\"examType\":\"XR\",\"templateId\":\"$TEMPLATE_ID\",\"contrast\":\"without\",\"findings\":null}")
+  -d "$REPORT_BAD_BODY")
 set -e
 
 BAD_MESSAGE=$(printf '%s' "$REPORT_BAD_RESPONSE" | python3 -c 'import json,sys

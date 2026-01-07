@@ -113,7 +113,7 @@ export class PromptBuilderService {
     templateBaseReport: string;
     indication?: string;
     sex?: "M" | "F";
-    side?: "RIGHT" | "LEFT";
+    side?: "RIGHT" | "LEFT" | "BILATERAL";
     contrast?: "with" | "without";
     findings: string;
   }): string {

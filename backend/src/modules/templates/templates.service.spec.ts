@@ -35,6 +35,86 @@ describe("TemplatesService", () => {
     expect(parsed.body).toContain("# TOMOGRAFIA COMPUTADORIZADA");
   });
 
+  it("parses defaults.incidence when provided", () => {
+    const svc = new TemplatesService();
+
+    const src = [
+      "---",
+      "exam_type: XR",
+      "defaults:",
+      "  incidence: PA e Perfil",
+      "requires:",
+      "  indication: none",
+      "  sex: none",
+      "  contrast: none",
+      "  side: none",
+      "  incidence: required",
+      "  decubitus: none",
+      "---",
+      "# XR",
+      "**Técnica:** {{INCIDENCIA}}",
+      "**Análise:** ok",
+      "**Impressão diagnóstica:** ok",
+    ].join("\n");
+
+    const parsed = svc.parseFrontMatter(src);
+    expect(parsed.meta.defaults?.incidence).toBe("PA e Perfil");
+  });
+
+  it("validates defaults.incidence values", () => {
+    const svc = new TemplatesService();
+
+    const src = [
+      "---",
+      "exam_type: XR",
+      "defaults:",
+      "  incidence: AP e Perfil",
+      "requires:",
+      "  indication: none",
+      "  sex: none",
+      "  contrast: none",
+      "  side: none",
+      "  incidence: required",
+      "  decubitus: none",
+      "---",
+      "# XR",
+      "**Técnica:** {{INCIDENCIA}}",
+      "**Análise:** ok",
+      "**Impressão diagnóstica:** ok",
+    ].join("\n");
+
+    expect(() => svc.parseFrontMatter(src)).toThrow(/defaults\.incidence/i);
+  });
+
+  it("renders {{LADO}} with gender agreement when side_gender is set", () => {
+    const src = [
+      "---",
+      "exam_type: CT",
+      "side_gender: feminine",
+      "requires:",
+      "  indication: none",
+      "  sex: none",
+      "  contrast: none",
+      "  side: required",
+      "---",
+      "# TOMOGRAFIA COMPUTADORIZADA DA MÃO {{LADO}}",
+      "**Técnica:** ok",
+      "**Análise:** ok",
+      "**Impressão diagnóstica:** ok",
+    ].join("\n");
+
+    const svc = new InMemoryTemplatesService(src);
+
+    const right = svc.renderResolvedMarkdown({ examType: "CT", templateId: "any", side: "RIGHT" });
+    expect(right.markdown).toContain("DA MÃO DIREITA");
+
+    const left = svc.renderResolvedMarkdown({ examType: "CT", templateId: "any", side: "LEFT" });
+    expect(left.markdown).toContain("DA MÃO ESQUERDA");
+
+    const bilateral = svc.renderResolvedMarkdown({ examType: "CT", templateId: "any", side: "BILATERAL" });
+    expect(bilateral.markdown).toContain("DA MÃO BILATERAL");
+  });
+
   it("validates requires values", () => {
     const svc = new TemplatesService();
 

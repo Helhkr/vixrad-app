@@ -26,6 +26,9 @@ export type TemplateDetail = {
   name: string;
   examType: string;
   requires: TemplateRequires;
+  defaults?: {
+    incidence?: string;
+  };
 };
 
 export async function fetchTemplatesByExamType(

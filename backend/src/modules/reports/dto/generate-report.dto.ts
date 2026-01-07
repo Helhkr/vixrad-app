@@ -21,8 +21,8 @@ export class GenerateReportDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(["RIGHT", "LEFT"], { message: "side inválido" })
-  side?: "RIGHT" | "LEFT";
+  @IsIn(["RIGHT", "LEFT", "BILATERAL"], { message: "side inválido" })
+  side?: "RIGHT" | "LEFT" | "BILATERAL";
 
   @IsOptional()
   @IsString()

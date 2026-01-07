@@ -1,10 +1,12 @@
 ---
 exam_type: XR
+defaults:
+  incidence: "AP"
 requires:
   indication: optional
   sex: none
   contrast: none
-  side: required
+  side: none
   incidence: required
   decubitus: none
 ---
@@ -19,11 +21,11 @@ requires:
 
 **Análise:**
 
-Côndilo mandibular com posição normal.
+Côndilos mandibulares com posição normal.
 
-Espaço articular preservado.
+Espaços articulares preservados bilateralmente.
 
-Movimento articular normal entre as incidências.
+Movimento articular preservado entre as incidências.
 
 Ausência de osteófitos.
 

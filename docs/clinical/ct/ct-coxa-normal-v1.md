@@ -1,5 +1,6 @@
 ---
 exam_type: CT
+side_gender: feminine
 requires:
   indication: optional
   sex: none

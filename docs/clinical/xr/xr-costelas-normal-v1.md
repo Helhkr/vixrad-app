@@ -1,10 +1,12 @@
 ---
 exam_type: XR
+defaults:
+  incidence: "PA"
 requires:
   indication: optional
   sex: none
   contrast: none
-  side: required
+  side: none
   incidence: required
   decubitus: none
 ---
@@ -19,7 +21,7 @@ requires:
 
 **Análise:**
 
-Estruturas ósseas das costelas com morfologia normal.
+Arcos costais bilaterais com morfologia normal.
 
 Ausência de traços de fratura.
 

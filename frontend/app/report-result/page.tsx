@@ -86,7 +86,14 @@ export default function ReportResultPage() {
                 "text/html": new Blob([html], { type: "text/html" }),
                 "text/plain": new Blob([plain], { type: "text/plain" }),
               });
-              await (navigator.clipboard as any).write([item]);
+              const clipboard = navigator.clipboard as Clipboard & {
+                write?: (items: ClipboardItem[]) => Promise<void>;
+              };
+              if (typeof clipboard.write === "function") {
+                await clipboard.write([item]);
+              } else {
+                await navigator.clipboard.writeText(plain);
+              }
             } catch {
               // Last resort: plain text
               await navigator.clipboard.writeText(plain);

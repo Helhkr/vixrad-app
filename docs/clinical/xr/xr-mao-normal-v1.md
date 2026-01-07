@@ -1,5 +1,8 @@
 ---
 exam_type: XR
+side_gender: feminine
+defaults:
+  incidence: "PA"
 requires:
   indication: optional
   sex: none

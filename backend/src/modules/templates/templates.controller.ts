@@ -16,6 +16,12 @@ export type TemplateRequires = {
   sex: string;
   contrast: string;
   side: string;
+  incidence: string;
+  decubitus: string;
+};
+
+export type TemplateDefaults = {
+  incidence?: string;
 };
 
 export type TemplateDetailItem = {
@@ -23,6 +29,7 @@ export type TemplateDetailItem = {
   name: string;
   examType: string;
   requires: TemplateRequires;
+  defaults?: TemplateDefaults;
 };
 
 @Controller("templates")
@@ -67,6 +74,7 @@ export class TemplatesController {
       name: t.name,
       examType: t.examType,
       requires: t.requires,
+      defaults: t.defaults,
     };
   }
 }
