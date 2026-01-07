@@ -14,6 +14,47 @@ export class ReportsService {
     private readonly fileExtractionService: FileExtractionService,
   ) {}
 
+  private sanitizeAiReport(text: string, opts: { hasFindings: boolean }): string {
+    let out = (text ?? "").replace(/\r\n/g, "\n");
+
+    // Ensure one blank line before section labels 'Análise:' and 'Impressão diagnóstica:'
+    const ensureBlankBefore = (labelRe: RegExp) => {
+      out = out.replace(new RegExp(`([^\n])\n(${labelRe.source})`, labelRe.flags), (_m, prev: string, label: string) => {
+        return `${prev}\n\n${label}`;
+      });
+    };
+
+    // Match bolded or plain labels, with optional surrounding asterisks
+    const analiseLabel = /\s*(?:\*\*)?\s*Análise:\s*(?:\*\*)?/;
+    const impLabel = /\s*(?:\*\*)?\s*Impressão diagnóstica:\s*(?:\*\*)?/;
+    ensureBlankBefore(analiseLabel);
+    ensureBlankBefore(impLabel);
+
+    // If there are findings, remove generic normality filler sentences in Impression
+    if (opts.hasFindings) {
+      const patterns = [
+        /\n?\s*Exame\s+(?:tomogr[aá]fico\s+)?com\s+os\s+demais\s+achados\s+dentro\s+dos\s+limites\s+da\s+normalidade\.?\s*$/gim,
+        /\n?\s*Demais\s+achados\s+dentro\s+dos\s+limites\s+da\s+normalidade\.?\s*$/gim,
+      ];
+      for (const re of patterns) {
+        out = out.replace(re, "\n");
+      }
+      // Clean up excessive blank lines (max two in a row)
+      out = out.replace(/\n{3,}/g, "\n\n");
+    }
+
+    // Trim trailing spaces per line
+    out = out
+      .split("\n")
+      .map((l) => l.replace(/\s+$/g, ""))
+      .join("\n")
+      .trimEnd();
+
+    // Ensure final newline
+    if (!out.endsWith("\n")) out += "\n";
+    return out;
+  }
+
   async generateStructuredBaseReport(params: {
     examType: "CT" | "XR" | "US" | "MR" | "MG" | "DXA" | "NM";
     templateId: string;
@@ -75,14 +116,15 @@ export class ReportsService {
       findings,
     });
 
-    const reportText = await this.aiService.generateReport({
+    let reportText = await this.aiService.generateReport({
       prompt,
       baseInput,
       findings,
     });
 
-    return {
-      reportText,
-    };
+    // Normalize spacing and remove redundant impression sentences when findings exist
+    reportText = this.sanitizeAiReport(reportText, { hasFindings: findings.length > 0 });
+
+    return { reportText };
   }
 }

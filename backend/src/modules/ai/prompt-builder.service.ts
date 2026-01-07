@@ -20,7 +20,10 @@ export class PromptBuilderService {
       "- Utilize linguagem técnica médica formal.",
       "- Caso uma informação não tenha sido fornecida, NÃO a presuma, a não ser que explicitamente solicitado.",
       "- Caso hajam alterações no exame, descreva-as alterações mais importantes primeiro na análise e em impressão diagnóstica",
-      "- Caso haja mais de uma impressão diagnóstica, coloque cada uma delas em uma linha própria e não utilize bullets ou numerações."
+      "- Caso haja mais de uma impressão diagnóstica, coloque cada uma delas em uma linha própria e não utilize bullets ou numerações.",
+      "- Formatação das seções: cada rótulo ('Técnica:', 'Indicação:' quando houver, 'Análise:', 'Impressão diagnóstica:') deve ficar sozinho em sua linha, seguido do conteúdo nas linhas subsequentes.",
+      "- Separe as seções com exatamente uma linha em branco: uma linha em branco entre 'Indicação:' e 'Análise:', e entre o final da análise e 'Impressão diagnóstica:'.",
+      "- Se houver ACHADOS fornecidos (texto de achados), NÃO inclua frases genéricas como 'demais achados dentro dos limites da normalidade' na impressão diagnóstica. Resuma apenas os achados relevantes."
     ].join("\n");
   }
 
@@ -98,6 +101,9 @@ export class PromptBuilderService {
       "- Organize o texto de forma clara e técnica.",
       "- Não inclua títulos extras, comentários ou explicações.",
       "- Não repita instruções ou regras.",
+      "- Mantenha os rótulos das seções exatamente como no TEMPLATE BASE (sem criar novos).",
+      "- Use quebras de linha conforme instruído nas REGRAS OBRIGATÓRIAS (uma linha em branco entre seções).",
+      "- Na 'Impressão diagnóstica:', liste cada item em uma linha, sem bullets e sem frases de normalidade genérica quando há achados.",
     ].join("\n");
   }
 
