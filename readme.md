@@ -167,7 +167,7 @@ docker compose -f docker-compose.dev.yml down
 A partir desse ponto, o usuário pode escolher:
 
 - **COPIAR LAUDO NORMAL**  
-  Copia instantaneamente o template normal estruturado. Não usa IA.
+  Gera e copia o laudo normal estruturado **sem IA**, resolvendo condicionais/placeholders no backend.
 
 - **GERAR LAUDO (IA)**  
   Envia dados técnicos ao backend para geração assistida por IA.
@@ -212,10 +212,31 @@ O Editor é o componente central do sistema e **deve conter**:
 `POST /reports/generate`
 
 **DTO:**
+
 - examType: string
 - templateId: string
+- contrast: "with" | "without" (quando aplicável)
 - indication?: string
-- findings: string
+- sex?: "M" | "F" (quando aplicável)
+- side?: "D" | "E" | "BILATERAL" (quando aplicável)
+- incidence?: string (quando aplicável)
+- decubitus?: "ventral" | "dorsal" | "lateral" (quando aplicável)
+
+Campos adicionais (principalmente MR/artefatos):
+
+- ecgGating?: "omit" | "without" | "with"
+- phases?: "omit" | "without" | "with"
+- coil?: "omit" | "1.5T" | "3.0T"
+- sedation?: "omit" | "without" | "with"
+- artifactSourceEnabled?: boolean
+- artifactSourceTypes?: string[]
+
+Observação: a obrigatoriedade de cada campo é determinada pelo `requires` do template selecionado.
+
+**Comportamento:**
+
+- Se `findings` for `null`, o endpoint retorna o **laudo normal resolvido** (sem IA).
+- Se `findings` for texto, o endpoint pode acionar a IA (quando solicitado pelo usuário na UI).
 
 **Regras:**
 - JWT obrigatório
@@ -337,6 +358,11 @@ npm run build
 # Smoke checks (não devem logar conteúdo sensível)
 bash scripts/smoke_audit.sh
 bash scripts/smoke_security.sh
+
+# Se você estiver rodando o stack de dev via docker-compose.dev.yml,
+# rode os smoke checks contra o backend do compose:
+SMOKE_MODE=docker bash scripts/smoke_audit.sh
+SMOKE_MODE=docker bash scripts/smoke_security.sh
 ```
 
 Notas:

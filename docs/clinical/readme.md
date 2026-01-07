@@ -95,7 +95,17 @@ requires:
   contrast:
   incidence:
   decubitus:
+  ecg_gating:
+  phases:
+  coil:
+  sedation:
+  artifact_source:
 ```
+
+Notas rápidas:
+
+- `contrast: fixed` é usado quando o contraste é implícito (ex.: angiotomografias e angiorressonâncias).
+- `artifact_source` controla a pergunta de artefatos e a inserção de um fragmento na **Técnica**.
 
 ---
 
@@ -303,9 +313,13 @@ Exemplos:
 
 Não utilizar:
 
-* Letras minúsculas
 * Espaços
 * Sintaxe alternativa
+
+Observação:
+
+- Por padrão, placeholders clínicos usam maiúsculas (ex.: `{{INDICACAO}}`, `{{LADO}}`).
+- Alguns fragmentos técnicos suportados pelo motor usam snake_case e são normalmente escritos em minúsculas nos templates (ex.: `{{artifact_source}}`, `{{ecg_gating}}`, `{{phases}}`, `{{coil}}`, `{{sedation}}`).
 
 ---
 
