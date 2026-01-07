@@ -5,6 +5,7 @@ set -euo pipefail
 API_BASE_URL="${API_BASE_URL:-http://localhost:3002}"
 TEMPLATE_ID="${TEMPLATE_ID:-xr-abdome-normal-v1}"
 INCIDENCE_VALUE="${INCIDENCE_VALUE:-PA e Perfil}"
+DECUBITUS_VALUE="${DECUBITUS_VALUE:-}"
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -20,6 +21,9 @@ echo "=== Smoke Test: Copy Normal Report with Incidence ==="
 echo "API_BASE_URL=$API_BASE_URL"
 echo "TEMPLATE_ID=$TEMPLATE_ID"
 echo "INCIDENCE_VALUE=$INCIDENCE_VALUE"
+if [ -n "$DECUBITUS_VALUE" ]; then
+  echo "DECUBITUS_VALUE=$DECUBITUS_VALUE"
+fi
 echo
 
 EMAIL="${SMOKE_EMAIL:-smoke+$(date +%s)@vixrad.local}"
@@ -69,10 +73,23 @@ echo "✓ Got access token"
 echo
 
 echo "3) Calling /reports/generate WITH incidence (should succeed)..."
+REPORT_OK_BODY=$(python3 -c 'import json,os
+body={
+  "examType":"XR",
+  "templateId":os.environ["TEMPLATE_ID"],
+  "contrast":"without",
+  "incidence":os.environ["INCIDENCE_VALUE"],
+  "findings":None,
+}
+dv=os.environ.get("DECUBITUS_VALUE")
+if dv:
+  body["decubitus"]=dv
+print(json.dumps(body, ensure_ascii=False))')
+
 REPORT_OK_RESPONSE=$(curl -sS -X POST "$API_BASE_URL/reports/generate" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -d "{\"examType\":\"XR\",\"templateId\":\"$TEMPLATE_ID\",\"contrast\":\"without\",\"incidence\":\"$INCIDENCE_VALUE\",\"findings\":null}")
+  -d "$REPORT_OK_BODY")
 
 REPORT_TEXT=$(printf '%s' "$REPORT_OK_RESPONSE" | python3 -c 'import json,sys
 data=json.load(sys.stdin)
