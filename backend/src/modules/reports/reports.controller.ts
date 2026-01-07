@@ -43,9 +43,6 @@ export class ReportsController {
     @UploadedFile() file?: Express.Multer.File,
     @Res({ passthrough: true }) res?: Response,
   ) {
-    this.logger.log(`[generate] Received DTO: ${JSON.stringify(dto)}`);
-    this.logger.log(`[generate] incidence value: "${dto.incidence}" type: ${typeof dto.incidence}`);
-    
     // Set model header early so it is present even if an exception is thrown later
     try {
       const model = await this.aiService.getResolvedModel();
