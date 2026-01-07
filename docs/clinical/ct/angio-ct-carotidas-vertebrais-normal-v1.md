@@ -10,7 +10,7 @@ requires:
 
 # ANGIOTOMOGRAFIA DAS ARTÉRIAS CARÓTIDAS E VERTEBRAIS
 
-**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica da região cervical (do arco aórtico até a base do crânio), antes e após a administração de meio de contraste iodado endovenoso. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{artifact_source}}
+**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica da região cervical (do arco aórtico até a base do crânio), antes e após a administração de meio de contraste iodado endovenoso. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{ARTIFACT_SOURCE}}
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->

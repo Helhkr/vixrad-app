@@ -10,7 +10,7 @@ requires:
 
 # ANGIOTOMOGRAFIA DAS ARTÉRIAS CORONÁRIAS
 
-**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica sincronizada ao eletrocardiograma (ECG-gated), antes e após a administração de meio de contraste iodado endovenoso. Realizadas reconstruções multiplanares e curvas.{{artifact_source}}
+**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica sincronizada ao eletrocardiograma (ECG-gated), antes e após a administração de meio de contraste iodado endovenoso. Realizadas reconstruções multiplanares e curvas.{{ARTIFACT_SOURCE}}
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->

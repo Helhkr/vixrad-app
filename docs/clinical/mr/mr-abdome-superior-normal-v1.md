@@ -16,7 +16,7 @@ requires:
 
 # RESSONÂNCIA MAGNÉTICA DO ABDOME SUPERIOR
 
-**Técnica:** Exame realizado em equipamento de ressonância magnética, com aquisição de sequências ponderadas em T1 e T2, com e sem supressão de gordura, incluindo difusão conforme protocolo, em planos axial e coronal, <!-- IF CONTRASTE -->antes e após a administração de meio de contraste paramagnético endovenoso.<!-- ELSE -->sem a administração de meio de contraste paramagnético endovenoso.<!-- ENDIF CONTRASTE -->{{coil}}{{sedation}}{{ecg_gating}}{{phases}}{{artifact_source}}
+**Técnica:** Exame realizado em equipamento de ressonância magnética, com aquisição de sequências ponderadas em T1 e T2, com e sem supressão de gordura, incluindo difusão conforme protocolo, em planos axial e coronal, <!-- IF CONTRASTE -->antes e após a administração de meio de contraste paramagnético endovenoso.<!-- ELSE -->sem a administração de meio de contraste paramagnético endovenoso.<!-- ENDIF CONTRASTE -->{{COIL}}{{SEDATION}}{{ECG_GATING}}{{PHASES}}{{ARTIFACT_SOURCE}}
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->

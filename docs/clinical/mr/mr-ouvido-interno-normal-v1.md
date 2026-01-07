@@ -16,7 +16,7 @@ requires:
 
 # RESSONÂNCIA MAGNÉTICA DO OUVIDO INTERNO
 
-**Técnica:** Exame realizado em equipamento de ressonância magnética, com aquisição de sequências de alta resolução para avaliação dos condutos auditivos internos e ângulos ponto-cerebelares, incluindo sequências ponderadas em T1 e T2 conforme protocolo, <!-- IF CONTRASTE -->antes e após a administração de meio de contraste paramagnético endovenoso.<!-- ELSE -->sem a administração de meio de contraste paramagnético endovenoso.<!-- ENDIF CONTRASTE -->{{coil}}{{sedation}}{{ecg_gating}}{{phases}}{{artifact_source}}
+**Técnica:** Exame realizado em equipamento de ressonância magnética, com aquisição de sequências de alta resolução para avaliação dos condutos auditivos internos e ângulos ponto-cerebelares, incluindo sequências ponderadas em T1 e T2 conforme protocolo, <!-- IF CONTRASTE -->antes e após a administração de meio de contraste paramagnético endovenoso.<!-- ELSE -->sem a administração de meio de contraste paramagnético endovenoso.<!-- ENDIF CONTRASTE -->{{COIL}}{{SEDATION}}{{ECG_GATING}}{{PHASES}}{{ARTIFACT_SOURCE}}
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->

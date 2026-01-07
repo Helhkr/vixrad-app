@@ -16,7 +16,7 @@ requires:
 
 # RESSONÂNCIA MAGNÉTICA DO CRÂNIO
 
-**Técnica:** Exame realizado em equipamento de ressonância magnética, com aquisição de sequências ponderadas em T1 e T2, FLAIR, difusão e suscetibilidade magnética, nos planos axial, coronal e sagital, conforme protocolo, <!-- IF CONTRASTE -->antes e após a administração de meio de contraste paramagnético endovenoso.<!-- ELSE -->sem a administração de meio de contraste paramagnético endovenoso.<!-- ENDIF CONTRASTE -->{{coil}}{{sedation}}{{ecg_gating}}{{phases}}{{artifact_source}}
+**Técnica:** Exame realizado em equipamento de ressonância magnética, com aquisição de sequências ponderadas em T1 e T2, FLAIR, difusão e suscetibilidade magnética, nos planos axial, coronal e sagital, conforme protocolo, <!-- IF CONTRASTE -->antes e após a administração de meio de contraste paramagnético endovenoso.<!-- ELSE -->sem a administração de meio de contraste paramagnético endovenoso.<!-- ENDIF CONTRASTE -->{{COIL}}{{SEDATION}}{{ECG_GATING}}{{PHASES}}{{ARTIFACT_SOURCE}}
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->

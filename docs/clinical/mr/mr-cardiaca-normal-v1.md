@@ -16,7 +16,7 @@ requires:
 
 # RESSONÂNCIA MAGNÉTICA CARDÍACA
 
-**Técnica:** Exame realizado em equipamento de ressonância magnética com protocolo cardíaco, incluindo sequências cine para avaliação funcional e sequências ponderadas em T1/T2 conforme protocolo, <!-- IF CONTRASTE -->antes e após a administração de meio de contraste paramagnético endovenoso, incluindo avaliação de realce tardio miocárdico quando aplicável.<!-- ELSE -->sem a administração de meio de contraste paramagnético endovenoso.<!-- ENDIF CONTRASTE -->{{coil}}{{sedation}}{{ecg_gating}}{{phases}}{{artifact_source}}
+**Técnica:** Exame realizado em equipamento de ressonância magnética com protocolo cardíaco, incluindo sequências cine para avaliação funcional e sequências ponderadas em T1/T2 conforme protocolo, <!-- IF CONTRASTE -->antes e após a administração de meio de contraste paramagnético endovenoso, incluindo avaliação de realce tardio miocárdico quando aplicável.<!-- ELSE -->sem a administração de meio de contraste paramagnético endovenoso.<!-- ENDIF CONTRASTE -->{{COIL}}{{SEDATION}}{{ECG_GATING}}{{PHASES}}{{ARTIFACT_SOURCE}}
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->

@@ -16,7 +16,7 @@ requires:
 
 # RESSONÂNCIA MAGNÉTICA MULTIPARAMÉTRICA DA PRÓSTATA
 
-**Técnica:** Exame realizado em equipamento de ressonância magnética, com aquisição multiparamétrica incluindo sequências ponderadas em T2 e difusão (DWI/ADC) conforme protocolo. <!-- IF CONTRASTE -->Com administração de meio de contraste paramagnético endovenoso.<!-- ELSE -->Sem a administração de meio de contraste paramagnético endovenoso.<!-- ENDIF CONTRASTE -->{{coil}}{{sedation}}{{ecg_gating}}{{phases}}{{artifact_source}}
+**Técnica:** Exame realizado em equipamento de ressonância magnética, com aquisição multiparamétrica incluindo sequências ponderadas em T2 e difusão (DWI/ADC) conforme protocolo. <!-- IF CONTRASTE -->Com administração de meio de contraste paramagnético endovenoso.<!-- ELSE -->Sem a administração de meio de contraste paramagnético endovenoso.<!-- ENDIF CONTRASTE -->{{COIL}}{{SEDATION}}{{ECG_GATING}}{{PHASES}}{{ARTIFACT_SOURCE}}
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->

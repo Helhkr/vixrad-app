@@ -313,13 +313,13 @@ Exemplos:
 
 Não utilizar:
 
+* Letras minúsculas
 * Espaços
 * Sintaxe alternativa
 
 Observação:
 
-- Por padrão, placeholders clínicos usam maiúsculas (ex.: `{{INDICACAO}}`, `{{LADO}}`).
-- Alguns fragmentos técnicos suportados pelo motor usam snake_case e são normalmente escritos em minúsculas nos templates (ex.: `{{artifact_source}}`, `{{ecg_gating}}`, `{{phases}}`, `{{coil}}`, `{{sedation}}`).
+- Mesmo fragmentos técnicos (ex.: artefatos/coil/fases) devem ser declarados como placeholders em MAIÚSCULAS (ex.: `{{ARTIFACT_SOURCE}}`, `{{COIL}}`).
 
 ---
 

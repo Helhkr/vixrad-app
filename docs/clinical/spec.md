@@ -35,7 +35,7 @@ requires:
   - CT, XR, US, MR, MG, DXA, NM
 - **requires**: define perguntas obrigatórias/opcionais antes da geração do laudo.
   - Valores: `required`, `optional`, `none`, `fixed`
-  - Campos suportados: `indication`, `sex`, `contrast`, `side`
+  - Campos suportados: `indication`, `sex`, `contrast`, `side`, `incidence`, `decubitus`, `ecg_gating`, `phases`, `coil`, `sedation`, `artifact_source`
 
 ---
 
@@ -62,6 +62,13 @@ Placeholders suportados:
 - `{{SEXO}}`
 - `{{LADO}}`
 - `{{NOTAS}}`
+
+Placeholders técnicos adicionais (quando o template declarar o campo correspondente em `requires`):
+- `{{ECG_GATING}}`
+- `{{PHASES}}`
+- `{{COIL}}`
+- `{{SEDATION}}`
+- `{{ARTIFACT_SOURCE}}`
 
 ---
 

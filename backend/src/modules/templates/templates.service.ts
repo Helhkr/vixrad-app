@@ -453,7 +453,7 @@ export class TemplatesService {
   }
 
   private resolvePlaceholders(markdown: string, values: Record<string, string | undefined>): string {
-    return markdown.replace(/\{\{([A-Za-z0-9_]+)\}\}/g, (full, key: string) => {
+    return markdown.replace(/\{\{([A-Z0-9_]+)\}\}/g, (full, key: string) => {
       const value = values[key];
       if (value === undefined) {
         throw new BadRequestException(`Placeholder sem valor: {{${key}}}`);
@@ -673,15 +673,10 @@ export class TemplatesService {
         : " Observam-se artefatos que limitam parcialmente a avaliação."
       : "";
 
-    values.ecg_gating = ecg;
     values.ECG_GATING = ecg;
-    values.phases = phases;
     values.PHASES = phases;
-    values.coil = coil;
     values.COIL = coil;
-    values.sedation = sedation;
     values.SEDATION = sedation;
-    values.artifact_source = artifact;
     values.ARTIFACT_SOURCE = artifact;
 
     const resolved = this.resolvePlaceholders(withoutConditionals, values);

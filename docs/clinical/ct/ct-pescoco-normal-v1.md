@@ -10,7 +10,7 @@ requires:
 
 # TOMOGRAFIA COMPUTADORIZADA DO PESCOÇO
 
-**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica <!-- IF CONTRASTE -->antes e após a administração de meio de contraste iodado endovenoso.<!-- ELSE -->sem a administração de meio de contraste iodado endovenoso.<!-- ENDIF CONTRASTE -->{{artifact_source}}
+**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica <!-- IF CONTRASTE -->antes e após a administração de meio de contraste iodado endovenoso.<!-- ELSE -->sem a administração de meio de contraste iodado endovenoso.<!-- ENDIF CONTRASTE -->{{ARTIFACT_SOURCE}}
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
