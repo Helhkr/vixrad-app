@@ -18,7 +18,7 @@ export function stripMarkdown(md: string): string {
 }
 
 export function convertMarkdownToHtml(md: string): string {
-  // Very small markdown subset: H1, bold, paragraphs
+  // Very small markdown subset: H1, bold, paragraphs, with inline styles for Word compatibility
   const escapeHtml = (s: string) =>
     s
       .replace(/&/g, "&amp;")
@@ -35,7 +35,7 @@ export function convertMarkdownToHtml(md: string): string {
     const text = buffer.join("\n");
     const withBold = text.replace(/\*\*(.*?)\*\*/g, (_m, t: string) => `<strong>${escapeHtml(t)}</strong>`);
     const withLineBreaks = withBold.replace(/\n/g, "<br />");
-    blocks.push(`<p>${withLineBreaks}</p>`);
+    blocks.push(`<p style="margin: 0 0 8px 0; font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.3;">${withLineBreaks}</p>`);
     buffer = [];
   };
 
@@ -44,7 +44,9 @@ export function convertMarkdownToHtml(md: string): string {
     if (/^#\s+/.test(line)) {
       flushParagraph();
       const title = line.replace(/^#\s+/, "");
-      blocks.push(`<h1>${escapeHtml(title)}</h1>`);
+      blocks.push(
+        `<h1 style="margin: 0 0 12px 0; font-family: Arial, sans-serif; font-size: 10pt; font-weight: bold; line-height: 1.3;">${escapeHtml(title)}</h1>`,
+      );
       continue;
     }
     if (line.trim() === "") {
@@ -56,7 +58,8 @@ export function convertMarkdownToHtml(md: string): string {
   }
   flushParagraph();
 
-  return blocks.join("\n");
+  // Wrap with a container enforcing Arial 10pt
+  return `<div style="font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.3;">${blocks.join("\n")}</div>`;
 }
 
 export function formatReportForCopy(reportText: string, format: CopyFormat): string {
