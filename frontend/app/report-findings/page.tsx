@@ -266,8 +266,9 @@ export default function ReportFindingsPage() {
         findings: null,
       };
       
-      console.log("[handleCopyNormal] Request payload:", requestPayload);
+      console.log("[handleCopyNormal] Request payload:", JSON.stringify(requestPayload, null, 2));
       console.log("[handleCopyNormal] incidence value:", incidence, "type:", typeof incidence);
+      console.log("[handleCopyNormal] incidence in payload:", requestPayload.incidence);
       
       const data = await apiPost<GenerateResponse>(
         "/reports/generate",
