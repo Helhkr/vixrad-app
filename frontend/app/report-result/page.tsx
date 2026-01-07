@@ -39,15 +39,49 @@ export default function ReportResultPage() {
   const [selectedFormat, setSelectedFormat] = useState<CopyFormat>("formatted");
 
   const copyReport = async (format: CopyFormat) => {
+    const copyHtmlViaExecCommand = async (html: string, plainFallback: string) => {
+      try {
+        const el = document.createElement("div");
+        el.setAttribute("contenteditable", "true");
+        el.style.position = "fixed";
+        el.style.left = "-9999px";
+        el.style.top = "0";
+        el.style.whiteSpace = "pre-wrap";
+        el.innerHTML = html;
+        document.body.appendChild(el);
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+        const ok = document.execCommand("copy");
+        sel?.removeAllRanges();
+        document.body.removeChild(el);
+        if (!ok) throw new Error("execCommand copy returned false");
+        return true;
+      } catch {
+        try {
+          await navigator.clipboard.writeText(plainFallback);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+    };
     try {
-      if (format === "formatted" && "ClipboardItem" in window) {
+      if (format === "formatted") {
         const html = convertMarkdownToHtml(reportText);
         const plain = stripMarkdown(reportText);
-        const item = new ClipboardItem({
-          "text/html": new Blob([html], { type: "text/html" }),
-          "text/plain": new Blob([plain], { type: "text/plain" }),
-        });
-        await (navigator.clipboard as any).write([item]);
+        if ("ClipboardItem" in window) {
+          const item = new ClipboardItem({
+            "text/html": new Blob([html], { type: "text/html" }),
+            "text/plain": new Blob([plain], { type: "text/plain" }),
+          });
+          await (navigator.clipboard as any).write([item]);
+        } else {
+          const ok = await copyHtmlViaExecCommand(html, plain);
+          if (!ok) throw new Error("Falha ao copiar em modo formatado");
+        }
       } else {
         const output = formatReportForCopy(reportText, format);
         await navigator.clipboard.writeText(output);
