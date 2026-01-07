@@ -9,6 +9,9 @@ DECUBITUS_VALUE="${DECUBITUS_VALUE:-}"
 SIDE_VALUE="${SIDE_VALUE:-}"
 FINDINGS_TEXT="${FINDINGS_TEXT:-}"
 
+# These values are consumed by python snippets via os.environ[...] below.
+export API_BASE_URL TEMPLATE_ID INCIDENCE_VALUE DECUBITUS_VALUE SIDE_VALUE FINDINGS_TEXT
+
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
     echo "❌ Missing required command: $1" >&2
