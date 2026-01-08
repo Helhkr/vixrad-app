@@ -32,7 +32,7 @@ function TopRightControls(params: {
             const next = !urgent;
             setUrgent(next);
             showMessage(
-              next ? "Urgência ativada: nota será incluída." : "Urgência desativada: nota removida.",
+              next ? "Módulo de exames de urgência ativado." : "Módulo de exames de urgência desativado.",
               next ? "info" : "info",
             );
           }}
