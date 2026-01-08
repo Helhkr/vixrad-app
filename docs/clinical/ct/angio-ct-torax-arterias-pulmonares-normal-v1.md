@@ -23,13 +23,7 @@ Coração com dimensões preservadas na avaliação qualitativa. Ausência de de
 
 Aorta torácica com calibres preservados.
 
-Parênquima pulmonar sem consolidações, nódulos suspeitos ou áreas de vidro fosco significativas no exame atual.
-
-Ausência de derrame pleural.
-
 **Impressão diagnóstica:**
-Exame dentro dos limites da normalidade.
-
 Sem evidências de tromboembolismo pulmonar agudo no território arterial pulmonar avaliável.
 
 <!-- IF NOTAS -->
