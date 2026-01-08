@@ -55,6 +55,7 @@ export default function ReportFindingsPage() {
     setFindings,
     setReportText,
     urgent,
+    academic,
     resetReport,
   } = useAppState();
 
@@ -278,6 +279,7 @@ export default function ReportFindingsPage() {
           contrast,
           indication: indication || undefined,
           notes: urgentNote,
+            academic,
           sex: sex || undefined,
           side: side || undefined,
           incidence: incidence ?? undefined,
@@ -357,6 +359,7 @@ export default function ReportFindingsPage() {
         formData.append("contrast", contrast);
         if (indication) formData.append("indication", indication);
         if (urgentNote) formData.append("notes", urgentNote);
+        formData.append("academic", String(academic));
         if (sex) formData.append("sex", sex);
         if (side) formData.append("side", side);
         if (incidence) formData.append("incidence", incidence);
@@ -380,6 +383,7 @@ export default function ReportFindingsPage() {
           contrast,
           indication: indication || undefined,
           notes: urgentNote,
+          academic,
           sex: sex || undefined,
           side: side || undefined,
           incidence: incidence ?? undefined,

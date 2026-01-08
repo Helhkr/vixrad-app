@@ -107,6 +107,17 @@ export class PromptBuilderService {
     ].join("\n");
   }
 
+  private getAcademicModeInstructions(): string {
+    return [
+      "MODO UNIVERSITÁRIO (quando ativado):",
+      "- Você tem liberdade para propor hipóteses diagnósticas quando houver base nos achados descritos, indicando o grau de confiança (ex.: provável/possível) e citando os sinais de imagem que sustentam a hipótese.",
+      "- Quando houver mais de uma hipótese plausível, você pode citar diagnósticos diferenciais relevantes de forma breve e técnica.",
+      "- Priorize descrições extensas e detalhadas, com linguagem técnica completa (evite concisão excessiva).",
+      "- Mesmo em exames normais, descreva de forma completa e sistemática a ausência de alterações relevantes (sem usar frases genéricas vagas).",
+      "- Não invente medidas, sequências, realces, territórios vasculares ou outros detalhes não informados; se não houver base, declare a limitação/indeterminação.",
+    ].join("\n");
+  }
+
   buildPrompt(params: {
     examType: ExamType;
     templateId: string;
@@ -115,6 +126,7 @@ export class PromptBuilderService {
     sex?: "M" | "F";
     side?: "RIGHT" | "LEFT" | "BILATERAL";
     contrast?: "with" | "without";
+    academic?: boolean;
     findings: string;
   }): string {
     const globalRules = this.getGlobalRules();
@@ -131,7 +143,9 @@ export class PromptBuilderService {
 
     const outputInstructions = this.getOutputInstructions();
 
-    return [globalRules, modalityContext, templateBase, indicationBlock, findingsBlock, outputInstructions]
+    const academicInstructions = params.academic ? this.getAcademicModeInstructions() : "";
+
+    return [globalRules, modalityContext, templateBase, indicationBlock, findingsBlock, academicInstructions, outputInstructions]
       .filter(Boolean)
       .join("\n\n")
       .trim()

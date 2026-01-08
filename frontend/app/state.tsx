@@ -88,6 +88,9 @@ type AppState = {
   urgent: boolean;
   setUrgent: (value: boolean) => void;
 
+  academic: boolean;
+  setAcademic: (value: boolean) => void;
+
   resetReport: () => void;
 };
 
@@ -143,6 +146,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [artifactSourceTypes, setArtifactSourceTypes] = useState<ArtifactType[]>([]);
   const [reportText, setReportText] = useState<string>("");
   const [urgent, setUrgent] = useState<boolean>(false);
+  const [academic, setAcademic] = useState<boolean>(false);
 
   const setAccessToken = useCallback((token: string | null) => {
     setAccessTokenState(token);
@@ -206,6 +210,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setArtifactSourceTypes([]);
     setReportText("");
     setUrgent(false);
+    setAcademic(false);
   }, []);
 
   const value = useMemo<AppState>(
@@ -252,6 +257,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setReportText,
       urgent,
       setUrgent,
+      academic,
+      setAcademic,
       resetReport,
     }),
     [
@@ -278,6 +285,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       artifactSourceTypes,
       reportText,
       urgent,
+      academic,
       resetReport,
     ],
   );

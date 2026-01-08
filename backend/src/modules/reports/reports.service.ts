@@ -141,6 +141,7 @@ export class ReportsService {
     incidence?: string;
     decubitus?: "ventral" | "dorsal" | "lateral";
     notes?: string;
+    academic?: boolean;
     findings?: string | null;
     indicationFile?: Express.Multer.File;
     ecgGating?: "omit" | "without" | "with";
@@ -259,6 +260,7 @@ export class ReportsService {
       sex: params.sex,
       side: params.side,
       contrast: params.contrast,
+      academic: params.academic,
       findings,
     });
 

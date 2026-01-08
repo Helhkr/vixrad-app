@@ -12,6 +12,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
+import SchoolIcon from "@mui/icons-material/School";
 
 import { getTheme } from "./theme";
 import { AppStateProvider, useAppState } from "./state";
@@ -21,12 +22,32 @@ function TopRightControls(params: {
   mode: "light" | "dark";
   setMode: (value: "light" | "dark") => void;
 }) {
-  const { urgent, setUrgent } = useAppState();
+  const { urgent, setUrgent, academic, setAcademic } = useAppState();
   const { showMessage } = useSnackbar();
 
   return (
     <div style={{ position: "fixed", top: 16, right: 16, zIndex: 1300 }}>
       <Stack direction="row" spacing={1} alignItems="center">
+        <Tooltip title="O modo universitário ajusta as instruções da IA para permitir hipóteses diagnósticas quando apropriado e gerar descrições mais extensas, inclusive em exames normais.">
+          <IconButton
+            aria-label="Universitário"
+            onClick={() => {
+              const next = !academic;
+              setAcademic(next);
+              showMessage(
+                next ? "Módulo de exames universitário ativado." : "Módulo de exames universitário desativado.",
+                "info",
+              );
+            }}
+            sx={(theme) => ({
+              color: academic ? theme.palette.primary.main : theme.palette.text.secondary,
+            })}
+            size="small"
+          >
+            <SchoolIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+
         <Tooltip title="O modo de urgência adiciona uma nota ao final do laudo informando que o exame foi laudado em regime de urgência.">
           <IconButton
             aria-label="Urgência"
@@ -35,7 +56,7 @@ function TopRightControls(params: {
               setUrgent(next);
               showMessage(
                 next ? "Módulo de exames de urgência ativado." : "Módulo de exames de urgência desativado.",
-                next ? "info" : "info",
+                "info",
               );
             }}
             sx={(theme) => ({

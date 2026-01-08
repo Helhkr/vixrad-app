@@ -75,6 +75,7 @@ export class ReportsController {
       incidence: dto.incidence,
       decubitus: dto.decubitus,
       notes: dto.notes,
+      academic: dto.academic,
       ecgGating: dto.ecgGating,
       phases: dto.phases,
       coil: dto.coil,

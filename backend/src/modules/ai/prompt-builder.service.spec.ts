@@ -36,4 +36,19 @@ describe("PromptBuilderService (layered)", () => {
     expect(prompt).not.toContain("INDICAÇÃO CLÍNICA:");
     expect(prompt).toContain("ACHADOS DO EXAME (fornecidos pelo médico):\nAchado X");
   });
+
+  it("includes academic mode instructions when academic is true", () => {
+    const svc = new PromptBuilderService();
+
+    const prompt = svc.buildPrompt({
+      examType: "MR",
+      templateId: "mr-cranio-normal-v1",
+      templateBaseReport: "TEXTO NORMAL\n",
+      findings: "Sem alterações significativas.",
+      academic: true,
+    });
+
+    expect(prompt).toContain("MODO UNIVERSITÁRIO");
+    expect(prompt).toContain("descrições extensas");
+  });
 });
