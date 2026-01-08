@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
+import Tooltip from "@mui/material/Tooltip";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { ThemeProvider } from "@mui/material/styles";
@@ -26,23 +27,25 @@ function TopRightControls(params: {
   return (
     <div style={{ position: "fixed", top: 16, right: 16, zIndex: 1300 }}>
       <Stack direction="row" spacing={1} alignItems="center">
-        <IconButton
-          aria-label="Urgência"
-          onClick={() => {
-            const next = !urgent;
-            setUrgent(next);
-            showMessage(
-              next ? "Módulo de exames de urgência ativado." : "Módulo de exames de urgência desativado.",
-              next ? "info" : "info",
-            );
-          }}
-          sx={(theme) => ({
-            color: urgent ? theme.palette.error.main : theme.palette.text.secondary,
-          })}
-          size="small"
-        >
-          <LocalHospitalIcon fontSize="small" />
-        </IconButton>
+        <Tooltip title="O modo de urgência adiciona uma nota ao final do laudo informando que o exame foi laudado em regime de urgência.">
+          <IconButton
+            aria-label="Urgência"
+            onClick={() => {
+              const next = !urgent;
+              setUrgent(next);
+              showMessage(
+                next ? "Módulo de exames de urgência ativado." : "Módulo de exames de urgência desativado.",
+                next ? "info" : "info",
+              );
+            }}
+            sx={(theme) => ({
+              color: urgent ? theme.palette.error.main : theme.palette.text.secondary,
+            })}
+            size="small"
+          >
+            <LocalHospitalIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
 
         <ToggleButtonGroup
           value={params.mode}
