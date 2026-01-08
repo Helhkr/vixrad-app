@@ -645,6 +645,7 @@ export class TemplatesService {
     const values: Record<string, string | undefined> = {
       INDICACAO: input.indication,
       NOTAS: input.notes,
+      TYPE: input.type === "convencional" ? "CONVENCIONAL" : input.type === "digital" ? "DIGITAL" : input.type === "3d" ? "3D" : undefined,
       SEXO: input.sex === "F" ? "FEMININO" : input.sex === "M" ? "MASCULINO" : undefined,
       LADO: sideLabel,
       INCIDENCIA: input.incidence ? incidenciaMap[input.incidence] || input.incidence : undefined,

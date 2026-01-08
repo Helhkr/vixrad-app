@@ -59,6 +59,7 @@ Formato: `{{PLACEHOLDER}}`
 
 Placeholders suportados:
 - `{{INDICACAO}}`
+- `{{TYPE}}`
 - `{{SEXO}}`
 - `{{LADO}}`
 - `{{NOTAS}}`

@@ -310,6 +310,7 @@ Os placeholders devem seguir exatamente este padrão:
 Exemplos:
 
 * `{{LADO}}`
+* `{{TYPE}}`
 * `{{INDICACAO}}`
 * `{{NOTAS}}`
 

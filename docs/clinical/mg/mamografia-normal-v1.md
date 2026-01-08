@@ -5,7 +5,7 @@ requires:
   type: required
 ---
 
-# MAMOGRAFIA
+# MAMOGRAFIA {{TYPE}}
 
 **Técnica:**
 <!-- IF MG_CONVENCIONAL -->
