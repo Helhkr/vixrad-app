@@ -4,8 +4,8 @@ import type { ExamType } from "../templates/templates.service";
 
 @Injectable()
 export class PromptBuilderService {
-  private getGlobalRules(): string {
-    return [
+  private getGlobalRules(params: { academic: boolean }): string {
+    const header = [
       "Você é um assistente especializado em redação técnica de laudos médicos.",
       "Sua função é exclusivamente redigir, organizar e padronizar textos médicos",
       "com base nas informações fornecidas pelo médico.",
@@ -13,8 +13,7 @@ export class PromptBuilderService {
       "REGRAS OBRIGATÓRIAS:",
       "- NÃO inclua dados de identificação do paciente.",
       "- NÃO inclua nome do paciente, data, número de prontuário ou nome do médico.",
-      "- NÃO invente achados, medidas ou conclusões, a não ser que explicitamente solicitado.",
-      "- NÃO introduza diagnósticos que não estejam explicitamente mencionados, a não ser que solicitado explicitamente.",
+      "- NÃO invente achados, medidas ou detalhes técnicos não fornecidos (ex.: medidas, sequências, realce, territórios vasculares).",
       "- NÃO faça recomendações clínicas ou terapêuticas, a não ser que explicitamente solicitado.",
       "- NÃO utilize linguagem coloquial.",
       "- Utilize linguagem técnica médica formal.",
@@ -24,10 +23,24 @@ export class PromptBuilderService {
       "- Formatação das seções: cada rótulo ('Técnica:', 'Indicação:' quando houver, 'Análise:', 'Impressão diagnóstica:') deve ficar sozinho em sua linha, seguido do conteúdo nas linhas subsequentes.",
       "- Separe as seções com exatamente uma linha em branco: uma linha em branco entre 'Indicação:' e 'Análise:', e entre o final da análise e 'Impressão diagnóstica:'.",
       "- Se houver ACHADOS fornecidos (texto de achados), NÃO inclua frases genéricas como 'demais achados dentro dos limites da normalidade' na impressão diagnóstica. Resuma apenas os achados relevantes."
-    ].join("\n");
+    ];
+
+    const modeSpecific = params.academic
+      ? [
+          "",
+          "MODO UNIVERSITÁRIO (regras adicionais):",
+          "- É PERMITIDO propor hipóteses diagnósticas quando houver base nos achados fornecidos, indicando grau de confiança (ex.: provável/possível) e citando os sinais que sustentam a hipótese.",
+          "- Não apresente hipóteses como certeza quando houver indeterminação.",
+        ]
+      : [
+          "- NÃO introduza diagnósticos que não estejam explicitamente mencionados.",
+          "- NÃO conclua hipóteses diagnósticas não solicitadas; foque em descrever e resumir os achados.",
+        ];
+
+    return [...header, ...modeSpecific].join("\n");
   }
 
-  private getModalityContext(examType: ExamType): string {
+  private getModalityContext(examType: ExamType, params: { academic: boolean }): string {
     switch (examType) {
       case "CT":
         return [
@@ -35,7 +48,9 @@ export class PromptBuilderService {
           "Utilize estrutura típica de laudo tomográfico.",
           "Priorize descrição objetiva dos achados.",
           "Utilize terminologia radiológica padronizada.",
-          "Evite especulações.",
+          params.academic
+            ? "Hipóteses diagnósticas são permitidas quando houver base nos achados; indique grau de confiança e sinais de suporte."
+            : "Evite especulações.",
         ].join("\n");
       case "XR":
         return [
@@ -43,7 +58,9 @@ export class PromptBuilderService {
           "Utilize estrutura típica de laudo radiográfico.",
           "Descreva ossos, articulações e partes moles de forma objetiva.",
           "Use terminologia radiológica padronizada.",
-          "Evite inferências diagnósticas não solicitadas.",
+          params.academic
+            ? "Hipóteses diagnósticas são permitidas quando houver base nos achados; indique grau de confiança e sinais de suporte."
+            : "Evite inferências diagnósticas não solicitadas.",
         ].join("\n");
       case "US":
         return [
@@ -51,7 +68,9 @@ export class PromptBuilderService {
           "Utilize estrutura típica de laudo ultrassonográfico.",
           "Descreva órgãos e estruturas com base em ecogenicidade, contornos e dimensões.",
           "Use terminologia ecográfica padronizada.",
-          "Evite especulações clínicas.",
+          params.academic
+            ? "Hipóteses diagnósticas são permitidas quando houver base nos achados; indique grau de confiança e sinais de suporte."
+            : "Evite especulações clínicas.",
         ].join("\n");
       case "MR":
         return [
@@ -59,7 +78,9 @@ export class PromptBuilderService {
           "Utilize estrutura típica de laudo de RM.",
           "Descreva sequências, planos e achados com clareza técnica.",
           "Use terminologia radiológica padronizada.",
-          "Evite conclusões não solicitadas.",
+          params.academic
+            ? "Hipóteses diagnósticas são permitidas quando houver base nos achados; indique grau de confiança e sinais de suporte."
+            : "Evite conclusões não solicitadas.",
         ].join("\n");
       case "MG":
         return [
@@ -129,8 +150,8 @@ export class PromptBuilderService {
     academic?: boolean;
     findings: string;
   }): string {
-    const globalRules = this.getGlobalRules();
-    const modalityContext = this.getModalityContext(params.examType);
+    const globalRules = this.getGlobalRules({ academic: Boolean(params.academic) });
+    const modalityContext = this.getModalityContext(params.examType, { academic: Boolean(params.academic) });
     const templateBase = `TEMPLATE BASE:\n${params.templateBaseReport.trimEnd()}`;
 
     const indication = params.indication?.trim();

@@ -209,8 +209,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setArtifactSourceEnabled(false);
     setArtifactSourceTypes([]);
     setReportText("");
-    setUrgent(false);
-    setAcademic(false);
   }, []);
 
   const value = useMemo<AppState>(

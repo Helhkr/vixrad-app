@@ -51,4 +51,19 @@ describe("PromptBuilderService (layered)", () => {
     expect(prompt).toContain("MODO UNIVERSITÁRIO");
     expect(prompt).toContain("descrições extensas");
   });
+
+  it("keeps strict no-diagnosis rule when academic is false", () => {
+    const svc = new PromptBuilderService();
+
+    const prompt = svc.buildPrompt({
+      examType: "MR",
+      templateId: "mr-cranio-normal-v1",
+      templateBaseReport: "TEXTO NORMAL\n",
+      findings: "Achado X",
+      academic: false,
+    });
+
+    expect(prompt).toContain("NÃO introduza diagnósticos");
+    expect(prompt).not.toContain("É PERMITIDO propor hipóteses diagnósticas");
+  });
 });
