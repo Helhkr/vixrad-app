@@ -12,7 +12,6 @@ import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 
 import { fetchTemplatesByExamType, type TemplateOption } from "@/features/templates";
 import { useAppState, type ExamType } from "../state";
@@ -112,11 +111,6 @@ export default function TemplatesPage() {
           >
             <ArrowCircleLeftIcon />
           </IconButton>
-
-          <Typography variant="h6" component="h1">
-            Seleção de Modelos
-          </Typography>
-
           <Autocomplete
             options={examTypes}
             value={selectedExamTypeOption}

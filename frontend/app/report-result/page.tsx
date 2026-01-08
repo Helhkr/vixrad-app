@@ -14,7 +14,6 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 
 import { useAppState } from "../state";
 import { useSnackbar } from "../snackbar";
@@ -163,11 +162,6 @@ export default function ReportResultPage() {
         >
           <ArrowCircleLeftIcon />
         </IconButton>
-
-        <Typography variant="h6" component="h1">
-          Laudo
-        </Typography>
-
         <Paper elevation={2} sx={{ p: 4 }}>
           <div dangerouslySetInnerHTML={{ __html: displayHtml }} />
         </Paper>

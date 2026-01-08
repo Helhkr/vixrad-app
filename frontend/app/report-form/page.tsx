@@ -312,11 +312,6 @@ export default function ReportFormPage() {
           >
             <ArrowCircleLeftIcon />
           </IconButton>
-
-          <Typography variant="h6" component="h1">
-            Indicação / Contraste
-          </Typography>
-
           <Typography variant="body2" color="text.secondary">
             Modelo: {templateLabel}
           </Typography>
