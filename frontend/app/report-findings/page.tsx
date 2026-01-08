@@ -54,6 +54,7 @@ export default function ReportFindingsPage() {
     findings,
     setFindings,
     setReportText,
+    urgent,
     resetReport,
   } = useAppState();
 
@@ -87,6 +88,8 @@ export default function ReportFindingsPage() {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFormat, setSelectedFormat] = useState<CopyFormat>("formatted");
+
+  const urgentNote = urgent ? "Exame realizado em caráter de urgência." : undefined;
 
   // Detectar quando pára de gravar (transição de listening true -> false)
   useEffect(() => {
@@ -274,6 +277,7 @@ export default function ReportFindingsPage() {
           type: mgType ?? undefined,
           contrast,
           indication: indication || undefined,
+          notes: urgentNote,
           sex: sex || undefined,
           side: side || undefined,
           incidence: incidence ?? undefined,
@@ -352,6 +356,7 @@ export default function ReportFindingsPage() {
         if (mgType) formData.append("type", mgType);
         formData.append("contrast", contrast);
         if (indication) formData.append("indication", indication);
+        if (urgentNote) formData.append("notes", urgentNote);
         if (sex) formData.append("sex", sex);
         if (side) formData.append("side", side);
         if (incidence) formData.append("incidence", incidence);
@@ -374,6 +379,7 @@ export default function ReportFindingsPage() {
           type: mgType ?? undefined,
           contrast,
           indication: indication || undefined,
+          notes: urgentNote,
           sex: sex || undefined,
           side: side || undefined,
           incidence: incidence ?? undefined,

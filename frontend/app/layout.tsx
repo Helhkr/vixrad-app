@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import Providers from "./providers";
-import { SnackbarProvider } from "./snackbar";
 
 export const metadata = {
 	title: "Vixrad",
@@ -11,9 +10,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
 		<html lang="pt-BR">
 			<body>
-				<Providers>
-					<SnackbarProvider>{children}</SnackbarProvider>
-				</Providers>
+				<Providers>{children}</Providers>
 			</body>
 		</html>
 	);
