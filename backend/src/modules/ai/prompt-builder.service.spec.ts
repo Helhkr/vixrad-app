@@ -21,6 +21,7 @@ describe("PromptBuilderService (layered)", () => {
     expect(prompt).toContain("INDICAÇÃO CLÍNICA:\nDor");
     expect(prompt).toContain("ACHADOS DO EXAME (fornecidos pelo médico):\nAchado X");
     expect(prompt).toContain("INSTRUÇÕES DE SAÍDA:");
+    expect(prompt).toContain("'Notas:'");
   });
 
   it("omits indication block when not provided", () => {
