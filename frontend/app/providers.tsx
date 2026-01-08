@@ -26,24 +26,6 @@ function TopRightControls(params: {
   return (
     <div style={{ position: "fixed", top: 16, right: 16, zIndex: 1300 }}>
       <Stack direction="row" spacing={1} alignItems="center">
-        <ToggleButtonGroup
-          value={params.mode}
-          exclusive
-          onChange={(_, value) => {
-            if (value === null) return;
-            params.setMode(value);
-          }}
-          aria-label="Tema"
-          size="small"
-        >
-          <ToggleButton value="light" aria-label="Modo claro">
-            <LightModeIcon fontSize="small" />
-          </ToggleButton>
-          <ToggleButton value="dark" aria-label="Modo escuro">
-            <DarkModeIcon fontSize="small" />
-          </ToggleButton>
-        </ToggleButtonGroup>
-
         <IconButton
           aria-label="Urgência"
           onClick={() => {
@@ -61,6 +43,24 @@ function TopRightControls(params: {
         >
           <LocalHospitalIcon fontSize="small" />
         </IconButton>
+
+        <ToggleButtonGroup
+          value={params.mode}
+          exclusive
+          onChange={(_, value) => {
+            if (value === null) return;
+            params.setMode(value);
+          }}
+          aria-label="Tema"
+          size="small"
+        >
+          <ToggleButton value="light" aria-label="Modo claro">
+            <LightModeIcon fontSize="small" />
+          </ToggleButton>
+          <ToggleButton value="dark" aria-label="Modo escuro">
+            <DarkModeIcon fontSize="small" />
+          </ToggleButton>
+        </ToggleButtonGroup>
       </Stack>
     </div>
   );
