@@ -89,6 +89,7 @@ Esses campos não indicam obrigatoriedade clínica, mas sim comportamento da int
 
 ```yaml
 requires:
+  type:
   indication:
   sex:
   side:
@@ -104,6 +105,7 @@ requires:
 
 Notas rápidas:
 
+- `type` é usado quando o template precisa de uma escolha discreta de “tipo” de exame (ex.: mamografia convencional/digital/3D).
 - `contrast: fixed` é usado quando o contraste é implícito (ex.: angiotomografias e angiorressonâncias).
 - `artifact_source` controla a pergunta de artefatos e a inserção de um fragmento na **Técnica**.
 

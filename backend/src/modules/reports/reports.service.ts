@@ -133,6 +133,7 @@ export class ReportsService {
     userId?: string;
     examType: "CT" | "XR" | "US" | "MR" | "MG" | "DXA" | "NM";
     templateId: string;
+    type?: "convencional" | "digital" | "3d";
     indication?: string;
     sex?: "M" | "F";
     side?: "RIGHT" | "LEFT" | "BILATERAL";
@@ -217,6 +218,7 @@ export class ReportsService {
     const baseInput = {
       examType: params.examType,
       templateId: params.templateId,
+      type: params.type,
       indication,
       sex: params.sex,
       side: params.side,

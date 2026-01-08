@@ -67,6 +67,7 @@ export class ReportsController {
       userId: (req as any)?.user?.sub,
       examType: dto.examType,
       templateId: dto.templateId,
+      type: dto.type,
       indication: dto.indication,
       sex: dto.sex,
       side: dto.side,

@@ -8,6 +8,7 @@ export type RequireState = "required" | "optional" | "none" | "fixed";
 export type SideGender = "masculine" | "feminine";
 
 export type TemplateRequires = {
+  type: RequireState;
   indication: RequireState;
   sex: RequireState;
   contrast: RequireState;
@@ -49,6 +50,7 @@ export type TemplateDetail = {
 export type RenderInput = {
   examType: ExamType;
   templateId: string;
+  type?: "convencional" | "digital" | "3d";
   indication?: string;
   sex?: "M" | "F";
   side?: "RIGHT" | "LEFT" | "BILATERAL";
@@ -111,6 +113,9 @@ const SUPPORTED_REQUIRE_STATES: RequireState[] = ["required", "optional", "none"
 const SUPPORTED_SIDE_GENDERS: SideGender[] = ["masculine", "feminine"];
 const SUPPORTED_INCIDENCES = ["PA e Perfil", "AP", "PA", "Perfil", "Obliqua", "Ortostática", "Axial"] as const;
 const SUPPORTED_CONDITIONS = new Set([
+  "MG_CONVENCIONAL",
+  "MG_DIGITAL",
+  "MG_3D",
   "INDICACAO",
   "CONTRASTE",
   "SEXO_MASCULINO",
@@ -289,6 +294,7 @@ export class TemplatesService {
 
     // Validar que campos presentes têm valores válidos, usar "none" como padrão para campos faltantes
     const fullRequires: TemplateRequires = {
+      type: (requires as any).type ?? "none",
       indication: requires.indication ?? "none",
       sex: requires.sex ?? "none",
       contrast: requires.contrast ?? "none",
@@ -325,6 +331,10 @@ export class TemplatesService {
 
   private assertInputMeetsRequires(meta: TemplateMeta, input: RenderInput): void {
     const req = meta.requires;
+
+    if (req.type === "required" && !input.type) {
+      throw new BadRequestException("requires.type: obrigatório");
+    }
 
     if (req.indication === "required" && !input.indication) {
       throw new BadRequestException("requires.indication: obrigatório");
@@ -582,6 +592,9 @@ export class TemplatesService {
     this.assertInputMeetsRequires(parsed.meta, input);
 
     const flags: Record<string, boolean> = {
+      MG_CONVENCIONAL: input.type === "convencional",
+      MG_DIGITAL: input.type === "digital",
+      MG_3D: input.type === "3d",
       INDICACAO: Boolean(input.indication),
       NOTAS: Boolean(input.notes),
       SEXO_FEMININO: input.sex === "F",

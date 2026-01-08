@@ -11,6 +11,7 @@ export type Incidence = "AP" | "PA" | "Perfil" | "PA e Perfil" | "Obliqua" | "Or
 export type Decubitus = "ventral" | "dorsal" | "lateral";
 export type MrRadio = "omit" | "without" | "with";
 export type MrFieldStrength = "omit" | "1.5T" | "3.0T";
+export type MgType = "convencional" | "digital" | "3d";
 export type ArtifactType =
   | "Movimento"
   | "Beam hardening"
@@ -47,6 +48,9 @@ type AppState = {
 
   contrast: Contrast;
   setContrast: (value: Contrast) => void;
+
+  mgType: MgType | null;
+  setMgType: (value: MgType | null) => void;
 
   sex: Sex | null;
   setSex: (value: Sex | null) => void;
@@ -123,6 +127,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [indicationFile, setIndicationFile] = useState<File | null>(null);
   const [findings, setFindings] = useState<string>("");
   const [contrast, setContrast] = useState<Contrast>("without");
+  const [mgType, setMgType] = useState<MgType | null>(null);
   const [sex, setSex] = useState<Sex | null>(null);
   const [side, setSide] = useState<Side | null>(null);
   const [incidence, setIncidence] = useState<Incidence | null>(null);
@@ -184,6 +189,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setIndicationFile(null);
     setFindings("");
     setContrast("without");
+    setMgType(null);
     setSex(null);
     setSide(null);
     setIncidence(null);
@@ -215,6 +221,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setFindings,
       contrast,
       setContrast,
+      mgType,
+      setMgType,
       sex,
       setSex,
       side,
@@ -250,6 +258,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       indicationFile,
       findings,
       contrast,
+      mgType,
       sex,
       side,
       incidence,

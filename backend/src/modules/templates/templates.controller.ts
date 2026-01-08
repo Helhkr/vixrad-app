@@ -12,6 +12,7 @@ export type TemplateListItem = {
 };
 
 export type TemplateRequires = {
+  type: string;
   indication: string;
   sex: string;
   contrast: string;

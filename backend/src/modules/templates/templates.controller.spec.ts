@@ -25,6 +25,7 @@ describe("TemplatesController", () => {
               name: "TOMOGRAFIA COMPUTADORIZADA DO CRÂNIO",
               examType: "CT",
               requires: {
+                type: "none",
                 indication: "optional",
                 sex: "none",
                 contrast: "required",
@@ -73,6 +74,7 @@ describe("TemplatesController", () => {
       name: "TOMOGRAFIA COMPUTADORIZADA DO CRÂNIO",
       examType: "CT",
       requires: {
+        type: "none",
         indication: "optional",
         sex: "none",
         contrast: "required",

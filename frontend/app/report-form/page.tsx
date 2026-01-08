@@ -25,7 +25,7 @@ import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import { fetchTemplateDetail, type TemplateDetail } from "@/features/templates";
 import { useAppState } from "../state";
-import type { ArtifactType, Decubitus, Incidence, MrFieldStrength, MrRadio } from "../state";
+import type { ArtifactType, Decubitus, Incidence, MgType, MrFieldStrength, MrRadio } from "../state";
 import { useSnackbar } from "../snackbar";
 
 const INCIDENCES: Incidence[] = ["PA e Perfil", "AP", "PA", "Perfil", "Obliqua", "Ortostática", "Axial"];
@@ -62,6 +62,8 @@ export default function ReportFormPage() {
     setIndicationFile,
     contrast,
     setContrast,
+    mgType,
+    setMgType,
     sex,
     setSex,
     side,
@@ -138,6 +140,7 @@ export default function ReportFormPage() {
 
   const showIndication = requires ? requires.indication !== "none" && requires.indication !== "fixed" : true;
   const showContrast = requires ? requires.contrast !== "none" && requires.contrast !== "fixed" : true;
+  const showMgType = requires ? requires.type !== "none" && requires.type !== "fixed" : false;
   const showSex = requires ? requires.sex !== "none" && requires.sex !== "fixed" : false;
   const showSide = requires ? requires.side !== "none" && requires.side !== "fixed" : false;
   const showIncidence = requires ? requires.incidence !== "none" && requires.incidence !== "fixed" : false;
@@ -212,6 +215,13 @@ export default function ReportFormPage() {
     return template?.name ?? templateId;
   }, [template?.name, templateId]);
 
+  useEffect(() => {
+    if (!showMgType) return;
+    if (examType !== "MG") return;
+    if (mgType) return;
+    setMgType("digital");
+  }, [showMgType, examType, mgType, setMgType]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file = e.target.files[0];
@@ -224,6 +234,12 @@ export default function ReportFormPage() {
 
       setIndicationFile(file);
       setIndication("Em anexo");
+    }
+  };
+
+  const handleMgTypeChange = (_: React.ChangeEvent<HTMLInputElement>, value: string) => {
+    if (value === "convencional" || value === "digital" || value === "3d") {
+      setMgType(value as MgType);
     }
   };
 
@@ -243,6 +259,11 @@ export default function ReportFormPage() {
   const validateAndContinue = () => {
     if (!requires) {
       showMessage("Aguarde carregar o modelo.", "error");
+      return;
+    }
+
+    if (requires.type === "required" && !mgType) {
+      showMessage("Selecione o tipo de mamografia.", "error");
       return;
     }
 
@@ -359,6 +380,17 @@ export default function ReportFormPage() {
                 />
                 <Typography variant="body2">Com</Typography>
               </Stack>
+            </FormControl>
+          ) : null}
+
+          {showMgType && examType === "MG" ? (
+            <FormControl>
+              <FormLabel>Tipo de mamografia</FormLabel>
+              <RadioGroup row value={mgType ?? ""} onChange={handleMgTypeChange}>
+                <FormControlLabel value="convencional" control={<Radio />} label="Convencional" />
+                <FormControlLabel value="digital" control={<Radio />} label="Digital" />
+                <FormControlLabel value="3d" control={<Radio />} label="3D" />
+              </RadioGroup>
             </FormControl>
           ) : null}
 

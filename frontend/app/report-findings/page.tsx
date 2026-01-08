@@ -40,6 +40,7 @@ export default function ReportFindingsPage() {
     indication,
     indicationFile,
     contrast,
+    mgType,
     sex,
     side,
     incidence,
@@ -173,6 +174,12 @@ export default function ReportFindingsPage() {
       return false;
     }
 
+    if (requires.type === "required" && !mgType) {
+      showMessage("Selecione o tipo de mamografia no formulário.", "error");
+      router.push("/report-form");
+      return false;
+    }
+
     if (requires.indication === "required" && !indication.trim()) {
       showMessage("Preencha a indicação no formulário.", "error");
       router.push("/report-form");
@@ -264,6 +271,7 @@ export default function ReportFindingsPage() {
         {
           examType,
           templateId,
+          type: mgType ?? undefined,
           contrast,
           indication: indication || undefined,
           sex: sex || undefined,
@@ -341,6 +349,7 @@ export default function ReportFindingsPage() {
         const formData = new FormData();
         formData.append("examType", examType);
         formData.append("templateId", templateId);
+        if (mgType) formData.append("type", mgType);
         formData.append("contrast", contrast);
         if (indication) formData.append("indication", indication);
         if (sex) formData.append("sex", sex);
@@ -362,6 +371,7 @@ export default function ReportFindingsPage() {
         {
           examType,
           templateId,
+          type: mgType ?? undefined,
           contrast,
           indication: indication || undefined,
           sex: sex || undefined,

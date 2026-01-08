@@ -35,7 +35,7 @@ requires:
   - CT, XR, US, MR, MG, DXA, NM
 - **requires**: define perguntas obrigatórias/opcionais antes da geração do laudo.
   - Valores: `required`, `optional`, `none`, `fixed`
-  - Campos suportados: `indication`, `sex`, `contrast`, `side`, `incidence`, `decubitus`, `ecg_gating`, `phases`, `coil`, `sedation`, `artifact_source`
+  - Campos suportados: `type`, `indication`, `sex`, `contrast`, `side`, `incidence`, `decubitus`, `ecg_gating`, `phases`, `coil`, `sedation`, `artifact_source`
 
 ---
 
@@ -85,6 +85,9 @@ conteúdo alternativo
 ```
 
 Condições suportadas:
+- `MG_CONVENCIONAL`
+- `MG_DIGITAL`
+- `MG_3D`
 - `INDICACAO`
 - `CONTRASTE`
 - `SEXO_MASCULINO`

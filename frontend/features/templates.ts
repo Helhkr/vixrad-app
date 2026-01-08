@@ -13,6 +13,7 @@ export type TemplateListItem = {
 };
 
 export type TemplateRequires = {
+  type: "required" | "optional" | "none" | "fixed";
   indication: "required" | "optional" | "none" | "fixed";
   sex: "required" | "optional" | "none" | "fixed";
   contrast: "required" | "optional" | "none" | "fixed";

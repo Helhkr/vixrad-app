@@ -12,6 +12,11 @@ export class GenerateReportDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(["convencional", "digital", "3d"], { message: "type inválido" })
+  type?: "convencional" | "digital" | "3d";
+
+  @IsOptional()
+  @IsString()
   @MaxLength(2000)
   indication?: string;
 
