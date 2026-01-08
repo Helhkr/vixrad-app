@@ -11,7 +11,7 @@ services:
       PORT: 3002
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-}
-      GEMINI_TIMEOUT_MS: ${GEMINI_TIMEOUT_MS:-}
+      GEMINI_TIMEOUT_MS: "60000"
     depends_on:
       postgres:
         condition: service_healthy

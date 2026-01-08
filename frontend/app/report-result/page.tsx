@@ -71,7 +71,7 @@ export default function ReportResultPage() {
     };
     try {
       if (format === "formatted") {
-        const html = convertMarkdownToHtml(reportText);
+        const html = formatReportForCopy(reportText, "formatted");
         const plain = stripMarkdown(reportText);
 
         // Prefer DOM selection copy for Word compatibility

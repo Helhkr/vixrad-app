@@ -17,8 +17,9 @@ export function stripMarkdown(md: string): string {
     .replace(/\n{2,}/g, "\n\n");
 }
 
-export function convertMarkdownToHtml(md: string): string {
+export function convertMarkdownToHtml(md: string, opts?: { forceBlack?: boolean }): string {
   // Very small markdown subset: H1, bold, paragraphs, with inline styles for Word compatibility
+  const forceBlack = opts?.forceBlack ?? false;
   const escapeHtml = (s: string) =>
     s
       .replace(/&/g, "&amp;")
@@ -29,7 +30,9 @@ export function convertMarkdownToHtml(md: string): string {
   const blocks: string[] = [];
   let buffer: string[] = [];
 
-  const baseStyle = "font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.3;";
+  const baseStyle = forceBlack
+    ? "font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.3; color: #000; background-color: transparent;"
+    : "font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.3;";
   const blankLine = `<p style="margin: 0; ${baseStyle}">&nbsp;</p>`;
 
   const flushParagraph = () => {
@@ -47,7 +50,7 @@ export function convertMarkdownToHtml(md: string): string {
       flushParagraph();
       const title = line.replace(/^#\s+/, "");
       blocks.push(
-        `<h1 style="margin: 0 0 12px 0; ${baseStyle} font-weight: bold;">${escapeHtml(title)}</h1>`,
+        `<h1 style="margin: 0 0 12px 0; ${baseStyle} font-weight: bold; text-align: center;">${escapeHtml(title)}</h1>`,
       );
       continue;
     }
@@ -56,7 +59,8 @@ export function convertMarkdownToHtml(md: string): string {
       continue;
     }
     // Check if this line starts a new section (bold marker at line start)
-    if (/^\*\*/.test(line) && blocks.length > 0) {
+    // Keep the extra blank paragraph for most sections, but skip it before "Indicação:".
+    if (/^\*\*/.test(line) && blocks.length > 0 && !/^\*\*\s*Indicação\s*:/i.test(line)) {
       flushParagraph();
       blocks.push(blankLine);
     }
@@ -65,14 +69,14 @@ export function convertMarkdownToHtml(md: string): string {
   }
   flushParagraph();
 
-  // Wrap with a container enforcing Arial 12pt
+  // Wrap with a container enforcing Arial 12pt (and optionally force black text for copying)
   return `<div style="${baseStyle}">${blocks.join("\n")}</div>`;
 }
 
 export function formatReportForCopy(reportText: string, format: CopyFormat): string {
   switch (format) {
     case "formatted":
-      return convertMarkdownToHtml(reportText);
+      return convertMarkdownToHtml(reportText, { forceBlack: true });
     case "plain":
       return stripMarkdown(reportText);
     case "markdown":

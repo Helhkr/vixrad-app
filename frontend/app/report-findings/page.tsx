@@ -22,7 +22,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
 import { apiPost, apiPostForm } from "@/features/api";
-import { formatReportForCopy, convertMarkdownToHtml, stripMarkdown, type CopyFormat } from "@/features/reportCopyFormat";
+import { formatReportForCopy, stripMarkdown, type CopyFormat } from "@/features/reportCopyFormat";
 import { fetchTemplateDetail, type TemplateDetail } from "@/features/templates";
 import { useAppState } from "../state";
 import { useSnackbar } from "../snackbar";
@@ -298,7 +298,7 @@ export default function ReportFindingsPage() {
       setReportText(data.reportText);
 
       if (format === "formatted") {
-        const html = convertMarkdownToHtml(data.reportText);
+        const html = formatReportForCopy(data.reportText, "formatted");
         const plain = stripMarkdown(data.reportText);
 
         // Prefer DOM selection copy for Word compatibility
