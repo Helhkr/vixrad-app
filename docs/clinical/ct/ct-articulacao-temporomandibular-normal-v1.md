@@ -1,4 +1,6 @@
 ---
+
+---
 exam_type: CT
 requires:
   indication: optional
@@ -18,20 +20,18 @@ side_gender: feminine
 
 **Análise:**
 
-**Cabeça da mandíbula:**
-Contornos regulares, sem sinais de erosão, esclerose ou osteófitos. Morfologia preservada.
+Articulação temporomandibular {{LADO}} com cabeça da mandíbula de contornos regulares, sem sinais de erosão, esclerose ou osteófitos. Morfologia preservada.
 
-**Fossa mandibular e eminência articular:**
-Superfícies ósseas regulares, sem sinais de alterações degenerativas ou fraturas.
+Fossa mandibular e eminência articular com superfícies ósseas regulares, sem sinais de alterações degenerativas ou fraturas.
 
-**Espaço articular:**
-Mantido em boca fechada e aberto. Sem sinais de deslocamento condilar ou redução do espaço articular.
+Espaço articular mantido em boca fechada e aberta. Sem sinais de deslocamento condilar ou redução do espaço articular.
 
-**Processo condilar:**
-Morfologia e contornos preservados. Sem sinais de fratura ou lesão focal.
+Processo condilar de morfologia e contornos preservados. Sem sinais de fratura ou lesão focal.
+
+Demais estruturas ósseas avaliadas sem alterações significativas.
 
 **Impressão diagnóstica:**
-Tomografia da articulação temporomandibular {{LADO}} dentro dos limites da normalidade. Ausência de alterações ósseas degenerativas, traumáticas ou inflamatórias.
+Exame tomográfico da articulação temporomandibular {{LADO}} dentro dos limites da normalidade. Ausência de alterações ósseas degenerativas, traumáticas ou inflamatórias.
 
 <!-- IF NOTAS -->
 **Notas:** {{NOTAS}}
