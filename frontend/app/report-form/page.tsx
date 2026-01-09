@@ -25,10 +25,19 @@ import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import { fetchTemplateDetail, type TemplateDetail } from "@/features/templates";
 import { useAppState } from "../state";
-import type { ArtifactType, Decubitus, DxaPeripheralSite, Incidence, MgType, MrFieldStrength, MrRadio } from "../state";
+import type { ArtifactType, Decubitus, DxaLimitation, DxaPeripheralSite, Incidence, MgType, MrFieldStrength, MrRadio } from "../state";
 import { useSnackbar } from "../snackbar";
 
 const INCIDENCES: Incidence[] = ["PA e Perfil", "AP", "PA", "Perfil", "Obliqua", "Ortostática", "Axial"];
+
+const DXA_LIMITATION_OPTIONS: { value: DxaLimitation; label: string }[] = [
+  { value: "escoliose", label: "Escoliose" },
+  { value: "fraturas_vertebrais", label: "Fraturas vertebrais" },
+  { value: "protese_quadril", label: "Prótese de quadril" },
+  { value: "calcificacoes_aorticas", label: "Calcificações aórticas" },
+  { value: "artefatos_movimento", label: "Artefatos de movimento" },
+  { value: "obesidade", label: "Obesidade" },
+];
 
 const CT_ARTIFACT_TYPES: ArtifactType[] = ["Movimento", "Beam hardening"];
 
@@ -84,6 +93,34 @@ export default function ReportFormPage() {
     setDxaTotalHipTScore,
     dxaTotalHipZScore,
     setDxaTotalHipZScore,
+    dxaIncludeForearm,
+    setDxaIncludeForearm,
+    dxaForearmBmd,
+    setDxaForearmBmd,
+    dxaForearmTScore,
+    setDxaForearmTScore,
+    dxaForearmZScore,
+    setDxaForearmZScore,
+    dxaHasPreviousExam,
+    setDxaHasPreviousExam,
+    dxaAttachPreviousExam,
+    setDxaAttachPreviousExam,
+    dxaPreviousExamFile,
+    setDxaPreviousExamFile,
+    dxaPreviousExamDate,
+    setDxaPreviousExamDate,
+    dxaPreviousLumbarBmd,
+    setDxaPreviousLumbarBmd,
+    dxaPreviousFemoralNeckBmd,
+    setDxaPreviousFemoralNeckBmd,
+    dxaPreviousTotalHipBmd,
+    setDxaPreviousTotalHipBmd,
+    dxaLimitationsEnabled,
+    setDxaLimitationsEnabled,
+    dxaLimitationTypes,
+    setDxaLimitationTypes,
+    dxaScoreType,
+    setDxaScoreType,
     sex,
     setSex,
     side,
@@ -248,6 +285,30 @@ export default function ReportFormPage() {
     setDxaSites(dxaSites.includes(site) ? dxaSites.filter((s) => s !== site) : [...dxaSites, site]);
   };
 
+  const toggleDxaLimitation = (lim: DxaLimitation) => {
+    setDxaLimitationTypes(
+      dxaLimitationTypes.includes(lim)
+        ? dxaLimitationTypes.filter((l) => l !== lim)
+        : [...dxaLimitationTypes, lim],
+    );
+  };
+
+  const handleDxaPreviousFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const file = e.target.files[0];
+      const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+      if (!validTypes.includes(file.type)) {
+        showMessage("Tipo de arquivo inválido. Use PDF ou imagem (JPG/PNG/WebP).", "error");
+        return;
+      }
+      setDxaPreviousExamFile(file);
+    }
+  };
+
+  const handleRemoveDxaPreviousFile = () => {
+    setDxaPreviousExamFile(null);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file = e.target.files[0];
@@ -313,6 +374,32 @@ export default function ReportFormPage() {
         !dxaTotalHipZScore.trim();
       if (missing) {
         showMessage("Preencha DMO, T-score e Z-score para coluna, colo femoral e quadril total.", "error");
+        return;
+      }
+
+      if (dxaIncludeForearm) {
+        const forearmMissing =
+          !dxaForearmBmd.trim() || !dxaForearmTScore.trim() || !dxaForearmZScore.trim();
+        if (forearmMissing) {
+          showMessage("Preencha DMO, T-score e Z-score para rádio 33%.", "error");
+          return;
+        }
+      }
+
+      if (dxaHasPreviousExam && !dxaAttachPreviousExam) {
+        const prevMissing =
+          !dxaPreviousExamDate.trim() ||
+          !dxaPreviousLumbarBmd.trim() ||
+          !dxaPreviousFemoralNeckBmd.trim() ||
+          !dxaPreviousTotalHipBmd.trim();
+        if (prevMissing) {
+          showMessage("Preencha os dados do exame anterior (data e DMOs).", "error");
+          return;
+        }
+      }
+
+      if (dxaLimitationsEnabled && dxaLimitationTypes.length === 0) {
+        showMessage("Selecione pelo menos uma limitação técnica.", "error");
         return;
       }
     }
@@ -547,6 +634,206 @@ export default function ReportFormPage() {
                   />
                 </Stack>
               </Stack>
+
+              {/* Rádio 33% (forearm) */}
+              <FormControl>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography variant="body2">Incluir rádio 33% (antebraço)?</Typography>
+                  <Switch
+                    checked={dxaIncludeForearm}
+                    onChange={(e) => setDxaIncludeForearm(e.target.checked)}
+                  />
+                </Stack>
+              </FormControl>
+
+              {dxaIncludeForearm ? (
+                <Stack spacing={1}>
+                  <Typography variant="body2" color="text.secondary">
+                    Rádio 33% (terço distal)
+                  </Typography>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                    <TextField
+                      label="DMO (g/cm²)"
+                      value={dxaForearmBmd}
+                      onChange={(e) => setDxaForearmBmd(e.target.value)}
+                      fullWidth
+                    />
+                    <TextField
+                      label="T-score"
+                      value={dxaForearmTScore}
+                      onChange={(e) => setDxaForearmTScore(e.target.value)}
+                      fullWidth
+                    />
+                    <TextField
+                      label="Z-score"
+                      value={dxaForearmZScore}
+                      onChange={(e) => setDxaForearmZScore(e.target.value)}
+                      fullWidth
+                    />
+                  </Stack>
+                </Stack>
+              ) : null}
+
+              {/* Exame anterior */}
+              <FormControl>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography variant="body2">Exame anterior?</Typography>
+                  <Switch
+                    checked={dxaHasPreviousExam}
+                    onChange={(e) => {
+                      setDxaHasPreviousExam(e.target.checked);
+                      if (!e.target.checked) {
+                        setDxaAttachPreviousExam(false);
+                        setDxaPreviousExamFile(null);
+                        setDxaPreviousExamDate("");
+                        setDxaPreviousLumbarBmd("");
+                        setDxaPreviousFemoralNeckBmd("");
+                        setDxaPreviousTotalHipBmd("");
+                      }
+                    }}
+                  />
+                </Stack>
+              </FormControl>
+
+              {dxaHasPreviousExam ? (
+                <Stack spacing={2} sx={{ pl: 2, borderLeft: "2px solid", borderColor: "divider" }}>
+                  <FormControl>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Typography variant="body2">Anexar exame anterior?</Typography>
+                      <Switch
+                        checked={dxaAttachPreviousExam}
+                        onChange={(e) => {
+                          setDxaAttachPreviousExam(e.target.checked);
+                          if (e.target.checked) {
+                            setDxaPreviousExamDate("");
+                            setDxaPreviousLumbarBmd("");
+                            setDxaPreviousFemoralNeckBmd("");
+                            setDxaPreviousTotalHipBmd("");
+                          } else {
+                            setDxaPreviousExamFile(null);
+                          }
+                        }}
+                      />
+                    </Stack>
+                  </FormControl>
+
+                  {dxaAttachPreviousExam ? (
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <input
+                        type="file"
+                        accept=".pdf,application/pdf,image/jpeg,image/png,image/webp"
+                        style={{ display: "none" }}
+                        id="dxa-previous-file-input"
+                        onChange={handleDxaPreviousFileChange}
+                      />
+                      <label htmlFor="dxa-previous-file-input">
+                        <Tooltip title="PDF ou imagem (JPG/PNG/WebP) até 25MB">
+                          <span>
+                            <IconButton component="span" color="primary">
+                              <AttachFileIcon />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </label>
+                      {dxaPreviousExamFile ? (
+                        <>
+                          <Typography variant="caption" color="text.secondary">
+                            📎 {dxaPreviousExamFile.name} ({(dxaPreviousExamFile.size / 1024).toFixed(1)} KB)
+                          </Typography>
+                          <IconButton color="error" onClick={handleRemoveDxaPreviousFile} size="small">
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </>
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">
+                          Anexe o laudo do exame anterior
+                        </Typography>
+                      )}
+                    </Stack>
+                  ) : (
+                    <Stack spacing={1}>
+                      <TextField
+                        label="Data do exame anterior"
+                        placeholder="DD/MM/AAAA"
+                        value={dxaPreviousExamDate}
+                        onChange={(e) => setDxaPreviousExamDate(e.target.value)}
+                        fullWidth
+                      />
+                      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                        <TextField
+                          label="DMO coluna (g/cm²)"
+                          value={dxaPreviousLumbarBmd}
+                          onChange={(e) => setDxaPreviousLumbarBmd(e.target.value)}
+                          fullWidth
+                        />
+                        <TextField
+                          label="DMO colo femoral (g/cm²)"
+                          value={dxaPreviousFemoralNeckBmd}
+                          onChange={(e) => setDxaPreviousFemoralNeckBmd(e.target.value)}
+                          fullWidth
+                        />
+                        <TextField
+                          label="DMO quadril total (g/cm²)"
+                          value={dxaPreviousTotalHipBmd}
+                          onChange={(e) => setDxaPreviousTotalHipBmd(e.target.value)}
+                          fullWidth
+                        />
+                      </Stack>
+                    </Stack>
+                  )}
+                </Stack>
+              ) : null}
+
+              {/* Limitações técnicas */}
+              <FormControl>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography variant="body2">Limitações técnicas?</Typography>
+                  <Switch
+                    checked={dxaLimitationsEnabled}
+                    onChange={(e) => {
+                      setDxaLimitationsEnabled(e.target.checked);
+                      if (!e.target.checked) setDxaLimitationTypes([]);
+                    }}
+                  />
+                </Stack>
+              </FormControl>
+
+              {dxaLimitationsEnabled ? (
+                <FormGroup>
+                  {DXA_LIMITATION_OPTIONS.map((opt) => (
+                    <FormControlLabel
+                      key={opt.value}
+                      control={
+                        <Checkbox
+                          checked={dxaLimitationTypes.includes(opt.value)}
+                          onChange={() => toggleDxaLimitation(opt.value)}
+                        />
+                      }
+                      label={opt.label}
+                    />
+                  ))}
+                </FormGroup>
+              ) : null}
+
+              {/* Critério de score (T-score vs Z-score) */}
+              <FormControl>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography variant="body2">Critério de classificação:</Typography>
+                  <Typography variant="body2" color={dxaScoreType === "t-score" ? "primary" : "text.secondary"}>
+                    T-score
+                  </Typography>
+                  <Switch
+                    checked={dxaScoreType === "z-score"}
+                    onChange={(e) => setDxaScoreType(e.target.checked ? "z-score" : "t-score")}
+                  />
+                  <Typography variant="body2" color={dxaScoreType === "z-score" ? "primary" : "text.secondary"}>
+                    Z-score
+                  </Typography>
+                </Stack>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                  T-score: pós-menopausa / homens ≥50 anos. Z-score: pré-menopausa / homens &lt;50 anos.
+                </Typography>
+              </FormControl>
             </Stack>
           ) : null}
 

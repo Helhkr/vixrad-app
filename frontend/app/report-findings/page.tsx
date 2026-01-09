@@ -51,6 +51,20 @@ export default function ReportFindingsPage() {
     dxaTotalHipBmd,
     dxaTotalHipTScore,
     dxaTotalHipZScore,
+    dxaIncludeForearm,
+    dxaForearmBmd,
+    dxaForearmTScore,
+    dxaForearmZScore,
+    dxaHasPreviousExam,
+    dxaAttachPreviousExam,
+    dxaPreviousExamFile,
+    dxaPreviousExamDate,
+    dxaPreviousLumbarBmd,
+    dxaPreviousFemoralNeckBmd,
+    dxaPreviousTotalHipBmd,
+    dxaLimitationsEnabled,
+    dxaLimitationTypes,
+    dxaScoreType,
     sex,
     side,
     incidence,
@@ -318,6 +332,19 @@ export default function ReportFindingsPage() {
           dxaTotalHipBmd: isDxaDexaTemplate ? dxaTotalHipBmd : undefined,
           dxaTotalHipTScore: isDxaDexaTemplate ? dxaTotalHipTScore : undefined,
           dxaTotalHipZScore: isDxaDexaTemplate ? dxaTotalHipZScore : undefined,
+          dxaIncludeForearm: isDxaDexaTemplate ? dxaIncludeForearm : undefined,
+          dxaForearmBmd: isDxaDexaTemplate && dxaIncludeForearm ? dxaForearmBmd : undefined,
+          dxaForearmTScore: isDxaDexaTemplate && dxaIncludeForearm ? dxaForearmTScore : undefined,
+          dxaForearmZScore: isDxaDexaTemplate && dxaIncludeForearm ? dxaForearmZScore : undefined,
+          dxaHasPreviousExam: isDxaDexaTemplate ? dxaHasPreviousExam : undefined,
+          dxaAttachPreviousExam: isDxaDexaTemplate && dxaHasPreviousExam ? dxaAttachPreviousExam : undefined,
+          dxaPreviousExamDate: isDxaDexaTemplate && dxaHasPreviousExam && !dxaAttachPreviousExam ? dxaPreviousExamDate : undefined,
+          dxaPreviousLumbarBmd: isDxaDexaTemplate && dxaHasPreviousExam && !dxaAttachPreviousExam ? dxaPreviousLumbarBmd : undefined,
+          dxaPreviousFemoralNeckBmd: isDxaDexaTemplate && dxaHasPreviousExam && !dxaAttachPreviousExam ? dxaPreviousFemoralNeckBmd : undefined,
+          dxaPreviousTotalHipBmd: isDxaDexaTemplate && dxaHasPreviousExam && !dxaAttachPreviousExam ? dxaPreviousTotalHipBmd : undefined,
+          dxaLimitationsEnabled: isDxaDexaTemplate ? dxaLimitationsEnabled : undefined,
+          dxaLimitationTypes: isDxaDexaTemplate && dxaLimitationsEnabled ? dxaLimitationTypes : undefined,
+          dxaScoreType: isDxaDexaTemplate ? dxaScoreType : undefined,
           sex: sex || undefined,
           side: side || undefined,
           incidence: incidence ?? undefined,
@@ -408,6 +435,29 @@ export default function ReportFindingsPage() {
           formData.append("dxaTotalHipBmd", dxaTotalHipBmd);
           formData.append("dxaTotalHipTScore", dxaTotalHipTScore);
           formData.append("dxaTotalHipZScore", dxaTotalHipZScore);
+          formData.append("dxaIncludeForearm", String(dxaIncludeForearm));
+          if (dxaIncludeForearm) {
+            formData.append("dxaForearmBmd", dxaForearmBmd);
+            formData.append("dxaForearmTScore", dxaForearmTScore);
+            formData.append("dxaForearmZScore", dxaForearmZScore);
+          }
+          formData.append("dxaHasPreviousExam", String(dxaHasPreviousExam));
+          if (dxaHasPreviousExam) {
+            formData.append("dxaAttachPreviousExam", String(dxaAttachPreviousExam));
+            if (dxaAttachPreviousExam && dxaPreviousExamFile) {
+              formData.append("dxaPreviousExamFile", dxaPreviousExamFile);
+            } else {
+              formData.append("dxaPreviousExamDate", dxaPreviousExamDate);
+              formData.append("dxaPreviousLumbarBmd", dxaPreviousLumbarBmd);
+              formData.append("dxaPreviousFemoralNeckBmd", dxaPreviousFemoralNeckBmd);
+              formData.append("dxaPreviousTotalHipBmd", dxaPreviousTotalHipBmd);
+            }
+          }
+          formData.append("dxaLimitationsEnabled", String(dxaLimitationsEnabled));
+          if (dxaLimitationsEnabled) {
+            for (const lim of dxaLimitationTypes) formData.append("dxaLimitationTypes", lim);
+          }
+          formData.append("dxaScoreType", dxaScoreType);
         }
         if (sex) formData.append("sex", sex);
         if (side) formData.append("side", side);
@@ -442,6 +492,19 @@ export default function ReportFindingsPage() {
           dxaTotalHipBmd: isDxaDexaTemplate ? dxaTotalHipBmd : undefined,
           dxaTotalHipTScore: isDxaDexaTemplate ? dxaTotalHipTScore : undefined,
           dxaTotalHipZScore: isDxaDexaTemplate ? dxaTotalHipZScore : undefined,
+          dxaIncludeForearm: isDxaDexaTemplate ? dxaIncludeForearm : undefined,
+          dxaForearmBmd: isDxaDexaTemplate && dxaIncludeForearm ? dxaForearmBmd : undefined,
+          dxaForearmTScore: isDxaDexaTemplate && dxaIncludeForearm ? dxaForearmTScore : undefined,
+          dxaForearmZScore: isDxaDexaTemplate && dxaIncludeForearm ? dxaForearmZScore : undefined,
+          dxaHasPreviousExam: isDxaDexaTemplate ? dxaHasPreviousExam : undefined,
+          dxaAttachPreviousExam: isDxaDexaTemplate && dxaHasPreviousExam ? dxaAttachPreviousExam : undefined,
+          dxaPreviousExamDate: isDxaDexaTemplate && dxaHasPreviousExam && !dxaAttachPreviousExam ? dxaPreviousExamDate : undefined,
+          dxaPreviousLumbarBmd: isDxaDexaTemplate && dxaHasPreviousExam && !dxaAttachPreviousExam ? dxaPreviousLumbarBmd : undefined,
+          dxaPreviousFemoralNeckBmd: isDxaDexaTemplate && dxaHasPreviousExam && !dxaAttachPreviousExam ? dxaPreviousFemoralNeckBmd : undefined,
+          dxaPreviousTotalHipBmd: isDxaDexaTemplate && dxaHasPreviousExam && !dxaAttachPreviousExam ? dxaPreviousTotalHipBmd : undefined,
+          dxaLimitationsEnabled: isDxaDexaTemplate ? dxaLimitationsEnabled : undefined,
+          dxaLimitationTypes: isDxaDexaTemplate && dxaLimitationsEnabled ? dxaLimitationTypes : undefined,
+          dxaScoreType: isDxaDexaTemplate ? dxaScoreType : undefined,
           sex: sex || undefined,
           side: side || undefined,
           incidence: incidence ?? undefined,

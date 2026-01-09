@@ -3,6 +3,7 @@ exam_type: DXA
 requires:
   type: none
   indication: optional
+  sex: required
 ---
 
 # DENSITOMETRIA ÓSSEA (DEXA)
@@ -12,6 +13,10 @@ requires:
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->
+
+<!-- IF DXA_LIMITACOES -->
+**Limitações técnicas:** Exame realizado na presença de {{DXA_LIMITACOES_LISTA}}, que podem influenciar os resultados.
+<!-- ENDIF DXA_LIMITACOES -->
 
 **Análise:**
 
@@ -30,13 +35,27 @@ requires:
 - T-score: {{DXA_QUADRIL_TOTAL_T_SCORE}}
 - Z-score: {{DXA_QUADRIL_TOTAL_Z_SCORE}}
 
-**Interpretação (OMS):**
-- T-score entre -1,0 e +1,0: Normal
-- T-score entre -1,0 e -2,5: Osteopenia
-- T-score ≤ -2,5: Osteoporose
+<!-- IF DXA_ANTEBRACO -->
+**Rádio 33% (antebraço):**
+- DMO (g/cm²): {{DXA_ANTEBRACO_DMO}}
+- T-score: {{DXA_ANTEBRACO_T_SCORE}}
+- Z-score: {{DXA_ANTEBRACO_Z_SCORE}}
+<!-- ENDIF DXA_ANTEBRACO -->
+
+<!-- IF DXA_EXAME_ANTERIOR -->
+**Comparação com exame anterior ({{DXA_EXAME_ANTERIOR_DATA}}):**
+- Variação coluna L1-L4: {{DXA_VARIACAO_L1L4}}
+- Variação colo femoral: {{DXA_VARIACAO_COLO}}
+- Variação quadril total: {{DXA_VARIACAO_QUADRIL}}
+<!-- IF DXA_ANTEBRACO -->
+- Variação rádio 33%: {{DXA_VARIACAO_ANTEBRACO}}
+<!-- ENDIF DXA_ANTEBRACO -->
+<!-- ENDIF DXA_EXAME_ANTERIOR -->
 
 **Impressão diagnóstica:**
-Valores de densidade mineral óssea (DMO), T-score e Z-score conforme descrito acima.
+**{{DXA_CLASSIFICACAO}}** - Valores de densidade mineral óssea (DMO), T-score e Z-score conforme descrito acima.
+
+{{NOTA}}
 
 <!-- IF NOTAS -->
 **Notas:** {{NOTAS}}

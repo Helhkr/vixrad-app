@@ -95,6 +95,114 @@ export class GenerateReportDto {
   @MaxLength(64)
   dxaTotalHipZScore?: string;
 
+  // DXA Forearm (rádio 33%)
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === "true") return true;
+    if (value === "false") return false;
+    return value;
+  })
+  @IsBoolean({ message: "dxaIncludeForearm inválido" })
+  dxaIncludeForearm?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaForearmBmd?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaForearmTScore?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaForearmZScore?: string;
+
+  // DXA Previous exam
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === "true") return true;
+    if (value === "false") return false;
+    return value;
+  })
+  @IsBoolean({ message: "dxaHasPreviousExam inválido" })
+  dxaHasPreviousExam?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === "true") return true;
+    if (value === "false") return false;
+    return value;
+  })
+  @IsBoolean({ message: "dxaAttachPreviousExam inválido" })
+  dxaAttachPreviousExam?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaPreviousExamDate?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaPreviousLumbarBmd?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaPreviousFemoralNeckBmd?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaPreviousTotalHipBmd?: string;
+
+  // DXA Limitations
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === "true") return true;
+    if (value === "false") return false;
+    return value;
+  })
+  @IsBoolean({ message: "dxaLimitationsEnabled inválido" })
+  dxaLimitationsEnabled?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return value;
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {}
+      return [value];
+    }
+    return value;
+  })
+  @IsArray({ message: "dxaLimitationTypes inválido" })
+  @IsString({ each: true })
+  @IsIn(
+    ["escoliose", "fraturas_vertebrais", "protese_quadril", "calcificacoes_aorticas", "artefatos_movimento", "obesidade"],
+    { each: true, message: "dxaLimitationTypes inválido" },
+  )
+  dxaLimitationTypes?: Array<
+    | "escoliose"
+    | "fraturas_vertebrais"
+    | "protese_quadril"
+    | "calcificacoes_aorticas"
+    | "artefatos_movimento"
+    | "obesidade"
+  >;
+
+  // DXA Score type (T-score vs Z-score)
+  @IsOptional()
+  @IsString()
+  @IsIn(["t-score", "z-score"], { message: "dxaScoreType inválido" })
+  dxaScoreType?: "t-score" | "z-score";
+
   @IsOptional()
   @Transform(({ value }) => {
     if (value === "true") return true;

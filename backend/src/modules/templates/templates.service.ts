@@ -47,6 +47,16 @@ export type TemplateDetail = {
   defaults?: TemplateDefaults;
 };
 
+export type DxaLimitationType =
+  | "escoliose"
+  | "fraturas_vertebrais"
+  | "protese_quadril"
+  | "calcificacoes_aorticas"
+  | "artefatos_movimento"
+  | "obesidade";
+
+export type DxaScoreType = "t-score" | "z-score";
+
 export type RenderInput = {
   examType: ExamType;
   templateId: string;
@@ -65,6 +75,24 @@ export type RenderInput = {
   dxaTotalHipBmd?: string;
   dxaTotalHipTScore?: string;
   dxaTotalHipZScore?: string;
+  // DXA Forearm (Rádio 33%)
+  dxaForearmEnabled?: boolean;
+  dxaForearmBmd?: string;
+  dxaForearmTScore?: string;
+  dxaForearmZScore?: string;
+  // DXA Previous exam comparison
+  dxaPreviousExamEnabled?: boolean;
+  dxaPreviousExamMode?: "attachment" | "manual";
+  dxaPreviousExamDate?: string;
+  dxaPreviousExamLumbarBmd?: string;
+  dxaPreviousExamFemoralNeckBmd?: string;
+  dxaPreviousExamTotalHipBmd?: string;
+  dxaPreviousExamForearmBmd?: string;
+  // DXA Limitations
+  dxaLimitationsEnabled?: boolean;
+  dxaLimitations?: DxaLimitationType[];
+  // DXA Score type (for structured reports)
+  dxaScoreType?: DxaScoreType;
   incidence?: string;
   decubitus?: "ventral" | "dorsal" | "lateral";
   ecgGating?: "omit" | "without" | "with";
@@ -128,6 +156,9 @@ const SUPPORTED_CONDITIONS = new Set([
   "DXA_PUNHO",
   "DXA_CALCANHAR",
   "DXA_DEDOS",
+  "DXA_ANTEBRACO",
+  "DXA_EXAME_ANTERIOR",
+  "DXA_LIMITACOES",
   "INDICACAO",
   "CONTRASTE",
   "SEXO_MASCULINO",
@@ -552,6 +583,151 @@ export class TemplatesService {
     return `${unique.slice(0, -1).join(", ")} e ${unique[unique.length - 1]}`;
   }
 
+  /**
+   * Parses a DXA score string (e.g., "-2,5" or "1.3") to a number.
+   */
+  private parseDxaScore(value: string | undefined): number | null {
+    if (!value) return null;
+    // Replace comma with dot for decimal
+    const normalized = value.replace(",", ".").trim();
+    const parsed = parseFloat(normalized);
+    return isNaN(parsed) ? null : parsed;
+  }
+
+  /**
+   * Calculates DXA classification based on the lowest T-score or Z-score.
+   * OMS criteria for T-score:
+   * - Normal: T-score >= -1.0
+   * - Osteopenia: -2.5 < T-score < -1.0
+   * - Osteoporosis: T-score <= -2.5
+   */
+  private calculateDxaClassification(input: RenderInput): string | undefined {
+    if (input.examType !== "DXA" || input.templateId !== "dxa-dexa-normal-v1") {
+      return undefined;
+    }
+
+    const scoreType = input.dxaScoreType ?? "t-score";
+    const isZScore = scoreType === "z-score";
+
+    // Collect all relevant scores based on score type
+    const scores: number[] = [];
+
+    if (isZScore) {
+      // Z-score mode
+      const lumbar = this.parseDxaScore(input.dxaLumbarZScore);
+      const femoral = this.parseDxaScore(input.dxaFemoralNeckZScore);
+      const totalHip = this.parseDxaScore(input.dxaTotalHipZScore);
+      const forearm = input.dxaForearmEnabled ? this.parseDxaScore(input.dxaForearmZScore) : null;
+
+      if (lumbar !== null) scores.push(lumbar);
+      if (femoral !== null) scores.push(femoral);
+      if (totalHip !== null) scores.push(totalHip);
+      if (forearm !== null) scores.push(forearm);
+
+      if (scores.length === 0) return undefined;
+
+      const lowestScore = Math.min(...scores);
+
+      // Z-score classification (for pre-menopausal women and men < 50)
+      // Below expected range: Z-score <= -2.0
+      // Within expected range: Z-score > -2.0
+      if (lowestScore <= -2.0) {
+        return "Densidade mineral óssea abaixo da faixa esperada para a idade";
+      } else {
+        return "Densidade mineral óssea dentro da faixa esperada para a idade";
+      }
+    } else {
+      // T-score mode (default)
+      const lumbar = this.parseDxaScore(input.dxaLumbarTScore);
+      const femoral = this.parseDxaScore(input.dxaFemoralNeckTScore);
+      const totalHip = this.parseDxaScore(input.dxaTotalHipTScore);
+      const forearm = input.dxaForearmEnabled ? this.parseDxaScore(input.dxaForearmTScore) : null;
+
+      if (lumbar !== null) scores.push(lumbar);
+      if (femoral !== null) scores.push(femoral);
+      if (totalHip !== null) scores.push(totalHip);
+      if (forearm !== null) scores.push(forearm);
+
+      if (scores.length === 0) return undefined;
+
+      const lowestScore = Math.min(...scores);
+
+      // OMS T-score classification
+      if (lowestScore <= -2.5) {
+        return "Osteoporose";
+      } else if (lowestScore < -1.0) {
+        return "Osteopenia";
+      } else {
+        return "Normal";
+      }
+    }
+  }
+
+  /**
+   * Builds the OMS interpretation note with T-score criteria.
+   */
+  private buildDxaInterpretationNote(input: RenderInput): string | undefined {
+    if (input.examType !== "DXA" || input.templateId !== "dxa-dexa-normal-v1") {
+      return undefined;
+    }
+
+    const scoreType = input.dxaScoreType ?? "t-score";
+
+    if (scoreType === "z-score") {
+      return "Critérios ISCD: Z-score ≤ -2,0 indica densidade mineral óssea abaixo da faixa esperada para a idade. Z-score > -2,0 indica densidade mineral óssea dentro da faixa esperada para a idade.";
+    }
+
+    return "Critérios OMS: T-score ≥ -1,0: Normal; T-score entre -1,0 e -2,5: Osteopenia; T-score ≤ -2,5: Osteoporose.";
+  }
+
+  /**
+   * Builds the text for DXA limitations.
+   */
+  private buildDxaLimitationsText(limitations: DxaLimitationType[] | undefined): string | undefined {
+    if (!limitations || limitations.length === 0) return undefined;
+
+    const labels: Record<DxaLimitationType, string> = {
+      escoliose: "escoliose",
+      fraturas_vertebrais: "fraturas vertebrais",
+      protese_quadril: "prótese de quadril",
+      calcificacoes_aorticas: "calcificações aórticas",
+      artefatos_movimento: "artefatos de movimento",
+      obesidade: "obesidade",
+    };
+
+    const mapped = limitations.map((l) => labels[l]).filter(Boolean);
+    return this.formatArtifactList(mapped);
+  }
+
+  /**
+   * Builds DXA comparison placeholders between current and previous exam.
+   */
+  private buildDxaComparisonPlaceholders(
+    input: RenderInput,
+  ): Record<string, string | undefined> {
+    if (!input.dxaPreviousExamEnabled || input.dxaPreviousExamMode !== "manual") {
+      return {};
+    }
+
+    const calculateVariation = (current: string | undefined, previous: string | undefined): string | undefined => {
+      const curr = this.parseDxaScore(current);
+      const prev = this.parseDxaScore(previous);
+      if (curr === null || prev === null || prev === 0) return undefined;
+      const percentChange = ((curr - prev) / Math.abs(prev)) * 100;
+      const sign = percentChange >= 0 ? "+" : "";
+      return `${sign}${percentChange.toFixed(1)}%`;
+    };
+
+    return {
+      DXA_VARIACAO_L1L4: calculateVariation(input.dxaLumbarBmd, input.dxaPreviousExamLumbarBmd),
+      DXA_VARIACAO_COLO: calculateVariation(input.dxaFemoralNeckBmd, input.dxaPreviousExamFemoralNeckBmd),
+      DXA_VARIACAO_QUADRIL: calculateVariation(input.dxaTotalHipBmd, input.dxaPreviousExamTotalHipBmd),
+      DXA_VARIACAO_ANTEBRACO: input.dxaForearmEnabled
+        ? calculateVariation(input.dxaForearmBmd, input.dxaPreviousExamForearmBmd)
+        : undefined,
+    };
+  }
+
   private toCtArtifactLabel(value: string): string {
     if (value === "Movimento") return "movimento";
     if (value === "Beam hardening") return "endurecimento do feixe (beam hardening)";
@@ -668,6 +844,9 @@ export class TemplatesService {
       DXA_PUNHO: dxaSelected.has("punho"),
       DXA_CALCANHAR: dxaSelected.has("calcanhar"),
       DXA_DEDOS: dxaSelected.has("dedos"),
+      DXA_ANTEBRACO: Boolean(input.dxaForearmEnabled),
+      DXA_EXAME_ANTERIOR: Boolean(input.dxaPreviousExamEnabled),
+      DXA_LIMITACOES: Boolean(input.dxaLimitationsEnabled && input.dxaLimitations && input.dxaLimitations.length > 0),
       INDICACAO: Boolean(input.indication),
       NOTAS: Boolean(input.notes),
       SEXO_FEMININO: input.sex === "F",
@@ -742,6 +921,24 @@ export class TemplatesService {
       DXA_QUADRIL_TOTAL_DMO: input.dxaTotalHipBmd,
       DXA_QUADRIL_TOTAL_T_SCORE: input.dxaTotalHipTScore,
       DXA_QUADRIL_TOTAL_Z_SCORE: input.dxaTotalHipZScore,
+      // DXA Forearm (Rádio 33%)
+      DXA_ANTEBRACO_DMO: input.dxaForearmBmd,
+      DXA_ANTEBRACO_T_SCORE: input.dxaForearmTScore,
+      DXA_ANTEBRACO_Z_SCORE: input.dxaForearmZScore,
+      // DXA Previous exam
+      DXA_EXAME_ANTERIOR_DATA: input.dxaPreviousExamDate,
+      DXA_EXAME_ANTERIOR_L1L4_DMO: input.dxaPreviousExamLumbarBmd,
+      DXA_EXAME_ANTERIOR_COLO_DMO: input.dxaPreviousExamFemoralNeckBmd,
+      DXA_EXAME_ANTERIOR_QUADRIL_DMO: input.dxaPreviousExamTotalHipBmd,
+      DXA_EXAME_ANTERIOR_ANTEBRACO_DMO: input.dxaPreviousExamForearmBmd,
+      // DXA Comparison calculations
+      ...this.buildDxaComparisonPlaceholders(input),
+      // DXA Limitations
+      DXA_LIMITACOES_LISTA: this.buildDxaLimitationsText(input.dxaLimitations),
+      // DXA Classification (based on score type)
+      DXA_CLASSIFICACAO: this.calculateDxaClassification(input),
+      // Note placeholder for OMS interpretation
+      NOTA: this.buildDxaInterpretationNote(input),
     };
 
     // MR-specific technical fragments

@@ -151,6 +151,27 @@ export class ReportsService {
     dxaTotalHipBmd?: string;
     dxaTotalHipTScore?: string;
     dxaTotalHipZScore?: string;
+    dxaIncludeForearm?: boolean;
+    dxaForearmBmd?: string;
+    dxaForearmTScore?: string;
+    dxaForearmZScore?: string;
+    dxaHasPreviousExam?: boolean;
+    dxaAttachPreviousExam?: boolean;
+    dxaPreviousExamFile?: Express.Multer.File;
+    dxaPreviousExamDate?: string;
+    dxaPreviousLumbarBmd?: string;
+    dxaPreviousFemoralNeckBmd?: string;
+    dxaPreviousTotalHipBmd?: string;
+    dxaLimitationsEnabled?: boolean;
+    dxaLimitationTypes?: Array<
+      | "escoliose"
+      | "fraturas_vertebrais"
+      | "protese_quadril"
+      | "calcificacoes_aorticas"
+      | "artefatos_movimento"
+      | "obesidade"
+    >;
+    dxaScoreType?: "t-score" | "z-score";
     findings?: string | null;
     indicationFile?: Express.Multer.File;
     ecgGating?: "omit" | "without" | "with";
@@ -248,6 +269,19 @@ export class ReportsService {
       dxaTotalHipBmd: params.dxaTotalHipBmd,
       dxaTotalHipTScore: params.dxaTotalHipTScore,
       dxaTotalHipZScore: params.dxaTotalHipZScore,
+      dxaIncludeForearm: params.dxaIncludeForearm,
+      dxaForearmBmd: params.dxaForearmBmd,
+      dxaForearmTScore: params.dxaForearmTScore,
+      dxaForearmZScore: params.dxaForearmZScore,
+      dxaHasPreviousExam: params.dxaHasPreviousExam,
+      dxaAttachPreviousExam: params.dxaAttachPreviousExam,
+      dxaPreviousExamDate: params.dxaPreviousExamDate,
+      dxaPreviousLumbarBmd: params.dxaPreviousLumbarBmd,
+      dxaPreviousFemoralNeckBmd: params.dxaPreviousFemoralNeckBmd,
+      dxaPreviousTotalHipBmd: params.dxaPreviousTotalHipBmd,
+      dxaLimitationsEnabled: params.dxaLimitationsEnabled,
+      dxaLimitationTypes: params.dxaLimitationTypes,
+      dxaScoreType: params.dxaScoreType,
       ecgGating: params.ecgGating,
       phases: params.phases,
       coil: params.coil,

@@ -13,6 +13,14 @@ export type MrRadio = "omit" | "without" | "with";
 export type MrFieldStrength = "omit" | "1.5T" | "3.0T";
 export type MgType = "convencional" | "digital" | "3d";
 export type DxaPeripheralSite = "punho" | "calcanhar" | "dedos";
+export type DxaScoreType = "t-score" | "z-score";
+export type DxaLimitation =
+  | "escoliose"
+  | "fraturas_vertebrais"
+  | "protese_quadril"
+  | "calcificacoes_aorticas"
+  | "artefatos_movimento"
+  | "obesidade";
 export type ArtifactType =
   | "Movimento"
   | "Beam hardening"
@@ -76,6 +84,42 @@ type AppState = {
   setDxaTotalHipTScore: (value: string) => void;
   dxaTotalHipZScore: string;
   setDxaTotalHipZScore: (value: string) => void;
+
+  // DXA Forearm (rádio 33%) - optional
+  dxaIncludeForearm: boolean;
+  setDxaIncludeForearm: (value: boolean) => void;
+  dxaForearmBmd: string;
+  setDxaForearmBmd: (value: string) => void;
+  dxaForearmTScore: string;
+  setDxaForearmTScore: (value: string) => void;
+  dxaForearmZScore: string;
+  setDxaForearmZScore: (value: string) => void;
+
+  // DXA Previous exam comparison
+  dxaHasPreviousExam: boolean;
+  setDxaHasPreviousExam: (value: boolean) => void;
+  dxaAttachPreviousExam: boolean;
+  setDxaAttachPreviousExam: (value: boolean) => void;
+  dxaPreviousExamFile: File | null;
+  setDxaPreviousExamFile: (value: File | null) => void;
+  dxaPreviousExamDate: string;
+  setDxaPreviousExamDate: (value: string) => void;
+  dxaPreviousLumbarBmd: string;
+  setDxaPreviousLumbarBmd: (value: string) => void;
+  dxaPreviousFemoralNeckBmd: string;
+  setDxaPreviousFemoralNeckBmd: (value: string) => void;
+  dxaPreviousTotalHipBmd: string;
+  setDxaPreviousTotalHipBmd: (value: string) => void;
+
+  // DXA Limitations
+  dxaLimitationsEnabled: boolean;
+  setDxaLimitationsEnabled: (value: boolean) => void;
+  dxaLimitationTypes: DxaLimitation[];
+  setDxaLimitationTypes: (value: DxaLimitation[]) => void;
+
+  // DXA Score type (T-score vs Z-score)
+  dxaScoreType: DxaScoreType;
+  setDxaScoreType: (value: DxaScoreType) => void;
 
   sex: Sex | null;
   setSex: (value: Sex | null) => void;
@@ -169,6 +213,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [dxaTotalHipBmd, setDxaTotalHipBmd] = useState<string>("");
   const [dxaTotalHipTScore, setDxaTotalHipTScore] = useState<string>("");
   const [dxaTotalHipZScore, setDxaTotalHipZScore] = useState<string>("");
+  const [dxaIncludeForearm, setDxaIncludeForearm] = useState<boolean>(false);
+  const [dxaForearmBmd, setDxaForearmBmd] = useState<string>("");
+  const [dxaForearmTScore, setDxaForearmTScore] = useState<string>("");
+  const [dxaForearmZScore, setDxaForearmZScore] = useState<string>("");
+  const [dxaHasPreviousExam, setDxaHasPreviousExam] = useState<boolean>(false);
+  const [dxaAttachPreviousExam, setDxaAttachPreviousExam] = useState<boolean>(false);
+  const [dxaPreviousExamFile, setDxaPreviousExamFile] = useState<File | null>(null);
+  const [dxaPreviousExamDate, setDxaPreviousExamDate] = useState<string>("");
+  const [dxaPreviousLumbarBmd, setDxaPreviousLumbarBmd] = useState<string>("");
+  const [dxaPreviousFemoralNeckBmd, setDxaPreviousFemoralNeckBmd] = useState<string>("");
+  const [dxaPreviousTotalHipBmd, setDxaPreviousTotalHipBmd] = useState<string>("");
+  const [dxaLimitationsEnabled, setDxaLimitationsEnabled] = useState<boolean>(false);
+  const [dxaLimitationTypes, setDxaLimitationTypes] = useState<DxaLimitation[]>([]);
+  const [dxaScoreType, setDxaScoreType] = useState<DxaScoreType>("t-score");
   const [sex, setSex] = useState<Sex | null>(null);
   const [side, setSide] = useState<Side | null>(null);
   const [incidence, setIncidence] = useState<Incidence | null>(null);
@@ -243,6 +301,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setDxaTotalHipBmd("");
     setDxaTotalHipTScore("");
     setDxaTotalHipZScore("");
+    setDxaIncludeForearm(false);
+    setDxaForearmBmd("");
+    setDxaForearmTScore("");
+    setDxaForearmZScore("");
+    setDxaHasPreviousExam(false);
+    setDxaAttachPreviousExam(false);
+    setDxaPreviousExamFile(null);
+    setDxaPreviousExamDate("");
+    setDxaPreviousLumbarBmd("");
+    setDxaPreviousFemoralNeckBmd("");
+    setDxaPreviousTotalHipBmd("");
+    setDxaLimitationsEnabled(false);
+    setDxaLimitationTypes([]);
+    setDxaScoreType("t-score");
     setSex(null);
     setSide(null);
     setIncidence(null);
@@ -296,6 +368,34 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setDxaTotalHipTScore,
       dxaTotalHipZScore,
       setDxaTotalHipZScore,
+      dxaIncludeForearm,
+      setDxaIncludeForearm,
+      dxaForearmBmd,
+      setDxaForearmBmd,
+      dxaForearmTScore,
+      setDxaForearmTScore,
+      dxaForearmZScore,
+      setDxaForearmZScore,
+      dxaHasPreviousExam,
+      setDxaHasPreviousExam,
+      dxaAttachPreviousExam,
+      setDxaAttachPreviousExam,
+      dxaPreviousExamFile,
+      setDxaPreviousExamFile,
+      dxaPreviousExamDate,
+      setDxaPreviousExamDate,
+      dxaPreviousLumbarBmd,
+      setDxaPreviousLumbarBmd,
+      dxaPreviousFemoralNeckBmd,
+      setDxaPreviousFemoralNeckBmd,
+      dxaPreviousTotalHipBmd,
+      setDxaPreviousTotalHipBmd,
+      dxaLimitationsEnabled,
+      setDxaLimitationsEnabled,
+      dxaLimitationTypes,
+      setDxaLimitationTypes,
+      dxaScoreType,
+      setDxaScoreType,
       sex,
       setSex,
       side,
@@ -346,6 +446,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       dxaTotalHipBmd,
       dxaTotalHipTScore,
       dxaTotalHipZScore,
+      dxaIncludeForearm,
+      dxaForearmBmd,
+      dxaForearmTScore,
+      dxaForearmZScore,
+      dxaHasPreviousExam,
+      dxaAttachPreviousExam,
+      dxaPreviousExamFile,
+      dxaPreviousExamDate,
+      dxaPreviousLumbarBmd,
+      dxaPreviousFemoralNeckBmd,
+      dxaPreviousTotalHipBmd,
+      dxaLimitationsEnabled,
+      dxaLimitationTypes,
+      dxaScoreType,
       sex,
       side,
       incidence,
