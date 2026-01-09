@@ -66,6 +66,24 @@ export default function ReportFormPage() {
     setMgType,
     dxaSites,
     setDxaSites,
+    dxaLumbarBmd,
+    setDxaLumbarBmd,
+    dxaLumbarTScore,
+    setDxaLumbarTScore,
+    dxaLumbarZScore,
+    setDxaLumbarZScore,
+    dxaFemoralNeckBmd,
+    setDxaFemoralNeckBmd,
+    dxaFemoralNeckTScore,
+    setDxaFemoralNeckTScore,
+    dxaFemoralNeckZScore,
+    setDxaFemoralNeckZScore,
+    dxaTotalHipBmd,
+    setDxaTotalHipBmd,
+    dxaTotalHipTScore,
+    setDxaTotalHipTScore,
+    dxaTotalHipZScore,
+    setDxaTotalHipZScore,
     sex,
     setSex,
     side,
@@ -217,6 +235,8 @@ export default function ReportFormPage() {
     return template?.name ?? templateId;
   }, [template?.name, templateId]);
 
+  const isDxaDexaTemplate = examType === "DXA" && templateId === "dxa-dexa-normal-v1";
+
   useEffect(() => {
     if (!showType) return;
     if (examType !== "MG") return;
@@ -276,6 +296,23 @@ export default function ReportFormPage() {
 
       if (examType === "DXA" && dxaSites.length === 0) {
         showMessage("Selecione a(s) região(ões) (punho/calcanhar/dedos).", "error");
+        return;
+      }
+    }
+
+    if (isDxaDexaTemplate) {
+      const missing =
+        !dxaLumbarBmd.trim() ||
+        !dxaLumbarTScore.trim() ||
+        !dxaLumbarZScore.trim() ||
+        !dxaFemoralNeckBmd.trim() ||
+        !dxaFemoralNeckTScore.trim() ||
+        !dxaFemoralNeckZScore.trim() ||
+        !dxaTotalHipBmd.trim() ||
+        !dxaTotalHipTScore.trim() ||
+        !dxaTotalHipZScore.trim();
+      if (missing) {
+        showMessage("Preencha DMO, T-score e Z-score para coluna, colo femoral e quadril total.", "error");
         return;
       }
     }
@@ -425,6 +462,92 @@ export default function ReportFormPage() {
                 />
               </FormGroup>
             </FormControl>
+          ) : null}
+
+          {isDxaDexaTemplate ? (
+            <Stack spacing={2}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Valores do exame (DEXA)
+              </Typography>
+
+              <Stack spacing={1}>
+                <Typography variant="body2" color="text.secondary">
+                  Coluna lombar (L1-L4)
+                </Typography>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <TextField
+                    label="DMO (g/cm²)"
+                    value={dxaLumbarBmd}
+                    onChange={(e) => setDxaLumbarBmd(e.target.value)}
+                    fullWidth
+                  />
+                  <TextField
+                    label="T-score"
+                    value={dxaLumbarTScore}
+                    onChange={(e) => setDxaLumbarTScore(e.target.value)}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Z-score"
+                    value={dxaLumbarZScore}
+                    onChange={(e) => setDxaLumbarZScore(e.target.value)}
+                    fullWidth
+                  />
+                </Stack>
+              </Stack>
+
+              <Stack spacing={1}>
+                <Typography variant="body2" color="text.secondary">
+                  Colo femoral
+                </Typography>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <TextField
+                    label="DMO (g/cm²)"
+                    value={dxaFemoralNeckBmd}
+                    onChange={(e) => setDxaFemoralNeckBmd(e.target.value)}
+                    fullWidth
+                  />
+                  <TextField
+                    label="T-score"
+                    value={dxaFemoralNeckTScore}
+                    onChange={(e) => setDxaFemoralNeckTScore(e.target.value)}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Z-score"
+                    value={dxaFemoralNeckZScore}
+                    onChange={(e) => setDxaFemoralNeckZScore(e.target.value)}
+                    fullWidth
+                  />
+                </Stack>
+              </Stack>
+
+              <Stack spacing={1}>
+                <Typography variant="body2" color="text.secondary">
+                  Quadril total
+                </Typography>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <TextField
+                    label="DMO (g/cm²)"
+                    value={dxaTotalHipBmd}
+                    onChange={(e) => setDxaTotalHipBmd(e.target.value)}
+                    fullWidth
+                  />
+                  <TextField
+                    label="T-score"
+                    value={dxaTotalHipTScore}
+                    onChange={(e) => setDxaTotalHipTScore(e.target.value)}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Z-score"
+                    value={dxaTotalHipZScore}
+                    onChange={(e) => setDxaTotalHipZScore(e.target.value)}
+                    fullWidth
+                  />
+                </Stack>
+              </Stack>
+            </Stack>
           ) : null}
 
           {showSex ? (

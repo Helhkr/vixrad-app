@@ -56,6 +56,15 @@ export type RenderInput = {
   side?: "RIGHT" | "LEFT" | "BILATERAL";
   contrast?: "with" | "without";
   notes?: string;
+  dxaLumbarBmd?: string;
+  dxaLumbarTScore?: string;
+  dxaLumbarZScore?: string;
+  dxaFemoralNeckBmd?: string;
+  dxaFemoralNeckTScore?: string;
+  dxaFemoralNeckZScore?: string;
+  dxaTotalHipBmd?: string;
+  dxaTotalHipTScore?: string;
+  dxaTotalHipZScore?: string;
   incidence?: string;
   decubitus?: "ventral" | "dorsal" | "lateral";
   ecgGating?: "omit" | "without" | "with";
@@ -369,6 +378,26 @@ export class TemplatesService {
 
     if (req.indication === "required" && !input.indication) {
       throw new BadRequestException("requires.indication: obrigatório");
+    }
+
+    // DXA DEXA templates require the physician-entered metrics.
+    if (input.examType === "DXA" && input.templateId === "dxa-dexa-normal-v1") {
+      const required = [
+        ["dxaLumbarBmd", input.dxaLumbarBmd],
+        ["dxaLumbarTScore", input.dxaLumbarTScore],
+        ["dxaLumbarZScore", input.dxaLumbarZScore],
+        ["dxaFemoralNeckBmd", input.dxaFemoralNeckBmd],
+        ["dxaFemoralNeckTScore", input.dxaFemoralNeckTScore],
+        ["dxaFemoralNeckZScore", input.dxaFemoralNeckZScore],
+        ["dxaTotalHipBmd", input.dxaTotalHipBmd],
+        ["dxaTotalHipTScore", input.dxaTotalHipTScore],
+        ["dxaTotalHipZScore", input.dxaTotalHipZScore],
+      ] as const;
+      for (const [key, value] of required) {
+        if (!value || value.trim().length === 0) {
+          throw new BadRequestException(`${key}: obrigatório para DEXA`);
+        }
+      }
     }
 
     if (req.sex === "required" && !input.sex) {
@@ -703,6 +732,16 @@ export class TemplatesService {
       INCIDENCIA: input.incidence ? incidenciaMap[input.incidence] || input.incidence : undefined,
       DECUBITUS: input.decubitus ? (input.decubitus === "ventral" ? "ventral" : input.decubitus === "dorsal" ? "dorsal" : "lateral") : undefined,
       DECUBITUS_UPPER: input.decubitus ? (input.decubitus === "ventral" ? "VENTRAL" : input.decubitus === "dorsal" ? "DORSAL" : "LATERAL") : undefined,
+
+      DXA_L1L4_DMO: input.dxaLumbarBmd,
+      DXA_L1L4_T_SCORE: input.dxaLumbarTScore,
+      DXA_L1L4_Z_SCORE: input.dxaLumbarZScore,
+      DXA_COLO_FEMORAL_DMO: input.dxaFemoralNeckBmd,
+      DXA_COLO_FEMORAL_T_SCORE: input.dxaFemoralNeckTScore,
+      DXA_COLO_FEMORAL_Z_SCORE: input.dxaFemoralNeckZScore,
+      DXA_QUADRIL_TOTAL_DMO: input.dxaTotalHipBmd,
+      DXA_QUADRIL_TOTAL_T_SCORE: input.dxaTotalHipTScore,
+      DXA_QUADRIL_TOTAL_Z_SCORE: input.dxaTotalHipZScore,
     };
 
     // MR-specific technical fragments

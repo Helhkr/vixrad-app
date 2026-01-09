@@ -42,6 +42,15 @@ export default function ReportFindingsPage() {
     contrast,
     mgType,
     dxaSites,
+    dxaLumbarBmd,
+    dxaLumbarTScore,
+    dxaLumbarZScore,
+    dxaFemoralNeckBmd,
+    dxaFemoralNeckTScore,
+    dxaFemoralNeckZScore,
+    dxaTotalHipBmd,
+    dxaTotalHipTScore,
+    dxaTotalHipZScore,
     sex,
     side,
     incidence,
@@ -173,6 +182,8 @@ export default function ReportFindingsPage() {
     return template?.name ?? templateId;
   }, [template?.name, templateId]);
 
+  const isDxaDexaTemplate = examType === "DXA" && templateId === "dxa-dexa-normal-v1";
+
   const typeForRequest = useMemo(() => {
     if (examType === "DXA") {
       const unique = Array.from(new Set(dxaSites));
@@ -298,6 +309,15 @@ export default function ReportFindingsPage() {
           indication: indication || undefined,
           notes: urgentNote,
             academic,
+          dxaLumbarBmd: isDxaDexaTemplate ? dxaLumbarBmd : undefined,
+          dxaLumbarTScore: isDxaDexaTemplate ? dxaLumbarTScore : undefined,
+          dxaLumbarZScore: isDxaDexaTemplate ? dxaLumbarZScore : undefined,
+          dxaFemoralNeckBmd: isDxaDexaTemplate ? dxaFemoralNeckBmd : undefined,
+          dxaFemoralNeckTScore: isDxaDexaTemplate ? dxaFemoralNeckTScore : undefined,
+          dxaFemoralNeckZScore: isDxaDexaTemplate ? dxaFemoralNeckZScore : undefined,
+          dxaTotalHipBmd: isDxaDexaTemplate ? dxaTotalHipBmd : undefined,
+          dxaTotalHipTScore: isDxaDexaTemplate ? dxaTotalHipTScore : undefined,
+          dxaTotalHipZScore: isDxaDexaTemplate ? dxaTotalHipZScore : undefined,
           sex: sex || undefined,
           side: side || undefined,
           incidence: incidence ?? undefined,
@@ -378,6 +398,17 @@ export default function ReportFindingsPage() {
         if (indication) formData.append("indication", indication);
         if (urgentNote) formData.append("notes", urgentNote);
         formData.append("academic", String(academic));
+        if (isDxaDexaTemplate) {
+          formData.append("dxaLumbarBmd", dxaLumbarBmd);
+          formData.append("dxaLumbarTScore", dxaLumbarTScore);
+          formData.append("dxaLumbarZScore", dxaLumbarZScore);
+          formData.append("dxaFemoralNeckBmd", dxaFemoralNeckBmd);
+          formData.append("dxaFemoralNeckTScore", dxaFemoralNeckTScore);
+          formData.append("dxaFemoralNeckZScore", dxaFemoralNeckZScore);
+          formData.append("dxaTotalHipBmd", dxaTotalHipBmd);
+          formData.append("dxaTotalHipTScore", dxaTotalHipTScore);
+          formData.append("dxaTotalHipZScore", dxaTotalHipZScore);
+        }
         if (sex) formData.append("sex", sex);
         if (side) formData.append("side", side);
         if (incidence) formData.append("incidence", incidence);
@@ -402,6 +433,15 @@ export default function ReportFindingsPage() {
           indication: indication || undefined,
           notes: urgentNote,
           academic,
+          dxaLumbarBmd: isDxaDexaTemplate ? dxaLumbarBmd : undefined,
+          dxaLumbarTScore: isDxaDexaTemplate ? dxaLumbarTScore : undefined,
+          dxaLumbarZScore: isDxaDexaTemplate ? dxaLumbarZScore : undefined,
+          dxaFemoralNeckBmd: isDxaDexaTemplate ? dxaFemoralNeckBmd : undefined,
+          dxaFemoralNeckTScore: isDxaDexaTemplate ? dxaFemoralNeckTScore : undefined,
+          dxaFemoralNeckZScore: isDxaDexaTemplate ? dxaFemoralNeckZScore : undefined,
+          dxaTotalHipBmd: isDxaDexaTemplate ? dxaTotalHipBmd : undefined,
+          dxaTotalHipTScore: isDxaDexaTemplate ? dxaTotalHipTScore : undefined,
+          dxaTotalHipZScore: isDxaDexaTemplate ? dxaTotalHipZScore : undefined,
           sex: sex || undefined,
           side: side || undefined,
           incidence: incidence ?? undefined,

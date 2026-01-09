@@ -51,6 +51,51 @@ export class GenerateReportDto {
   notes?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaLumbarBmd?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaLumbarTScore?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaLumbarZScore?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaFemoralNeckBmd?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaFemoralNeckTScore?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaFemoralNeckZScore?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaTotalHipBmd?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaTotalHipTScore?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  dxaTotalHipZScore?: string;
+
+  @IsOptional()
   @Transform(({ value }) => {
     if (value === "true") return true;
     if (value === "false") return false;

@@ -56,6 +56,27 @@ type AppState = {
   dxaSites: DxaPeripheralSite[];
   setDxaSites: (value: DxaPeripheralSite[]) => void;
 
+  dxaLumbarBmd: string;
+  setDxaLumbarBmd: (value: string) => void;
+  dxaLumbarTScore: string;
+  setDxaLumbarTScore: (value: string) => void;
+  dxaLumbarZScore: string;
+  setDxaLumbarZScore: (value: string) => void;
+
+  dxaFemoralNeckBmd: string;
+  setDxaFemoralNeckBmd: (value: string) => void;
+  dxaFemoralNeckTScore: string;
+  setDxaFemoralNeckTScore: (value: string) => void;
+  dxaFemoralNeckZScore: string;
+  setDxaFemoralNeckZScore: (value: string) => void;
+
+  dxaTotalHipBmd: string;
+  setDxaTotalHipBmd: (value: string) => void;
+  dxaTotalHipTScore: string;
+  setDxaTotalHipTScore: (value: string) => void;
+  dxaTotalHipZScore: string;
+  setDxaTotalHipZScore: (value: string) => void;
+
   sex: Sex | null;
   setSex: (value: Sex | null) => void;
 
@@ -139,6 +160,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [contrast, setContrast] = useState<Contrast>("without");
   const [mgType, setMgType] = useState<MgType | null>(null);
   const [dxaSites, setDxaSites] = useState<DxaPeripheralSite[]>([]);
+  const [dxaLumbarBmd, setDxaLumbarBmd] = useState<string>("");
+  const [dxaLumbarTScore, setDxaLumbarTScore] = useState<string>("");
+  const [dxaLumbarZScore, setDxaLumbarZScore] = useState<string>("");
+  const [dxaFemoralNeckBmd, setDxaFemoralNeckBmd] = useState<string>("");
+  const [dxaFemoralNeckTScore, setDxaFemoralNeckTScore] = useState<string>("");
+  const [dxaFemoralNeckZScore, setDxaFemoralNeckZScore] = useState<string>("");
+  const [dxaTotalHipBmd, setDxaTotalHipBmd] = useState<string>("");
+  const [dxaTotalHipTScore, setDxaTotalHipTScore] = useState<string>("");
+  const [dxaTotalHipZScore, setDxaTotalHipZScore] = useState<string>("");
   const [sex, setSex] = useState<Sex | null>(null);
   const [side, setSide] = useState<Side | null>(null);
   const [incidence, setIncidence] = useState<Incidence | null>(null);
@@ -204,6 +234,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setContrast("without");
     setMgType(null);
     setDxaSites([]);
+    setDxaLumbarBmd("");
+    setDxaLumbarTScore("");
+    setDxaLumbarZScore("");
+    setDxaFemoralNeckBmd("");
+    setDxaFemoralNeckTScore("");
+    setDxaFemoralNeckZScore("");
+    setDxaTotalHipBmd("");
+    setDxaTotalHipTScore("");
+    setDxaTotalHipZScore("");
     setSex(null);
     setSide(null);
     setIncidence(null);
@@ -239,6 +278,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setMgType,
       dxaSites,
       setDxaSites,
+      dxaLumbarBmd,
+      setDxaLumbarBmd,
+      dxaLumbarTScore,
+      setDxaLumbarTScore,
+      dxaLumbarZScore,
+      setDxaLumbarZScore,
+      dxaFemoralNeckBmd,
+      setDxaFemoralNeckBmd,
+      dxaFemoralNeckTScore,
+      setDxaFemoralNeckTScore,
+      dxaFemoralNeckZScore,
+      setDxaFemoralNeckZScore,
+      dxaTotalHipBmd,
+      setDxaTotalHipBmd,
+      dxaTotalHipTScore,
+      setDxaTotalHipTScore,
+      dxaTotalHipZScore,
+      setDxaTotalHipZScore,
       sex,
       setSex,
       side,
@@ -280,6 +337,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       contrast,
       mgType,
       dxaSites,
+      dxaLumbarBmd,
+      dxaLumbarTScore,
+      dxaLumbarZScore,
+      dxaFemoralNeckBmd,
+      dxaFemoralNeckTScore,
+      dxaFemoralNeckZScore,
+      dxaTotalHipBmd,
+      dxaTotalHipTScore,
+      dxaTotalHipZScore,
       sex,
       side,
       incidence,

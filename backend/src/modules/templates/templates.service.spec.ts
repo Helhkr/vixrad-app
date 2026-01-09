@@ -280,3 +280,47 @@ describe("TemplatesService", () => {
     expect(rendered.markdown).toContain("(DORSAL)");
   });
 });
+  it("requires DXA DEXA metrics when templateId is dxa-dexa-normal-v1", () => {
+    const src = [
+      "---",
+      "exam_type: DXA",
+      "requires:",
+      "  type: none",
+      "  indication: none",
+      "  sex: none",
+      "  contrast: none",
+      "  side: none",
+      "---",
+      "# DEXA",
+      "**Análise:**",
+      "L1L4 {{DXA_L1L4_DMO}} {{DXA_L1L4_T_SCORE}} {{DXA_L1L4_Z_SCORE}}",
+      "CF {{DXA_COLO_FEMORAL_DMO}} {{DXA_COLO_FEMORAL_T_SCORE}} {{DXA_COLO_FEMORAL_Z_SCORE}}",
+      "QT {{DXA_QUADRIL_TOTAL_DMO}} {{DXA_QUADRIL_TOTAL_T_SCORE}} {{DXA_QUADRIL_TOTAL_Z_SCORE}}",
+      "**Impressão diagnóstica:** ok",
+    ].join("\n");
+
+    const svc = new InMemoryTemplatesService(src);
+
+    expect(() =>
+      svc.renderResolvedMarkdown({
+        examType: "DXA",
+        templateId: "dxa-dexa-normal-v1",
+      }),
+    ).toThrow(/dxaLumbarBmd/i);
+
+    expect(() =>
+      svc.renderResolvedMarkdown({
+        examType: "DXA",
+        templateId: "dxa-dexa-normal-v1",
+        dxaLumbarBmd: "1,000",
+        dxaLumbarTScore: "-0,5",
+        dxaLumbarZScore: "0,2",
+        dxaFemoralNeckBmd: "0,900",
+        dxaFemoralNeckTScore: "-1,2",
+        dxaFemoralNeckZScore: "-0,1",
+        dxaTotalHipBmd: "0,950",
+        dxaTotalHipTScore: "-0,8",
+        dxaTotalHipZScore: "0,0",
+      }),
+    ).not.toThrow();
+  });

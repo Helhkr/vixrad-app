@@ -142,6 +142,15 @@ export class ReportsService {
     decubitus?: "ventral" | "dorsal" | "lateral";
     notes?: string;
     academic?: boolean;
+    dxaLumbarBmd?: string;
+    dxaLumbarTScore?: string;
+    dxaLumbarZScore?: string;
+    dxaFemoralNeckBmd?: string;
+    dxaFemoralNeckTScore?: string;
+    dxaFemoralNeckZScore?: string;
+    dxaTotalHipBmd?: string;
+    dxaTotalHipTScore?: string;
+    dxaTotalHipZScore?: string;
     findings?: string | null;
     indicationFile?: Express.Multer.File;
     ecgGating?: "omit" | "without" | "with";
@@ -230,6 +239,15 @@ export class ReportsService {
       incidence: params.incidence,
       decubitus: params.decubitus,
       notes: params.notes,
+      dxaLumbarBmd: params.dxaLumbarBmd,
+      dxaLumbarTScore: params.dxaLumbarTScore,
+      dxaLumbarZScore: params.dxaLumbarZScore,
+      dxaFemoralNeckBmd: params.dxaFemoralNeckBmd,
+      dxaFemoralNeckTScore: params.dxaFemoralNeckTScore,
+      dxaFemoralNeckZScore: params.dxaFemoralNeckZScore,
+      dxaTotalHipBmd: params.dxaTotalHipBmd,
+      dxaTotalHipTScore: params.dxaTotalHipTScore,
+      dxaTotalHipZScore: params.dxaTotalHipZScore,
       ecgGating: params.ecgGating,
       phases: params.phases,
       coil: params.coil,
