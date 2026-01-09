@@ -27,29 +27,12 @@ Artéria mesentérica superior com origem e calibre preservados, com boa opacifi
 
 Artérias renais com origens e calibres habituais, sem sinais de estenoses significativas.
 
-**Veia porta e sistema venoso:**
+**Sistema venoso:**
 Veia porta pérvia, de calibre preservado. Veias mesentérica superior e esplênica pérvias.
 
 Veias hepáticas com drenagem habitual para a veia cava inferior.
 
 Veia cava inferior pérvia, de calibre normal.
-
-**Fígado:**
-Dimensões, contornos e densidade do parênquima hepático dentro dos limites da normalidade. Realce homogêneo. Sem lesões focais.
-
-**Vesícula e vias biliares:**
-Vesícula biliar de paredes finas e conteúdo homogêneo. Vias biliares intra e extra-hepáticas de calibres habituais.
-
-**Baço:**
-Dimensões e densidade preservadas. Sem lesões focais.
-
-**Pâncreas:**
-Dimensões, contornos e densidade habituais. Ducto pancreático principal de calibre normal.
-
-**Rins e adrenais:**
-Rins tópicos, de dimensões e contornos preservados, com nefrograma simétrico. Ausência de lesões focais, dilatação pielocalicinal ou cálculos.
-
-Glândulas adrenais de morfologia e dimensões normais.
 
 **Impressão diagnóstica:**
 Angiotomografia de abdome superior dentro dos limites da normalidade. Aorta abdominal e ramos viscerais com calibres e permeabilidade preservados. Sistema venoso portal pérvio.
