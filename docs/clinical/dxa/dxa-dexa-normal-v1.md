@@ -36,7 +36,7 @@ requires:
 - T-score ≤ -2,5: Osteoporose
 
 **Impressão diagnóstica:**
-Densidade mineral óssea dentro dos limites esperados para a idade e sexo, nos sítios avaliados.
+Valores de densidade mineral óssea (DMO), T-score e Z-score conforme descrito acima.
 
 <!-- IF NOTAS -->
 **Notas:** {{NOTAS}}
