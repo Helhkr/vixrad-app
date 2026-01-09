@@ -25,7 +25,7 @@ import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import { fetchTemplateDetail, type TemplateDetail } from "@/features/templates";
 import { useAppState } from "../state";
-import type { ArtifactType, Decubitus, Incidence, MgType, MrFieldStrength, MrRadio } from "../state";
+import type { ArtifactType, Decubitus, DxaPeripheralSite, Incidence, MgType, MrFieldStrength, MrRadio } from "../state";
 import { useSnackbar } from "../snackbar";
 
 const INCIDENCES: Incidence[] = ["PA e Perfil", "AP", "PA", "Perfil", "Obliqua", "Ortostática", "Axial"];
@@ -64,6 +64,8 @@ export default function ReportFormPage() {
     setContrast,
     mgType,
     setMgType,
+    dxaSites,
+    setDxaSites,
     sex,
     setSex,
     side,
@@ -140,7 +142,7 @@ export default function ReportFormPage() {
 
   const showIndication = requires ? requires.indication !== "none" && requires.indication !== "fixed" : true;
   const showContrast = requires ? requires.contrast !== "none" && requires.contrast !== "fixed" : true;
-  const showMgType = requires ? requires.type !== "none" && requires.type !== "fixed" : false;
+  const showType = requires ? requires.type !== "none" && requires.type !== "fixed" : false;
   const showSex = requires ? requires.sex !== "none" && requires.sex !== "fixed" : false;
   const showSide = requires ? requires.side !== "none" && requires.side !== "fixed" : false;
   const showIncidence = requires ? requires.incidence !== "none" && requires.incidence !== "fixed" : false;
@@ -216,11 +218,15 @@ export default function ReportFormPage() {
   }, [template?.name, templateId]);
 
   useEffect(() => {
-    if (!showMgType) return;
+    if (!showType) return;
     if (examType !== "MG") return;
     if (mgType) return;
     setMgType("digital");
-  }, [showMgType, examType, mgType, setMgType]);
+  }, [showType, examType, mgType, setMgType]);
+
+  const toggleDxaSite = (site: DxaPeripheralSite) => {
+    setDxaSites(dxaSites.includes(site) ? dxaSites.filter((s) => s !== site) : [...dxaSites, site]);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -262,9 +268,16 @@ export default function ReportFormPage() {
       return;
     }
 
-    if (requires.type === "required" && !mgType) {
-      showMessage("Selecione o tipo de mamografia.", "error");
-      return;
+    if (requires.type === "required") {
+      if (examType === "MG" && !mgType) {
+        showMessage("Selecione o tipo de mamografia.", "error");
+        return;
+      }
+
+      if (examType === "DXA" && dxaSites.length === 0) {
+        showMessage("Selecione a(s) região(ões) (punho/calcanhar/dedos).", "error");
+        return;
+      }
     }
 
     if (requires.indication === "required" && !indication.trim()) {
@@ -378,7 +391,7 @@ export default function ReportFormPage() {
             </FormControl>
           ) : null}
 
-          {showMgType && examType === "MG" ? (
+          {showType && examType === "MG" ? (
             <FormControl>
               <FormLabel>Tipo de mamografia</FormLabel>
               <RadioGroup row value={mgType ?? ""} onChange={handleMgTypeChange}>
@@ -386,6 +399,31 @@ export default function ReportFormPage() {
                 <FormControlLabel value="digital" control={<Radio />} label="Digital" />
                 <FormControlLabel value="3d" control={<Radio />} label="3D" />
               </RadioGroup>
+            </FormControl>
+          ) : null}
+
+          {showType && examType === "DXA" ? (
+            <FormControl>
+              <FormLabel>Região(ões)</FormLabel>
+              <FormGroup row>
+                <FormControlLabel
+                  control={<Checkbox checked={dxaSites.includes("punho")} onChange={() => toggleDxaSite("punho")} />}
+                  label="Punho"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={dxaSites.includes("calcanhar")}
+                      onChange={() => toggleDxaSite("calcanhar")}
+                    />
+                  }
+                  label="Calcanhar"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={dxaSites.includes("dedos")} onChange={() => toggleDxaSite("dedos")} />}
+                  label="Dedos"
+                />
+              </FormGroup>
             </FormControl>
           ) : null}
 

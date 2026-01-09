@@ -50,7 +50,7 @@ export type TemplateDetail = {
 export type RenderInput = {
   examType: ExamType;
   templateId: string;
-  type?: "convencional" | "digital" | "3d";
+  type?: string;
   indication?: string;
   sex?: "M" | "F";
   side?: "RIGHT" | "LEFT" | "BILATERAL";
@@ -116,6 +116,9 @@ const SUPPORTED_CONDITIONS = new Set([
   "MG_CONVENCIONAL",
   "MG_DIGITAL",
   "MG_3D",
+  "DXA_PUNHO",
+  "DXA_CALCANHAR",
+  "DXA_DEDOS",
   "INDICACAO",
   "CONTRASTE",
   "SEXO_MASCULINO",
@@ -332,8 +335,36 @@ export class TemplatesService {
   private assertInputMeetsRequires(meta: TemplateMeta, input: RenderInput): void {
     const req = meta.requires;
 
-    if (req.type === "required" && !input.type) {
+    if (req.type === "required" && (!input.type || input.type.trim().length === 0)) {
       throw new BadRequestException("requires.type: obrigatório");
+    }
+
+    // Validate 'type' semantics for known modalities
+    if (input.type && input.type.trim().length > 0) {
+      const t = input.type.trim();
+
+      if (input.examType === "MG") {
+        const allowed = new Set(["convencional", "digital", "3d"]);
+        if (!allowed.has(t)) {
+          throw new BadRequestException(`type inválido para MG: ${t}`);
+        }
+      }
+
+      if (input.examType === "DXA") {
+        const allowed = new Set(["punho", "calcanhar", "dedos"]);
+        const parts = t
+          .split(",")
+          .map((p) => p.trim().toLowerCase())
+          .filter(Boolean);
+        if (parts.length === 0) {
+          throw new BadRequestException("type inválido para DXA");
+        }
+        for (const p of parts) {
+          if (!allowed.has(p)) {
+            throw new BadRequestException(`type inválido para DXA: ${p}`);
+          }
+        }
+      }
     }
 
     if (req.indication === "required" && !input.indication) {
@@ -591,10 +622,23 @@ export class TemplatesService {
 
     this.assertInputMeetsRequires(parsed.meta, input);
 
+    const dxaSelected = (() => {
+      if (input.examType !== "DXA") return new Set<string>();
+      return new Set(
+        (input.type ?? "")
+          .split(",")
+          .map((p) => p.trim().toLowerCase())
+          .filter(Boolean),
+      );
+    })();
+
     const flags: Record<string, boolean> = {
       MG_CONVENCIONAL: input.type === "convencional",
       MG_DIGITAL: input.type === "digital",
       MG_3D: input.type === "3d",
+      DXA_PUNHO: dxaSelected.has("punho"),
+      DXA_CALCANHAR: dxaSelected.has("calcanhar"),
+      DXA_DEDOS: dxaSelected.has("dedos"),
       INDICACAO: Boolean(input.indication),
       NOTAS: Boolean(input.notes),
       SEXO_FEMININO: input.sex === "F",
@@ -646,6 +690,14 @@ export class TemplatesService {
       INDICACAO: input.indication,
       NOTAS: input.notes,
       TYPE: input.type === "convencional" ? "CONVENCIONAL" : input.type === "digital" ? "DIGITAL" : input.type === "3d" ? "3D" : undefined,
+      DXA_PERIFERICA_REGIOES: (() => {
+        if (input.examType !== "DXA") return undefined;
+        const labels: string[] = [];
+        if (dxaSelected.has("punho")) labels.push("punho");
+        if (dxaSelected.has("calcanhar")) labels.push("calcanhar");
+        if (dxaSelected.has("dedos")) labels.push("dedos");
+        return this.formatArtifactList(labels);
+      })(),
       SEXO: input.sex === "F" ? "FEMININO" : input.sex === "M" ? "MASCULINO" : undefined,
       LADO: sideLabel,
       INCIDENCIA: input.incidence ? incidenciaMap[input.incidence] || input.incidence : undefined,

@@ -12,6 +12,7 @@ export type Decubitus = "ventral" | "dorsal" | "lateral";
 export type MrRadio = "omit" | "without" | "with";
 export type MrFieldStrength = "omit" | "1.5T" | "3.0T";
 export type MgType = "convencional" | "digital" | "3d";
+export type DxaPeripheralSite = "punho" | "calcanhar" | "dedos";
 export type ArtifactType =
   | "Movimento"
   | "Beam hardening"
@@ -51,6 +52,9 @@ type AppState = {
 
   mgType: MgType | null;
   setMgType: (value: MgType | null) => void;
+
+  dxaSites: DxaPeripheralSite[];
+  setDxaSites: (value: DxaPeripheralSite[]) => void;
 
   sex: Sex | null;
   setSex: (value: Sex | null) => void;
@@ -134,6 +138,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [findings, setFindings] = useState<string>("");
   const [contrast, setContrast] = useState<Contrast>("without");
   const [mgType, setMgType] = useState<MgType | null>(null);
+  const [dxaSites, setDxaSites] = useState<DxaPeripheralSite[]>([]);
   const [sex, setSex] = useState<Sex | null>(null);
   const [side, setSide] = useState<Side | null>(null);
   const [incidence, setIncidence] = useState<Incidence | null>(null);
@@ -198,6 +203,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setFindings("");
     setContrast("without");
     setMgType(null);
+    setDxaSites([]);
     setSex(null);
     setSide(null);
     setIncidence(null);
@@ -231,6 +237,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setContrast,
       mgType,
       setMgType,
+      dxaSites,
+      setDxaSites,
       sex,
       setSex,
       side,
@@ -271,6 +279,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       findings,
       contrast,
       mgType,
+      dxaSites,
       sex,
       side,
       incidence,

@@ -133,7 +133,7 @@ export class ReportsService {
     userId?: string;
     examType: "CT" | "XR" | "US" | "MR" | "MG" | "DXA" | "NM";
     templateId: string;
-    type?: "convencional" | "digital" | "3d";
+    type?: string;
     indication?: string;
     sex?: "M" | "F";
     side?: "RIGHT" | "LEFT" | "BILATERAL";

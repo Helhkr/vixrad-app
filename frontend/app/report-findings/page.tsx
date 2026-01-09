@@ -41,6 +41,7 @@ export default function ReportFindingsPage() {
     indicationFile,
     contrast,
     mgType,
+    dxaSites,
     sex,
     side,
     incidence,
@@ -172,16 +173,33 @@ export default function ReportFindingsPage() {
     return template?.name ?? templateId;
   }, [template?.name, templateId]);
 
+  const typeForRequest = useMemo(() => {
+    if (examType === "DXA") {
+      const unique = Array.from(new Set(dxaSites));
+      return unique.length > 0 ? unique.join(",") : undefined;
+    }
+    if (examType === "MG") return mgType ?? undefined;
+    return undefined;
+  }, [examType, dxaSites, mgType]);
+
   const validateTemplateInputs = (opts: { requireFindings: boolean }): boolean => {
     if (!requires) {
       showMessage("Aguarde carregar o template.", "error");
       return false;
     }
 
-    if (requires.type === "required" && !mgType) {
-      showMessage("Selecione o tipo de mamografia no formulário.", "error");
-      router.push("/report-form");
-      return false;
+    if (requires.type === "required") {
+      if (examType === "MG" && !mgType) {
+        showMessage("Selecione o tipo de mamografia no formulário.", "error");
+        router.push("/report-form");
+        return false;
+      }
+
+      if (examType === "DXA" && dxaSites.length === 0) {
+        showMessage("Selecione a(s) região(ões) (punho/calcanhar/dedos) no formulário.", "error");
+        router.push("/report-form");
+        return false;
+      }
     }
 
     if (requires.indication === "required" && !indication.trim()) {
@@ -275,7 +293,7 @@ export default function ReportFindingsPage() {
         {
           examType,
           templateId,
-          type: mgType ?? undefined,
+          type: typeForRequest,
           contrast,
           indication: indication || undefined,
           notes: urgentNote,
@@ -355,7 +373,7 @@ export default function ReportFindingsPage() {
         const formData = new FormData();
         formData.append("examType", examType);
         formData.append("templateId", templateId);
-        if (mgType) formData.append("type", mgType);
+        if (typeForRequest) formData.append("type", typeForRequest);
         formData.append("contrast", contrast);
         if (indication) formData.append("indication", indication);
         if (urgentNote) formData.append("notes", urgentNote);
@@ -379,7 +397,7 @@ export default function ReportFindingsPage() {
         {
           examType,
           templateId,
-          type: mgType ?? undefined,
+          type: typeForRequest,
           contrast,
           indication: indication || undefined,
           notes: urgentNote,
