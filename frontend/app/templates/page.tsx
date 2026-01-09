@@ -22,9 +22,10 @@ const examTypes = [
   { code: "XR", label: "Radiografia" },
   { code: "US", label: "Ultrassonografia" },
   { code: "MR", label: "Ressonância Magnética" },
-  { code: "MG", label: "Mamografia" },
-  { code: "DXA", label: "Densitometria Óssea" },
-  { code: "NM", label: "Medicina Nuclear" },
+  // V1: categorias abaixo desativadas temporariamente
+  // { code: "MG", label: "Mamografia" },
+  // { code: "DXA", label: "Densitometria Óssea" },
+  // { code: "NM", label: "Medicina Nuclear" },
 ];
 
 export default function TemplatesPage() {
