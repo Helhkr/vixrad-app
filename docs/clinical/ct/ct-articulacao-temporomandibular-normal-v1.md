@@ -1,37 +1,36 @@
 ---
-
----
 exam_type: CT
 requires:
   indication: optional
   sex: none
   contrast: none
-  side: required
-side_gender: feminine
+  side: none
+  side_gender: feminine
 ---
 
-# TOMOGRAFIA DA ARTICULAÇÃO TEMPOROMANDIBULAR {{LADO}}
+# TOMOGRAFIA DAS ARTICULAÇÕES TEMPOROMANDIBULARES
 
-**Técnica:** Exame realizado em tomógrafo multidetectores, com cortes axiais e reconstruções multiplanares (coronal, sagital e 3D) da articulação temporomandibular {{LADO}}. Avaliação em boca fechada e aberta, conforme protocolo.
+**Técnica:** Exame realizado em tomógrafo multidetectores, com cortes axiais e reconstruções multiplanares (coronal, sagital e 3D) das articulações temporomandibulares direita e esquerda. Avaliação em boca fechada e aberta, conforme protocolo.
 
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->
 
+
 **Análise:**
 
-Articulação temporomandibular {{LADO}} com cabeça da mandíbula de contornos regulares, sem sinais de erosão, esclerose ou osteófitos. Morfologia preservada.
+Articulações temporomandibulares direita e esquerda com cabeças da mandíbula de contornos regulares, sem sinais de erosão, esclerose ou osteófitos. Morfologia preservada bilateralmente.
 
-Fossa mandibular e eminência articular com superfícies ósseas regulares, sem sinais de alterações degenerativas ou fraturas.
+Fossas mandibulares e eminências articulares com superfícies ósseas regulares, sem sinais de alterações degenerativas ou fraturas.
 
-Espaço articular mantido em boca fechada e aberta. Sem sinais de deslocamento condilar ou redução do espaço articular.
+Espaços articulares mantidos em boca fechada e aberta, sem sinais de deslocamento condilar ou redução do espaço articular.
 
-Processo condilar de morfologia e contornos preservados. Sem sinais de fratura ou lesão focal.
+Processos condilares de morfologia e contornos preservados, sem sinais de fratura ou lesão focal.
 
 Demais estruturas ósseas avaliadas sem alterações significativas.
 
 **Impressão diagnóstica:**
-Exame tomográfico da articulação temporomandibular {{LADO}} dentro dos limites da normalidade. Ausência de alterações ósseas degenerativas, traumáticas ou inflamatórias.
+Exame tomográfico das articulações temporomandibulares dentro dos limites da normalidade. Ausência de alterações ósseas degenerativas, traumáticas ou inflamatórias.
 
 <!-- IF NOTAS -->
 **Notas:** {{NOTAS}}
