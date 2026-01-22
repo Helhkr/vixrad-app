@@ -1,4 +1,6 @@
 import { Injectable } from "@nestjs/common";
+import * as fs from "fs";
+import * as path from "path";
 
 import type { ExamType } from "../templates/templates.service";
 
@@ -13,11 +15,10 @@ export class PromptBuilderService {
       "REGRAS OBRIGATÓRIAS:",
       "- NÃO inclua dados de identificação do paciente.",
       "- NÃO inclua nome do paciente, data, número de prontuário ou nome do médico.",
-      "- NÃO invente achados, medidas ou detalhes técnicos não fornecidos (ex.: medidas, sequências, realce, territórios vasculares).",
+      "- NÃO invente medidas não fornecidas",
       "- NÃO faça recomendações clínicas ou terapêuticas, a não ser que explicitamente solicitado.",
       "- NÃO utilize linguagem coloquial.",
       "- Utilize linguagem técnica médica formal.",
-      "- Caso uma informação não tenha sido fornecida, NÃO a presuma, a não ser que explicitamente solicitado.",
       "- Caso hajam alterações no exame, descreva-as alterações mais importantes primeiro na análise e em impressão diagnóstica",
       "- Caso haja mais de uma impressão diagnóstica, coloque cada uma delas em uma linha própria e não utilize bullets ou numerações.",
       "- Formatação das seções: cada rótulo ('Técnica:', 'Indicação:' quando houver, 'Notas:' quando houver, 'Análise:', 'Impressão diagnóstica:') deve ficar sozinho em sua linha, seguido do conteúdo nas linhas subsequentes.",
@@ -137,6 +138,10 @@ export class PromptBuilderService {
       "- Priorize descrições extensas e detalhadas, com linguagem técnica completa (evite concisão excessiva).",
       "- Mesmo em exames normais, descreva de forma completa e sistemática a ausência de alterações relevantes (sem usar frases genéricas vagas).",
       "- Não invente medidas, sequências, realces, territórios vasculares ou outros detalhes não informados; se não houver base, declare a limitação/indeterminação.",
+      "- Faça descrição radiológica detalhada, incluindo aspectos técnicos e anatômicos relevantes.",
+      "- Ao descrever os achados, cite explicitamente em quais sequências (ex.: PD FS, T1, T2, STIR, DIFUSÃO) cada alteração foi observada, detalhando os sinais radiológicos que fundamentam as conclusões.",
+      "- Para cada achado relevante, explique os aspectos de sinal, morfologia, localização e extensão conforme visualizado nas reconstruções pertinentes.",
+      "- Priorize a correlação dos achados com as sequências e planos utilizados, justificando as hipóteses diagnósticas com base nos sinais específicos observados em cada reconstrução.",
     ].join("\n");
   }
 
@@ -167,10 +172,20 @@ export class PromptBuilderService {
 
     const academicInstructions = params.academic ? this.getAcademicModeInstructions() : "";
 
-    return [globalRules, modalityContext, templateBase, indicationBlock, findingsBlock, academicInstructions, outputInstructions]
+    const prompt = [globalRules, modalityContext, templateBase, indicationBlock, findingsBlock, academicInstructions, outputInstructions]
       .filter(Boolean)
       .join("\n\n")
       .trim()
       .concat("\n");
+
+    // Log local do prompt gerado
+    try {
+      const logPath = path.join(process.cwd(), "prompt-builder.log");
+      const logEntry = `\n---\n${new Date().toISOString()}\nTemplateID: ${params.templateId}\nExamType: ${params.examType}\nAcademic: ${params.academic ? "true" : "false"}\nIndication: ${params.indication || ""}\nFindings: ${params.findings || ""}\nPROMPT:\n${prompt}\n`;
+      fs.appendFileSync(logPath, logEntry, { encoding: "utf8" });
+    } catch (err) {
+      // Falha silenciosa no log
+    }
+    return prompt;
   }
 }
