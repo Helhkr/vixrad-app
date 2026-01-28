@@ -20,7 +20,7 @@ export class PromptBuilderService {
       "- NÃO utilize linguagem coloquial.",
       "- Utilize linguagem técnica médica formal.",
       "- Caso hajam alterações no exame, descreva-as alterações mais importantes primeiro na análise e em impressão diagnóstica",
-      "- Caso haja mais de uma impressão diagnóstica, coloque cada uma delas em uma linha própria e não utilize bullets ou numerações.",
+      "- Caso haja mais de uma impressão diagnóstica, coloque cada uma delas em uma linha própria, consolidando os achados relacionados em um único parágrafo, e não utilize bullets ou numerações.",
       "- Formatação das seções: cada rótulo ('Técnica:', 'Indicação:' quando houver, 'Notas:' quando houver, 'Análise:', 'Impressão diagnóstica:') deve ficar sozinho em sua linha, seguido do conteúdo nas linhas subsequentes.",
       "- Separe as seções com exatamente uma linha em branco: uma linha em branco entre 'Indicação:' e 'Análise:', e entre o final da análise e 'Impressão diagnóstica:'.",
       "- Se houver ACHADOS fornecidos (texto de achados), NÃO inclua frases genéricas como 'demais achados dentro dos limites da normalidade' na impressão diagnóstica. Resuma apenas os achados relevantes."
@@ -123,10 +123,11 @@ export class PromptBuilderService {
       "- Organize o texto de forma clara e técnica.",
       "- Não inclua títulos extras, comentários ou explicações.",
       "- Não repita instruções ou regras.",
-      "- Mantenha os rótulos das seções exatamente como no TEMPLATE BASE (sem criar novos).",
-      "- Se o TEMPLATE BASE contiver a seção 'Notas:' e houver conteúdo, mantenha-a no texto final.",
+      "- Mantenha os rótulos das seções exatamente como no TEMPLATE BASE (sem criar novos), exceto se for uma NOTA. Nesse caso, crie a seção 'Notas:' e enumere as Notas usando numeração arábica super escrita (¹, ², ³, etc.) no final do laudo. As notas devem ficar todas em um mesmo parágrafo.",
+      "- Se o TEMPLATE BASE contiver a seção 'Notas:' e houver conteúdo, mantenha-a no texto final e adicione novas notas numeradas sequencialmente.",
       "- Use quebras de linha conforme instruído nas REGRAS OBRIGATÓRIAS (uma linha em branco entre seções).",
-      "- Na 'Impressão diagnóstica:', liste cada item em uma linha, sem bullets e sem frases de normalidade genérica quando há achados.",
+      "- Na 'Impressão diagnóstica:', liste cada item em uma linha, agregando os achados relacionados em um único parágrafo, sem bullets e sem frases de normalidade genérica quando há achados.",
+      "- Use linguagem técnica médica defensiva e formal, procurando evitar afirmações categóricas, exceto quando explicitamente indicado nos achados.",
     ].join("\n");
   }
 
@@ -135,12 +136,12 @@ export class PromptBuilderService {
       "MODO UNIVERSITÁRIO (quando ativado):",
       "- Você tem liberdade para propor hipóteses diagnósticas quando houver base nos achados descritos, indicando o grau de confiança (ex.: provável/possível) e citando os sinais de imagem que sustentam a hipótese.",
       "- Quando houver mais de uma hipótese plausível, você pode citar diagnósticos diferenciais relevantes de forma breve e técnica.",
-      "- Priorize descrições extensas e detalhadas, com linguagem técnica completa (evite concisão excessiva).",
-      "- Mesmo em exames normais, descreva de forma completa e sistemática a ausência de alterações relevantes (sem usar frases genéricas vagas).",
-      "- Não invente medidas, sequências, realces, territórios vasculares ou outros detalhes não informados; se não houver base, declare a limitação/indeterminação.",
+      "- Priorize descrições extensas e detalhadas, mesmo dos achados normais, com linguagem técnica completa (evite concisão excessiva).",
+      "- Mesmo em exames normais, descreva de forma completa e sistemática a ausência de alterações relevantes.",
+      "- Não invente medidas",
       "- Faça descrição radiológica detalhada, incluindo aspectos técnicos e anatômicos relevantes.",
       "- Ao descrever os achados, cite explicitamente em quais sequências (ex.: PD FS, T1, T2, STIR, DIFUSÃO) cada alteração foi observada, detalhando os sinais radiológicos que fundamentam as conclusões.",
-      "- Para cada achado relevante, explique os aspectos de sinal, morfologia, localização e extensão conforme visualizado nas reconstruções pertinentes.",
+      "- Para cada achado relevante, explique os aspectos de sinal, atenuação ou ecogenicidade, morfologia, localização e extensão conforme visualizado nas reconstruções pertinentes.",
       "- Priorize a correlação dos achados com as sequências e planos utilizados, justificando as hipóteses diagnósticas com base nos sinais específicos observados em cada reconstrução.",
     ].join("\n");
   }
