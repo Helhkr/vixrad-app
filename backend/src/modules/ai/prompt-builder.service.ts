@@ -22,7 +22,6 @@ export class PromptBuilderService {
       "- Caso hajam alterações no exame, descreva-as alterações mais importantes primeiro na análise e em impressão diagnóstica",
       "- Caso haja mais de uma impressão diagnóstica, coloque cada uma delas em uma linha própria, consolidando os achados relacionados em um único parágrafo, e não utilize bullets ou numerações.",
       "- Formatação das seções: cada rótulo ('Técnica:', 'Indicação:' quando houver, 'Notas:' quando houver, 'Análise:', 'Impressão diagnóstica:') deve ficar sozinho em sua linha, seguido do conteúdo nas linhas subsequentes.",
-      "- Separe as seções com exatamente uma linha em branco: uma linha em branco entre 'Indicação:' e 'Análise:', e entre o final da análise e 'Impressão diagnóstica:'.",
       "- Se houver ACHADOS fornecidos (texto de achados), NÃO inclua frases genéricas como 'demais achados dentro dos limites da normalidade' na impressão diagnóstica. Resuma apenas os achados relevantes."
     ];
 
@@ -128,6 +127,7 @@ export class PromptBuilderService {
       "- Use quebras de linha conforme instruído nas REGRAS OBRIGATÓRIAS (uma linha em branco entre seções).",
       "- Na 'Impressão diagnóstica:', liste cada item em uma linha, agregando os achados relacionados em um único parágrafo, sem bullets e sem frases de normalidade genérica quando há achados.",
       "- Use linguagem técnica médica defensiva e formal, procurando evitar afirmações categóricas, exceto quando explicitamente indicado nos achados.",
+      "- Evite usar o termo provável na impressão diagnóstica ou análise. Prefira termos mais abrangentes como 'sugere' ou 'compatível com'.",
     ].join("\n");
   }
 

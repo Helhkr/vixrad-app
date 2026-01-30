@@ -33,9 +33,10 @@ export class ReportsService {
 
     const ensureTitleAtTop = (src: string, title: string | null): string => {
       if (!title) return src;
-      const trimmedStart = src.replace(/^\s+/, "");
-      const firstNonEmptyLine = (trimmedStart.match(/^\s*[^\n]+/m)?.[0] ?? "").trim();
-      const hasTitleAlready = /^#\s+/.test(firstNonEmptyLine);
+      // Ignora linhas em branco no início
+      const lines = src.split('\n').filter(line => line.trim() !== '');
+      const firstNonEmptyLine = lines[0]?.trim() ?? '';
+      const hasTitleAlready = firstNonEmptyLine === title || /^#\s+/.test(firstNonEmptyLine);
       if (hasTitleAlready) return src;
       return `${title}\n${src.trimStart()}`;
     };
