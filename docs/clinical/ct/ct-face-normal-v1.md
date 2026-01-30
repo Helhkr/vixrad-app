@@ -24,7 +24,7 @@ Estruturas ósseas da face, incluindo os ossos nasais, o complexo zigomático-ma
 
 Articulações temporomandibulares (ATMs) com morfologia e relações articulares preservadas. Côndilos mandibulares tópicos nas fossas glenoides.
 
-Seios paranasais e células da mastoide com aeração habitual, livre de níveis líquidos ou espessamentos mucosos significativos.
+Seios paranasais com aeração habitual, livre de níveis líquidos ou espessamentos mucosos significativos.
 
 Partes moles sem enfisema subcutâneo, hematomas ou coleções evidentes.
 
