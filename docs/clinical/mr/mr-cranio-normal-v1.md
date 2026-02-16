@@ -34,8 +34,6 @@ Estruturas da linha média centralizadas.
 
 Transição craniocervical sem particularidades.
 
-Seios paranasais e células mastoideas sem níveis líquidos ou opacificação significativa.
-
 **Impressão diagnóstica:**
 Exame sem alterações significativas.
 

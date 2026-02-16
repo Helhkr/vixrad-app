@@ -37,7 +37,7 @@ Forames neurais sem estenoses significativas.
 Partes moles paravertebrais sem coleções ou alterações relevantes.
 
 **Impressão diagnóstica:**
-Exame sem alterações significativas.
+Exame de ressonãncia magnética de coluna cervical dentro dos limites da normalidade.
 
 <!-- IF NOTAS -->
 **Notas:** {{NOTAS}}

@@ -23,12 +23,8 @@ Tronco celíaco, artéria mesentérica superior e artérias renais com origens a
 
 Bifurcação aórtica com configuração habitual. Artérias ilíacas comuns, externas e internas com calibres e permeabilidade preservados, sem estenoses evidentes.
 
-Rins tópicos, com nefrograma homogêneo e simétrico.
-
-Demais órgãos abdominais visualizados sem alterações grosseiras na fase arterial.
-
 **Impressão diagnóstica:**
-Exame dentro dos limites da normalidade. Aorta abdominal e ramos com calibres e permeabilidade preservados.
+Aorta abdominal e ramos com calibres e permeabilidade preservados.
 
 <!-- IF NOTAS -->
 **Notas:** {{NOTAS}}

@@ -17,9 +17,13 @@ requires:
 
 **Análise:**
 
-Tronco da artéria pulmonar e ramos principais direito e esquerdo com opacificação preservada. Ausência de falhas de enchimento sugestivas de tromboembolismo pulmonar agudo nos ramos principais, lobares e segmentares avaliáveis.
+Tronco da artéria pulmonar e ramos principais direito e esquerdo com opacificação preservada. 
 
-Coração com dimensões preservadas na avaliação qualitativa. Ausência de derrame pericárdico.
+Ausência de falhas de enchimento sugestivas de tromboembolismo pulmonar agudo nos ramos principais, lobares e segmentares avaliáveis.
+
+Coração com dimensões preservadas na avaliação qualitativa. 
+
+Ausência de derrame pericárdico.
 
 Aorta torácica com calibres preservados.
 
