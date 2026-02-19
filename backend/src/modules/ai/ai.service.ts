@@ -1,3 +1,34 @@
+/**
+ * Retry utilitário com backoff exponencial simples.
+ * @param fn função assíncrona a ser executada
+ * @param retries número de tentativas extras (default: 2)
+ * @param delayMs delay inicial em ms (default: 1000)
+ * @param label rótulo para logs (opcional)
+ */
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  retries = 2,
+  delayMs = 1000,
+  label?: string
+): Promise<T> {
+  let attempt = 0;
+  let lastErr: any;
+  while (attempt <= retries) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      if (attempt < retries) {
+        const wait = delayMs * Math.pow(2, attempt);
+        // eslint-disable-next-line no-console
+        if (label) console.warn(`[Retry] ${label}: tentativa ${attempt + 1} falhou, aguardando ${wait}ms`);
+        await new Promise((res) => setTimeout(res, wait));
+      }
+      attempt++;
+    }
+  }
+  throw lastErr;
+}
 import {
   BadGatewayException,
   GatewayTimeoutException,
@@ -8,6 +39,8 @@ import {
 } from "@nestjs/common";
 
 import type { RenderInput } from "../templates/templates.service";
+
+
 
 type GeminiTokenUsage = {
   promptTokens: number | null;
@@ -67,7 +100,7 @@ export class AiService {
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const timeout = setTimeout(() => controller.abort(), 20000);
     try {
       const res = await fetch(url, { method: "GET", signal: controller.signal });
       if (!res.ok) {
@@ -91,13 +124,12 @@ export class AiService {
   }
 
   private chooseBestModel(available: string[]): string {
-    // Preference order: Pro variants first, then Flash
+    // Preference order
     const ranking = [
-      "gemini-3.0-pro-exp",
-      "gemini-3.0-pro",
-      "gemini-3.0-flash",
-      "gemini-2.5-pro",
+      "gemini-3-flash-preview",
+      "gemini-2.5-flash-lite",
       "gemini-2.5-flash",
+      "gemini-2.5-pro",
     ];
     for (const candidate of ranking) {
       if (available.includes(candidate)) return candidate;
@@ -173,11 +205,10 @@ export class AiService {
   private buildCandidates(envModel: string | undefined, available: string[]): string[] {
     const env = this.normalizeModel(envModel);
     const ranking = [
-      "gemini-3.0-pro-exp",
-      "gemini-3.0-pro",
-      "gemini-3.0-flash",
-      "gemini-2.5-pro",
+      "gemini-3-flash-preview",
+      "gemini-2.5-flash-lite",
       "gemini-2.5-flash",
+      "gemini-2.5-pro",
     ];
     const inAvailable = ranking.filter((m) => available.includes(m));
     const base = inAvailable.length > 0 ? inAvailable : ranking;
@@ -197,131 +228,154 @@ export class AiService {
     buildBody: (model: string) => any;
   }): Promise<GeminiGenerateResult> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), Number.isFinite(timeoutMs) ? timeoutMs : 20000);
+    const timeout = setTimeout(() => controller.abort(), Number.isFinite(timeoutMs) ? timeoutMs : 40000);
     let lastErr: Error | HttpException | BadGatewayException | undefined;
-    try {
-      for (const model of candidates) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
-          model,
-        )}:generateContent?key=${encodeURIComponent(apiKey)}`;
-        try {
+    const globalStart = Date.now();
+    const globalTimeout = Number.isFinite(timeoutMs) ? timeoutMs : 60000;
+    for (const model of candidates) {
+      // Timeout por modelo: 20s
+      const perModelTimeout = 20000;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+        model,
+      )}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const label = `modelo ${model}`;
+      const attemptStart = Date.now();
+      try {
+        const result = await retryWithBackoff(async () => {
+          const start = Date.now();
           const requestBody = buildBody(model);
-          const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestBody),
-            signal: controller.signal,
-          });
-
-          if (!res.ok) {
-            // Parse minimal error info
-            let geminiMessage = "";
-            let geminiReason = "";
-            try {
-              const errJson = (await res.json()) as any;
-              geminiMessage = typeof errJson?.error?.message === "string" ? errJson.error.message : "";
-              const details = Array.isArray(errJson?.error?.details) ? errJson.error.details : [];
-              geminiReason =
-                typeof details?.[0]?.reason === "string"
-                  ? details[0].reason
-                  : typeof details?.[0]?.metadata?.reason === "string"
-                    ? details[0].metadata.reason
-                    : "";
-            } catch {
-              // ignore
-            }
-
-            const isApiKeyInvalid =
-              geminiReason === "API_KEY_INVALID" ||
-              geminiMessage.toLowerCase().includes("api key expired") ||
-              geminiMessage.toLowerCase().includes("api_key_invalid");
-            if (isApiKeyInvalid) {
-              throw new ServiceUnavailableException("Chave da IA (Gemini) inválida/expirada. Atualize GEMINI_API_KEY.");
-            }
-
-            // Fallback-worthy statuses: 429 (quota), 404 (model not found), 403 (no permission/quota)
-            if (res.status === 429 || res.status === 404 || res.status === 403) {
-              lastErr = new HttpException(
-                `Falha no modelo ${model}: ${res.status} ${res.statusText}${geminiMessage ? ` - ${geminiMessage}` : ""}`,
-                res.status,
-              );
-              continue; // try next candidate
-            }
-
-            // Other errors: record and continue trying next
-            lastErr = new BadGatewayException(
-              `Falha ao chamar a IA (Gemini) em ${model}: ${res.status} ${res.statusText}${geminiMessage ? ` - ${geminiMessage}` : ""}`,
-            );
-            continue;
-          }
-
-          const data = (await res.json()) as any;
-          const parts = data?.candidates?.[0]?.content?.parts;
-          const out = Array.isArray(parts)
-            ? parts.map((p: any) => (typeof p?.text === "string" ? p.text : "")).join("").trim()
-            : "";
-          if (!out) {
-            lastErr = new BadGatewayException("Gemini retornou resposta vazia");
-            continue;
-          }
-
-          let usage = this.parseUsageMetadata(data);
-          if (usage.source === "none" && this.isCountTokensFallbackEnabled()) {
-            const ctTimeout = Math.min(8000, Math.max(1500, Number.isFinite(timeoutMs) ? timeoutMs / 2 : 8000));
-            const promptTokens = await this.countTokens({ apiKey, model, body: requestBody, timeoutMs: ctTimeout });
-            const outputTokens = await this.countTokens({
-              apiKey,
-              model,
-              timeoutMs: ctTimeout,
-              body: {
-                contents: [
-                  {
-                    role: "user",
-                    parts: [{ text: out }],
-                  },
-                ],
-              },
+          // Timeout controlado por AbortController local
+          const localController = new AbortController();
+          const localTimeout = setTimeout(() => localController.abort(), perModelTimeout);
+          try {
+            const res = await fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(requestBody),
+              signal: localController.signal,
             });
-            const total =
-              typeof promptTokens === "number" && typeof outputTokens === "number"
-                ? promptTokens + outputTokens
-                : null;
-            usage = {
-              promptTokens: promptTokens ?? null,
-              outputTokens: outputTokens ?? null,
-              totalTokens: total,
-              source: "countTokens",
-            };
-          }
+            const duration = Date.now() - start;
+            // eslint-disable-next-line no-console
+            console.log(`[Gemini] Modelo: ${model}, Tempo: ${duration}ms, Status: ${res.status}`);
 
-          return {
-            text: out.endsWith("\n") ? out : `${out}\n`,
-            usedModel: model,
-            usage,
-          };
-        } catch (e) {
-          const isAbortError = typeof e === "object" && e !== null && (e as any).name === "AbortError";
-          if (isAbortError) {
-            lastErr = new GatewayTimeoutException("Timeout ao chamar a IA (Gemini)");
-            // On timeout, try next candidate quickly
-            continue;
+            if (!res.ok) {
+              let geminiMessage = "";
+              let geminiReason = "";
+              try {
+                const errJson = (await res.json()) as any;
+                geminiMessage = typeof errJson?.error?.message === "string" ? errJson.error.message : "";
+                const details = Array.isArray(errJson?.error?.details) ? errJson.error.details : [];
+                geminiReason =
+                  typeof details?.[0]?.reason === "string"
+                    ? details[0].reason
+                    : typeof details?.[0]?.metadata?.reason === "string"
+                      ? details[0].metadata.reason
+                      : "";
+              } catch {}
+              const isApiKeyInvalid =
+                geminiReason === "API_KEY_INVALID" ||
+                geminiMessage.toLowerCase().includes("api key expired") ||
+                geminiMessage.toLowerCase().includes("api_key_invalid");
+              if (isApiKeyInvalid) {
+                // eslint-disable-next-line no-console
+                console.error(`[Gemini][Erro] Chave inválida/expirada. Modelo: ${model}, Tempo: ${duration}ms, Status: ${res.status}`);
+                throw new ServiceUnavailableException("Chave da IA (Gemini) inválida/expirada. Atualize GEMINI_API_KEY.");
+              }
+              if (res.status === 429 || res.status === 404 || res.status === 403) {
+                // eslint-disable-next-line no-console
+                console.error(`[Gemini][Erro] Falha no modelo ${model}: ${res.status} ${res.statusText}${geminiMessage ? ` - ${geminiMessage}` : ""}, Tempo: ${duration}ms`);
+                throw new HttpException(
+                  `Falha no modelo ${model}: ${res.status} ${res.statusText}${geminiMessage ? ` - ${geminiMessage}` : ""}`,
+                  res.status,
+                );
+              }
+              // eslint-disable-next-line no-console
+              console.error(`[Gemini][Erro] Falha ao chamar a IA (Gemini) em ${model}: ${res.status} ${res.statusText}${geminiMessage ? ` - ${geminiMessage}` : ""}, Tempo: ${duration}ms`);
+              throw new BadGatewayException(
+                `Falha ao chamar a IA (Gemini) em ${model}: ${res.status} ${res.statusText}${geminiMessage ? ` - ${geminiMessage}` : ""}`,
+              );
+            }
+            const data = (await res.json()) as any;
+            const parts = data?.candidates?.[0]?.content?.parts;
+            const out = Array.isArray(parts)
+              ? parts.map((p: any) => (typeof p?.text === "string" ? p.text : "")).join("").trim()
+              : "";
+            if (!out) {
+              // eslint-disable-next-line no-console
+              console.error(`[Gemini][Erro] Resposta vazia. Modelo: ${model}, Tempo: ${duration}ms`);
+              throw new BadGatewayException("Gemini retornou resposta vazia");
+            }
+            let usage = this.parseUsageMetadata(data);
+            if (usage.source === "none" && this.isCountTokensFallbackEnabled()) {
+              const ctTimeout = Math.min(8000, Math.max(1500, perModelTimeout / 2));
+              const promptTokens = await this.countTokens({ apiKey, model, body: requestBody, timeoutMs: ctTimeout });
+              const outputTokens = await this.countTokens({
+                apiKey,
+                model,
+                timeoutMs: ctTimeout,
+                body: {
+                  contents: [
+                    {
+                      role: "user",
+                      parts: [{ text: out }],
+                    },
+                  ],
+                },
+              });
+              const total =
+                typeof promptTokens === "number" && typeof outputTokens === "number"
+                  ? promptTokens + outputTokens
+                  : null;
+              usage = {
+                promptTokens: promptTokens ?? null,
+                outputTokens: outputTokens ?? null,
+                totalTokens: total,
+                source: "countTokens",
+              };
+            }
+            // eslint-disable-next-line no-console
+            console.log(`[Gemini] Sucesso. Modelo: ${model}, Tempo: ${duration}ms`);
+            return {
+              text: out.endsWith("\n") ? out : `${out}\n`,
+              usedModel: model,
+              usage,
+            };
+          } finally {
+            clearTimeout(localTimeout);
           }
-          lastErr = e as any;
-          continue;
+        }, 2, 1000, label); // 2 tentativas extras, delay inicial 1s
+        return result;
+      } catch (e) {
+        const durationErr = Date.now() - attemptStart;
+        const isAbortError = typeof e === "object" && e !== null && (e as any).name === "AbortError";
+        if (isAbortError) {
+          // eslint-disable-next-line no-console
+          console.error(`[Gemini][Timeout] Timeout ao chamar a IA (Gemini). Modelo: ${model}, Tempo: ${durationErr}ms`);
+        } else {
+          // eslint-disable-next-line no-console
+          console.error(`[Gemini][Erro] Exceção ao chamar a IA (Gemini). Modelo: ${model}, Tempo: ${durationErr}ms, Erro:`, e);
         }
+        lastErr = e as any;
+        // Fallback real: tenta próximo modelo se houver tempo global restante
+        const elapsed = Date.now() - globalStart;
+        if (elapsed > globalTimeout - 1000) {
+          // eslint-disable-next-line no-console
+          console.error(`[Gemini][Abort] Tempo global excedido (${elapsed}ms), abortando tentativas.`);
+          break;
+        }
+        continue;
       }
-      // Exhausted all candidates: if we saw any 429/403, surface 429 to user, else surface last error
-      if (lastErr instanceof HttpException && (lastErr.getStatus?.() === 429 || lastErr.getStatus?.() === 403)) {
-        throw new HttpException(
-          "Limite de requisições da IA. Tente novamente em ~1 minuto.",
-          HttpStatus.TOO_MANY_REQUESTS,
-        );
-      }
-      if (lastErr) throw lastErr;
-      throw new BadGatewayException("Falha desconhecida ao chamar a IA (sem modelos disponíveis)");
-    } finally {
-      clearTimeout(timeout);
     }
+    // Se algum modelo retornou sucesso, já terá feito return acima
+    // Se todos falharem, lança último erro
+    if (lastErr instanceof HttpException && (lastErr.getStatus?.() === 429 || lastErr.getStatus?.() === 403)) {
+      throw new HttpException(
+        "Limite de requisições da IA. Tente novamente em ~1 minuto.",
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+    if (lastErr) throw lastErr;
+    throw new BadGatewayException("Falha desconhecida ao chamar a IA (sem modelos disponíveis)");
   }
 
   // Rough token estimator for observability: ~4 chars/token heuristic
@@ -358,7 +412,7 @@ export class AiService {
     const candidates = Array.isArray(params.modelCandidates) && params.modelCandidates.length > 0
       ? params.modelCandidates.map((m) => this.normalizeModel(m))
       : this.buildCandidates(this.normalizeModel(process.env.GEMINI_MODEL), await this.fetchAvailableModels(apiKey));
-    const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
+    const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "40000");
 
     const result = await this.tryModelsGenerate({
       apiKey,
