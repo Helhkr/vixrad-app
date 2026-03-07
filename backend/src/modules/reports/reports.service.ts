@@ -177,6 +177,7 @@ export class ReportsService {
     indicationFile?: Express.Multer.File;
     ecgGating?: "omit" | "without" | "with";
     phases?: "omit" | "without" | "with";
+    phase?: "arterial" | "venoso" | "arterial_e_venoso";
     coil?: "omit" | "1.5T" | "3.0T";
     sedation?: "omit" | "without" | "with";
     artifactSourceEnabled?: boolean;
@@ -285,6 +286,7 @@ export class ReportsService {
       dxaScoreType: params.dxaScoreType,
       ecgGating: params.ecgGating,
       phases: params.phases,
+      phase: params.phase,
       coil: params.coil,
       sedation: params.sedation,
       artifactSourceEnabled: params.artifactSourceEnabled,

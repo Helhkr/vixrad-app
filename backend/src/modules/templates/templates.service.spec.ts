@@ -61,6 +61,41 @@ describe("TemplatesService", () => {
     expect(parsed.meta.defaults?.incidence).toBe("PA e Perfil");
   });
 
+  it("parses display_name and phase metadata", () => {
+    const svc = new TemplatesService();
+
+    const src = [
+      "---",
+      "exam_type: CT",
+      "display_name: ANGIOTOMOGRAFIA DE ABDOME SUPERIOR",
+      "requires:",
+      "  indication: optional",
+      "  sex: none",
+      "  contrast: fixed",
+      "  side: none",
+      "phase:",
+      "  type: select",
+      "  options:",
+      "    - arterial",
+      "    - venoso",
+      "    - arterial_e_venoso",
+      "  required: true",
+      "---",
+      "# TITULO DINAMICO",
+      "**Técnica:** ok",
+      "**Análise:** ok",
+      "**Impressão diagnóstica:** ok",
+    ].join("\n");
+
+    const parsed = svc.parseFrontMatter(src);
+    expect(parsed.meta.display_name).toBe("ANGIOTOMOGRAFIA DE ABDOME SUPERIOR");
+    expect(parsed.meta.phase).toEqual({
+      type: "select",
+      options: ["arterial", "venoso", "arterial_e_venoso"],
+      required: true,
+    });
+  });
+
   it("validates defaults.incidence values", () => {
     const svc = new TemplatesService();
 
@@ -245,6 +280,68 @@ describe("TemplatesService", () => {
     const male = svc.renderResolvedMarkdown({ examType: "CT", templateId: "any", sex: "M" });
     expect(male.markdown).toContain("Texto masculino.");
     expect(male.markdown).not.toContain("Texto feminino.");
+  });
+
+  it("supports PHASE_* conditionals", () => {
+    const src = [
+      "---",
+      "exam_type: CT",
+      "requires:",
+      "  indication: none",
+      "  sex: none",
+      "  contrast: fixed",
+      "  side: none",
+      "phase:",
+      "  type: select",
+      "  options:",
+      "    - arterial",
+      "    - venoso",
+      "    - arterial_e_venoso",
+      "  required: true",
+      "---",
+      "<!-- IF PHASE_ARTERIAL -->",
+      "# ARTERIAL",
+      "<!-- ELSE -->",
+      "<!-- IF PHASE_VENOSO -->",
+      "# VENOSO",
+      "<!-- ELSE -->",
+      "# AMBAS",
+      "<!-- ENDIF PHASE_VENOSO -->",
+      "<!-- ENDIF PHASE_ARTERIAL -->",
+      "**Técnica:** ok",
+      "**Análise:** ok",
+      "**Impressão diagnóstica:** ok",
+    ].join("\n");
+
+    const svc = new InMemoryTemplatesService(src);
+
+    expect(() =>
+      svc.renderResolvedMarkdown({
+        examType: "CT",
+        templateId: "any",
+      }),
+    ).toThrow(/requires\.phase/i);
+
+    const arterial = svc.renderResolvedMarkdown({
+      examType: "CT",
+      templateId: "any",
+      phase: "arterial",
+    });
+    expect(arterial.markdown).toContain("# ARTERIAL");
+
+    const venoso = svc.renderResolvedMarkdown({
+      examType: "CT",
+      templateId: "any",
+      phase: "venoso",
+    });
+    expect(venoso.markdown).toContain("# VENOSO");
+
+    const ambas = svc.renderResolvedMarkdown({
+      examType: "CT",
+      templateId: "any",
+      phase: "arterial_e_venoso",
+    });
+    expect(ambas.markdown).toContain("# AMBAS");
   });
 
   it("resolves DECUBITUS placeholders with context-friendly casing", () => {

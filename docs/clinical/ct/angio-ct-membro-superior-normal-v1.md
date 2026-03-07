@@ -1,22 +1,47 @@
 ---
 exam_type: CT
+display_name: ANGIOTOMOGRAFIA DO MEMBRO SUPERIOR
 requires:
   indication: optional
   sex: none
   contrast: fixed
   side: required
   artifact_source: optional
+phase:
+  type: select
+  options:
+    - arterial
+    - venoso
+    - arterial_e_venoso
+  required: true
 ---
 
+<!-- IF PHASE_ARTERIAL -->
 # ANGIOTOMOGRAFIA ARTERIAL DO MEMBRO SUPERIOR {{LADO}}
+<!-- ELSE -->
+<!-- IF PHASE_VENOSO -->
+# ANGIOTOMOGRAFIA VENOSA DO MEMBRO SUPERIOR {{LADO}}
+<!-- ELSE -->
+# ANGIOTOMOGRAFIA ARTERIAL E VENOSA DO MEMBRO SUPERIOR {{LADO}}
+<!-- ENDIF PHASE_VENOSO -->
+<!-- ENDIF PHASE_ARTERIAL -->
 
-**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica do membro superior {{LADO}}, antes e após a administração de meio de contraste iodado endovenoso. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{ARTIFACT_SOURCE}}
+<!-- IF PHASE_ARTERIAL -->
+**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica do membro superior {{LADO}} após administração de meio de contraste iodado endovenoso, com fase arterial. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{ARTIFACT_SOURCE}}
+<!-- ELSE -->
+<!-- IF PHASE_VENOSO -->
+**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica do membro superior {{LADO}} após administração de meio de contraste iodado endovenoso, com fase venosa. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{ARTIFACT_SOURCE}}
+<!-- ELSE -->
+**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica do membro superior {{LADO}} após administração de meio de contraste iodado endovenoso, com fases arterial e venosa. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{ARTIFACT_SOURCE}}
+<!-- ENDIF PHASE_VENOSO -->
+<!-- ENDIF PHASE_ARTERIAL -->
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->
 
 **Análise:**
 
+<!-- IF PHASE_ARTERIAL -->
 A artéria subclávia (segmento distal) e a artéria axilar apresentam trajeto, calibres e opacificação preservados, isentas de estenoses, aneurismas ou sinais de compressão extrínseca evidente na posição neutra.
 
 A artéria braquial encontra-se pérvia, com contornos regulares e fluxo mantido até sua bifurcação. Ausência de placas de ateroma ou calcificações parietais significativas.
@@ -26,9 +51,46 @@ As artérias radial, ulnar e interóssea exibem opacificação satisfatória e c
 Arcos palmares (superficial e profundo) com enchimento contrastado habitual.
 
 Ausência de circulação colateral, má-formações vasculares ou fístulas arteriovenosas no leito avaliado.
+<!-- ELSE -->
+<!-- IF PHASE_VENOSO -->
+Veias subclávia, axilar e braquiais do lado avaliado com trajeto, calibres e opacificação preservados, pérvias e sem trombose.
 
+Veias radial, ulnar e interóssea com permeabilidade adequada em toda extensão do antebraço.
+
+Veias superficiais e profundas com drenagem preservada.
+
+Ausência de trombose venosa profunda ou compressão extrínseca.
+<!-- ELSE -->
+**Artérias:**
+A artéria subclávia (segmento distal) e a artéria axilar apresentam trajeto, calibres e opacificação preservados, isentas de estenoses, aneurismas ou sinais de compressão extrínseca evidente na posição neutra.
+
+A artéria braquial encontra-se pérvia, com contornos regulares e fluxo mantido até sua bifurcação. Ausência de placas de ateroma ou calcificações parietais significativas.
+
+As artérias radial, ulnar e interóssea exibem opacificação satisfatória e calibre preservado em toda a extensão do antebraço.
+
+Arcos palmares (superficial e profundo) com enchimento contrastado habitual.
+
+**Veias:**
+Veias subclávia, axilar e braquiais do lado avaliado com trajeto, calibres e opacificação preservados, pérvias e sem trombose.
+
+Veias radial, ulnar e interóssea com permeabilidade adequada em toda extensão do antebraço.
+
+Veias superficiais e profundas com drenagem preservada.
+<!-- ENDIF PHASE_VENOSO -->
+<!-- ENDIF PHASE_ARTERIAL -->
+
+<!-- IF PHASE_ARTERIAL -->
 **Impressão diagnóstica:**
-Exame dentro dos limites da normalidade. Sistema arterial do membro superior {{LADO}} pérvio, sem estenoses hemodinamicamente significativas.
+Arteriografia do membro superior {{LADO}} dentro dos limites da normalidade. Sistema arterial pérvio, sem estenoses hemodinamicamente significativas.
+<!-- ELSE -->
+<!-- IF PHASE_VENOSO -->
+**Impressão diagnóstica:**
+Flebografia do membro superior {{LADO}} dentro dos limites da normalidade. Sistema venoso pérvio, sem sinais de trombose.
+<!-- ELSE -->
+**Impressão diagnóstica:**
+Arteriografia e flebografia do membro superior {{LADO}} dentro dos limites da normalidade. Sistemas arterial e venoso pérvios e com permeabilidade preservada.
+<!-- ENDIF PHASE_VENOSO -->
+<!-- ENDIF PHASE_ARTERIAL -->
 
 <!-- IF NOTAS -->
 **Notas:** {{NOTAS}}

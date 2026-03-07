@@ -1,5 +1,6 @@
 ---
 exam_type: CT
+display_name: ANGIOTOMOGRAFIA DA AORTA TORÁCICA
 requires:
   indication: optional
   sex: none
@@ -8,9 +9,10 @@ requires:
   artifact_source: optional
 ---
 
-# ANGIOTOMOGRAFIA DA AORTA TORÁCICA
+# ANGIOTOMOGRAFIA ARTERIAL DA AORTA TORÁCICA
 
-**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica antes e após a administração de meio de contraste iodado endovenoso. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{ARTIFACT_SOURCE}}
+**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica após administração de meio de contraste iodado endovenoso, com fase arterial. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{ARTIFACT_SOURCE}}
+
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->
@@ -23,14 +25,10 @@ Arco aórtico com configuração anatômica habitual, dando origem aos troncos s
 
 Artéria pulmonar e seus ramos principais com calibres preservados. Ausência de falhas de enchimento sugestivas de tromboembolismo agudo nos ramos principais.
 
-Coração com dimensões preservadas na avaliação qualitativa. 
-
-Ausência de derrame pericárdico ou pleural.
-
-Ausência de placas ateromatosas significativas ou trombos murais no trajeto avaliado.
+Coração com dimensões preservadas na avaliação qualitativa. Ausência de derrame pericárdico.
 
 **Impressão diagnóstica:**
-Exame dentro dos limites da normalidade. Aorta torácica com calibres e permeabilidade preservados.
+Aortografia torácica dentro dos limites da normalidade. Aorta com calibres e permeabilidade preservados. Ausência de sinais de dissecção, aneurisma ou tromboembolismo pulmonar agudo.
 
 <!-- IF NOTAS -->
 **Notas:** {{NOTAS}}

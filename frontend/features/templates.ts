@@ -27,11 +27,23 @@ export type TemplateRequires = {
   artifact_source: "required" | "optional" | "none" | "fixed";
 };
 
+export type TemplatePhase =
+  | {
+      type: "select";
+      options: Array<"arterial" | "venoso" | "arterial_e_venoso">;
+      required: boolean;
+    }
+  | {
+      type: "static";
+      value: "arterial" | "venoso" | "arterial_e_venoso";
+    };
+
 export type TemplateDetail = {
   id: string;
   name: string;
   examType: string;
   requires: TemplateRequires;
+  phase?: TemplatePhase;
   defaults?: {
     incidence?: string;
   };

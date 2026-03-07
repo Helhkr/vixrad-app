@@ -25,7 +25,17 @@ import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import { fetchTemplateDetail, type TemplateDetail } from "@/features/templates";
 import { useAppState } from "../state";
-import type { ArtifactType, Decubitus, DxaLimitation, DxaPeripheralSite, Incidence, MgType, MrFieldStrength, MrRadio } from "../state";
+import type {
+  ArtifactType,
+  CtAngioPhase,
+  Decubitus,
+  DxaLimitation,
+  DxaPeripheralSite,
+  Incidence,
+  MgType,
+  MrFieldStrength,
+  MrRadio,
+} from "../state";
 import { useSnackbar } from "../snackbar";
 
 const INCIDENCES: Incidence[] = ["PA e Perfil", "AP", "PA", "Perfil", "Obliqua", "Ortostática", "Axial"];
@@ -133,6 +143,8 @@ export default function ReportFormPage() {
     setEcgGating,
     phases,
     setPhases,
+    phase,
+    setPhase,
     coil,
     setCoil,
     sedation,
@@ -204,6 +216,9 @@ export default function ReportFormPage() {
   const showDecubitus = requires ? requires.decubitus !== "none" && requires.decubitus !== "fixed" : false;
   const showEcgGating = requires ? requires.ecg_gating !== "none" && requires.ecg_gating !== "fixed" : false;
   const showPhases = requires ? requires.phases !== "none" && requires.phases !== "fixed" : false;
+  const phaseMeta = template?.phase;
+  const selectPhaseMeta = phaseMeta?.type === "select" ? phaseMeta : null;
+  const showAngioPhase = Boolean(selectPhaseMeta);
   const showCoil = requires ? requires.coil !== "none" && requires.coil !== "fixed" : false;
   const showSedation = requires ? requires.sedation !== "none" && requires.sedation !== "fixed" : false;
   const showArtifactSource = requires
@@ -253,6 +268,22 @@ export default function ReportFormPage() {
       setContrast("with");
     }
   }, [requires?.contrast, contrast, setContrast]);
+
+  useEffect(() => {
+    if (!phaseMeta) {
+      if (phase !== null) setPhase(null);
+      return;
+    }
+
+    if (phaseMeta.type === "static") {
+      if (phase !== phaseMeta.value) setPhase(phaseMeta.value);
+      return;
+    }
+
+    if (!phase || !phaseMeta.options.includes(phase)) {
+      setPhase(phaseMeta.options[0] ?? "arterial");
+    }
+  }, [phaseMeta, phase, setPhase]);
 
   useEffect(() => {
     // Phases only makes sense when contrast is used.
@@ -426,6 +457,11 @@ export default function ReportFormPage() {
 
     if (requires.decubitus === "required" && !decubitus) {
       showMessage("Selecione o decúbito.", "error");
+      return;
+    }
+
+    if (phaseMeta?.type === "select" && phaseMeta.required && !phase) {
+      showMessage("Selecione a fase angiográfica.", "error");
       return;
     }
 
@@ -923,6 +959,31 @@ export default function ReportFormPage() {
                 />
                 <Typography variant="body2">Sim</Typography>
               </Stack>
+            </FormControl>
+          ) : null}
+
+          {showAngioPhase ? (
+            <FormControl>
+              <FormLabel>Fase angiográfica</FormLabel>
+              <RadioGroup
+                row
+                value={phase ?? ""}
+                onChange={(e) => setPhase(e.target.value as CtAngioPhase)}
+              >
+                {selectPhaseMeta?.options.includes("arterial") ? (
+                  <FormControlLabel value="arterial" control={<Radio />} label="Arterial" />
+                ) : null}
+                {selectPhaseMeta?.options.includes("venoso") ? (
+                  <FormControlLabel value="venoso" control={<Radio />} label="Venosa" />
+                ) : null}
+                {selectPhaseMeta?.options.includes("arterial_e_venoso") ? (
+                  <FormControlLabel
+                    value="arterial_e_venoso"
+                    control={<Radio />}
+                    label="Arterial e venosa"
+                  />
+                ) : null}
+              </RadioGroup>
             </FormControl>
           ) : null}
 

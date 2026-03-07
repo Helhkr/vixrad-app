@@ -229,6 +229,11 @@ export class GenerateReportDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(["arterial", "venoso", "arterial_e_venoso"], { message: "phase inválido" })
+  phase?: "arterial" | "venoso" | "arterial_e_venoso";
+
+  @IsOptional()
+  @IsString()
   @IsIn(["omit", "1.5T", "3.0T"], { message: "coil inválido" })
   coil?: "omit" | "1.5T" | "3.0T";
 

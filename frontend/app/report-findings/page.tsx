@@ -71,6 +71,7 @@ export default function ReportFindingsPage() {
     decubitus,
     ecgGating,
     phases,
+    phase,
     coil,
     sedation,
     artifactSourceEnabled,
@@ -190,6 +191,7 @@ export default function ReportFindingsPage() {
   }, [accessToken, router, showMessage, templateId]);
 
   const requires = template?.requires;
+  const templatePhase = template?.phase;
 
   const templateLabel = useMemo(() => {
     if (!templateId) return "-";
@@ -259,6 +261,12 @@ export default function ReportFindingsPage() {
 
     if (requires.decubitus === "required" && !decubitus) {
       showMessage("Selecione o decúbito no formulário.", "error");
+      router.push("/report-form");
+      return false;
+    }
+
+    if (templatePhase?.type === "select" && templatePhase.required && !phase) {
+      showMessage("Selecione a fase angiográfica no formulário.", "error");
       router.push("/report-form");
       return false;
     }
@@ -351,6 +359,7 @@ export default function ReportFindingsPage() {
           decubitus: decubitus ?? undefined,
           ecgGating,
           phases,
+          phase: templatePhase?.type === "static" ? templatePhase.value : phase ?? undefined,
           coil,
           sedation,
           artifactSourceEnabled,
@@ -465,6 +474,11 @@ export default function ReportFindingsPage() {
         if (decubitus) formData.append("decubitus", decubitus);
         formData.append("ecgGating", ecgGating);
         formData.append("phases", phases);
+        if (templatePhase?.type === "static") {
+          formData.append("phase", templatePhase.value);
+        } else if (phase) {
+          formData.append("phase", phase);
+        }
         formData.append("coil", coil);
         formData.append("sedation", sedation);
         formData.append("artifactSourceEnabled", String(artifactSourceEnabled));
@@ -511,6 +525,7 @@ export default function ReportFindingsPage() {
           decubitus: decubitus ?? undefined,
           ecgGating,
           phases,
+          phase: templatePhase?.type === "static" ? templatePhase.value : phase ?? undefined,
           coil,
           sedation,
           artifactSourceEnabled,

@@ -2,7 +2,7 @@
 exam_type: US
 requires:
   indication: optional
-  sex: male
+  sex: none
   side: none
   contrast: none
 ---

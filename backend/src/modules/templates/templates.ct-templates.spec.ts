@@ -58,6 +58,14 @@ describe("CT templates in docs/clinical/ct", () => {
         input.side = "RIGHT";
       }
 
+      if (parsed.meta.phase?.type === "static") {
+        input.phase = parsed.meta.phase.value;
+      }
+
+      if (parsed.meta.phase?.type === "select" && parsed.meta.phase.required) {
+        input.phase = parsed.meta.phase.options[0] ?? "arterial";
+      }
+
       expect(() => service.renderResolvedMarkdown(input)).not.toThrow();
     }
   });

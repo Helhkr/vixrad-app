@@ -100,6 +100,7 @@ export class ReportsController {
       dxaScoreType: dto.dxaScoreType,
       ecgGating: dto.ecgGating,
       phases: dto.phases,
+      phase: dto.phase,
       coil: dto.coil,
       sedation: dto.sedation,
       artifactSourceEnabled: dto.artifactSourceEnabled,

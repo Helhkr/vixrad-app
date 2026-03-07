@@ -11,6 +11,7 @@ export type Incidence = "AP" | "PA" | "Perfil" | "PA e Perfil" | "Obliqua" | "Or
 export type Decubitus = "ventral" | "dorsal" | "lateral";
 export type MrRadio = "omit" | "without" | "with";
 export type MrFieldStrength = "omit" | "1.5T" | "3.0T";
+export type CtAngioPhase = "arterial" | "venoso" | "arterial_e_venoso";
 export type MgType = "convencional" | "digital" | "3d";
 export type DxaPeripheralSite = "punho" | "calcanhar" | "dedos";
 export type DxaScoreType = "t-score" | "z-score";
@@ -139,6 +140,9 @@ type AppState = {
   phases: MrRadio;
   setPhases: (value: MrRadio) => void;
 
+  phase: CtAngioPhase | null;
+  setPhase: (value: CtAngioPhase | null) => void;
+
   coil: MrFieldStrength;
   setCoil: (value: MrFieldStrength) => void;
 
@@ -233,6 +237,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [decubitus, setDecubitus] = useState<Decubitus | null>(null);
   const [ecgGating, setEcgGating] = useState<MrRadio>("omit");
   const [phases, setPhases] = useState<MrRadio>("omit");
+  const [phase, setPhase] = useState<CtAngioPhase | null>(null);
   const [coil, setCoil] = useState<MrFieldStrength>("omit");
   const [sedation, setSedation] = useState<MrRadio>("omit");
   const [artifactSourceEnabled, setArtifactSourceEnabled] = useState<boolean>(false);
@@ -321,6 +326,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setDecubitus(null);
     setEcgGating("omit");
     setPhases("omit");
+    setPhase(null);
     setCoil("omit");
     setSedation("omit");
     setArtifactSourceEnabled(false);
@@ -408,6 +414,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setEcgGating,
       phases,
       setPhases,
+      phase,
+      setPhase,
       coil,
       setCoil,
       sedation,
@@ -466,6 +474,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       decubitus,
       ecgGating,
       phases,
+      phase,
       coil,
       sedation,
       artifactSourceEnabled,

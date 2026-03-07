@@ -1,5 +1,6 @@
 ---
 exam_type: CT
+display_name: ANGIOTOMOGRAFIA DAS ARTÉRIAS CARÓTIDAS E VERTEBRAIS
 requires:
   indication: optional
   sex: none
@@ -8,9 +9,10 @@ requires:
   artifact_source: optional
 ---
 
-# ANGIOTOMOGRAFIA DAS ARTÉRIAS CARÓTIDAS E VERTEBRAIS
+# ANGIOTOMOGRAFIA ARTERIAL DAS CARÓTIDAS E VERTEBRAIS
 
-**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica da região cervical (do arco aórtico até a base do crânio), antes e após a administração de meio de contraste iodado endovenoso. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{ARTIFACT_SOURCE}}
+**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica da região cervical (do arco aórtico até a base do crânio) após administração de meio de contraste iodado endovenoso, com protocolo direcionado para avaliação arterial. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{ARTIFACT_SOURCE}}
+
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->
@@ -25,10 +27,8 @@ Artérias carótidas internas (segmentos cervicais e intracranianos) e externas 
 
 Artérias vertebrais com origens, trajetos e calibres preservados, apresentando boa opacificação pelo meio de contraste em toda a sua extensão até a formação da artéria basilar.
 
-Estruturas venosas profundas do pescoço pérvias. Ausência de massas ou linfonodomegalias cervicais suspeitas no campo de visão limitado do estudo.
-
 **Impressão diagnóstica:**
-Exame dentro dos limites da normalidade. Sistemas carotídeo e vertebral pérvios, sem sinais de estenoses hemodinamicamente significativas.
+Arteriografia carotídea e vertebral dentro dos limites da normalidade. Sistemas carotídeo e vertebral pérvios, sem sinais de estenoses hemodinamicamente significativas.
 
 <!-- IF NOTAS -->
 **Notas:** {{NOTAS}}

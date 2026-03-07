@@ -1,23 +1,32 @@
----
+# Vixrad - Especificação Técnica de Templates Clínicos
 
-# VIXRAD — Especificação Técnica Formal (`spec.md`)
+Este documento é o contrato normativo dos templates clínicos.
 
-## Objetivo
-Este documento define a especificação técnica oficial do sistema **Vixrad**, servindo como referência única para implementação, validação e manutenção.  
-Todo o conteúdo aqui descrito é normativo e deve ser seguido por desenvolvedores humanos e agentes de IA auxiliares.
+Regra de precedência:
+1. código-fonte do backend;
+2. este `spec.md`;
+3. `docs/clinical/readme.md`.
 
----
+## 1. Escopo
 
-## Estrutura dos Templates Clínicos
+Este documento cobre:
+- formato do template (`.md` + front matter YAML);
+- metadados aceitos;
+- linguagem condicional suportada pelo parser;
+- placeholders suportados;
+- regras mínimas de consistência para evolução.
 
-### Formato
-Cada template clínico deve ser um arquivo `.md` contendo:
+Este documento não cobre:
+- regras de negócio de billing/autenticação;
+- política de produto fora de templates.
 
-1. **YAML front matter** (metadados)  
-2. **Corpo do laudo em Markdown puro**
+## 2. Formato canônico
 
-### YAML Front Matter
-Exemplo:
+Cada template deve conter:
+1. YAML front matter delimitado por `---`;
+2. corpo em Markdown válido.
+
+Exemplo mínimo válido:
 
 ```yaml
 ---
@@ -26,62 +35,91 @@ requires:
   indication: optional
   sex: none
   contrast: required
-  side: required
+  side: none
 ---
 ```
 
-#### Campos obrigatórios
-- **exam_type**: modalidade do exame. Valores possíveis:
-  - CT, XR, US, MR, MG, DXA, NM
-- **requires**: define perguntas obrigatórias/opcionais antes da geração do laudo.
-  - Valores: `required`, `optional`, `none`, `fixed`
-  - Campos suportados: `type`, `indication`, `sex`, `contrast`, `side`, `incidence`, `decubitus`, `ecg_gating`, `phases`, `coil`, `sedation`, `artifact_source`
+## 3. Metadados
 
----
+### 3.1 Campo obrigatório
 
-## Corpo do Laudo
+- `exam_type`: `CT | XR | US | MR | MG | DXA | NM`
 
-### Seções obrigatórias (nesta ordem)
-1. Título do exame (`#`)
-2. Técnica
-3. Análise
-4. Impressão diagnóstica
+### 3.2 Campo obrigatório
 
-### Seções opcionais
-- Indicação (se fornecida pelo usuário)
-- Notas (geradas dinamicamente pela IA)
+- `requires`: objeto com estados de coleta da UI.
 
----
+Estados válidos em `requires`:
+- `required`
+- `optional`
+- `none`
+- `fixed`
 
-## Placeholders
+Chaves suportadas em `requires`:
+- `type`
+- `indication`
+- `sex`
+- `contrast`
+- `side`
+- `incidence`
+- `decubitus`
+- `ecg_gating`
+- `phases`
+- `coil`
+- `sedation`
+- `artifact_source`
 
-Formato: `{{PLACEHOLDER}}`
+Validação mandatória:
+- `requires.sex` não aceita `male`/`female`.
 
-Placeholders suportados:
-- `{{INDICACAO}}`
-- `{{TYPE}}`
-- `{{SEXO}}`
-- `{{LADO}}`
-- `{{NOTAS}}`
+### 3.3 Campos opcionais
 
-Placeholders técnicos adicionais (quando o template declarar o campo correspondente em `requires`):
-- `{{ECG_GATING}}`
-- `{{PHASES}}`
-- `{{COIL}}`
-- `{{SEDATION}}`
-- `{{ARTIFACT_SOURCE}}`
+- `display_name`: nome estável para catálogo `/templates`.
+- `side_gender`: `masculine | feminine`.
+- `defaults`: objeto de defaults (ex.: `incidence`).
+- `phase`: metadado de variação por fase para angio-CT.
 
----
+Formato de `phase`:
 
-## Controle Condicional
+```yaml
+phase:
+  type: select
+  options: [arterial, venoso, arterial_e_venoso]
+  required: true
+```
 
-Toda lógica é expressa via comentários HTML:
+```yaml
+phase:
+  type: static
+  value: arterial
+```
+
+Domínio de valores de fase:
+- `arterial`
+- `venoso`
+- `arterial_e_venoso`
+
+## 4. Corpo do laudo
+
+Seções obrigatórias (ordem canônica):
+1. Título (`# ...`)
+2. `**Técnica:**`
+3. `**Análise:**`
+4. `**Impressão diagnóstica:**`
+
+Seções opcionais típicas:
+- indicação (`INDICACAO`)
+- notas (`NOTAS`)
+
+## 5. Linguagem condicional
+
+Sintaxe suportada:
 
 ```html
 <!-- IF CONDICAO -->
-conteúdo
+...
 <!-- ELSE -->
-conteúdo alternativo
+...
 <!-- ENDIF CONDICAO -->
 ```
 
@@ -94,143 +132,68 @@ Condições suportadas:
 - `SEXO_MASCULINO`
 - `SEXO_FEMININO`
 - `NOTAS`
+- `INCIDENCIA`
+- `DECUBITUS`
+- `PHASE_ARTERIAL`
+- `PHASE_VENOSO`
+- `PHASE_AMBAS`
 
----
+Limitações mandatórias:
+- não usar `ELSEIF`;
+- não usar comparações inline (ex.: `IF PHASE=arterial`);
+- para múltiplos ramos, usar `IF` aninhado.
 
-## Regras Específicas
+## 6. Placeholders
 
-### Contraste em Tomografia e Ressonância
-- Sempre obrigatório na seção Técnica.
-- Controlado por `requires.contrast`.
-- Exemplo:
+Formato obrigatório:
 
-```html
-<!-- IF CONTRASTE -->
-após a administração de meio de contraste iodado endovenoso.
-<!-- ELSE -->
-sem a administração de meio de contraste iodado endovenoso.
-<!-- ENDIF CONTRASTE -->
+```md
+{{NOME_DO_CAMPO}}
 ```
 
-- Em angiotomografias: `contrast: fixed`.
-- Em angiorressonâncias: `contrast: fixed`.
+Placeholders amplamente usados:
+- `{{INDICACAO}}`
+- `{{TYPE}}`
+- `{{SEXO}}`
+- `{{LADO}}`
+- `{{NOTAS}}`
+- `{{ECG_GATING}}`
+- `{{PHASES}}`
+- `{{PHASE}}`
+- `{{COIL}}`
+- `{{SEDATION}}`
+- `{{ARTIFACT_SOURCE}}`
+- `{{INCIDENCIA}}`
+- `{{DECUBITUS}}`
 
-### Sexo do Paciente
-Exemplo:
+## 7. Regras de integração backend/frontend
 
-```html
-<!-- IF SEXO_FEMININO -->
-texto feminino
-<!-- ENDIF SEXO_FEMININO -->
+- Se `phase.type=select`, a UI deve solicitar fase no `/report-form`.
+- Se `phase.type=static`, a UI não deve solicitar fase e deve enviar o valor fixo.
+- Se `phase` estiver ausente, não há fluxo de fase para o template.
+- `display_name`, quando presente, deve ser usado como nome no catálogo.
 
-<!-- IF SEXO_MASCULINO -->
-texto masculino
-<!-- ENDIF SEXO_MASCULINO -->
+## 8. Critérios de qualidade para alterações
+
+Toda alteração em templates deve:
+1. preservar YAML válido;
+2. respeitar o domínio de estados de `requires`;
+3. usar apenas sintaxe condicional suportada;
+4. manter seções obrigatórias do corpo;
+5. ser validada com testes de templates do backend.
+
+Comandos recomendados:
+
+```bash
+cd backend
+npm test -- templates.service.spec.ts templates.controller.spec.ts --runInBand
+npm test -- templates.ct-templates.spec.ts --runInBand
 ```
 
-### Lado do Exame
-Usado em título e texto:
+## 9. Referências
 
-```
-{{LADO}}
-```
-
-### Notas
-- Não fazem parte de `requires`.
-- Sempre no final do laudo.
-- Exemplo:
-
-```html
-<!-- IF NOTAS -->
-**Notas:** {{NOTAS}}
-<!-- ENDIF NOTAS -->
-```
-
----
-
-## Documentação Clínica
-
-Arquivos obrigatórios:
-- `docs/clinical/README.md` → visão geral + convenções  
-- `docs/clinical/spec.md` → especificação técnica formal  
-
-Ambos devem ser **Markdown puro**.
-
----
-
-## Backend — Regras de Implementação
-
-### Parser
-- Deve interpretar YAML front matter.
-- Deve resolver `requires`.
-- Deve avaliar blocos condicionais HTML.
-
-### DTO Crítico
-`GenerateReportDto`:
-
-```ts
-examType: string;    // Ex: "CT"
-templateId: string;  // Ex: "tc_cranio_v2"
-indication?: string; // Opcional
-findings: string;    // Texto livre do médico
-```
-
-Validação obrigatória com `class-validator`.
-
----
-
-## Prompt Builder
-
-### Composição em Camadas
-1. Sistema / Regras Globais (imutável)  
-2. Contexto da Modalidade  
-3. Template Base  
-4. Indicação (se houver)  
-5. Achados do Médico  
-
-### Princípios
-- Médico = fonte primária de verdade.  
-- IA apenas redige e organiza.  
-- Nenhuma inferência não solicitada.  
-
----
-
-## Auditabilidade
-
-### O que é auditado
-- user_id  
-- template_id  
-- modelo de IA  
-- timestamp  
-- duração da requisição  
-
-### O que não é auditado
-- Texto do laudo  
-- Achados  
-- Indicação  
-- Dados do paciente  
-
----
-
-## Ordem de Implementação
-
-1. Autenticação + Trial  
-2. Editor de Laudos (sem IA)  
-3. Templates + Copiar Laudo Normal  
-4. Backend Reports + DTO  
-5. Prompt Builder  
-6. Integração IA (Gemini)  
-7. Billing  
-8. Auditoria  
-9. Hardening de segurança  
-
----
-
-## Princípio Final
-
-O Vixrad é uma ferramenta de produtividade médica.  
-- O médico decide.  
-- A IA redige.  
-- O sistema protege.  
-
----
+- guia operacional: `docs/clinical/readme.md`
+- implementação backend:
+  - `backend/src/modules/templates/templates.service.ts`
+  - `backend/src/modules/templates/templates.controller.ts`
+  - `backend/src/modules/reports/dto/generate-report.dto.ts`

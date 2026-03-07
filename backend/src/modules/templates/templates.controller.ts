@@ -3,7 +3,7 @@ import { BadRequestException, Controller, Get, Param, Query, UseGuards } from "@
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { AccessGuard } from "../auth/guards/access.guard";
 import { TemplatesService } from "./templates.service";
-import type { ExamType } from "./templates.service";
+import type { ExamType, TemplatePhase } from "./templates.service";
 
 export type TemplateListItem = {
   id: string;
@@ -35,6 +35,7 @@ export type TemplateDetailItem = {
   name: string;
   examType: string;
   requires: TemplateRequires;
+  phase?: TemplatePhase;
   defaults?: TemplateDefaults;
 };
 
@@ -78,6 +79,7 @@ export class TemplatesController {
       name: t.name,
       examType: t.examType,
       requires: t.requires,
+      phase: t.phase,
       defaults: t.defaults,
     };
   }

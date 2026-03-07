@@ -6,6 +6,18 @@ import { load as yamlLoad } from "js-yaml";
 export type ExamType = "CT" | "XR" | "US" | "MR" | "MG" | "DXA" | "NM";
 export type RequireState = "required" | "optional" | "none" | "fixed";
 export type SideGender = "masculine" | "feminine";
+export type AngioPhase = "arterial" | "venoso" | "arterial_e_venoso";
+
+export type TemplatePhase =
+  | {
+      type: "select";
+      options: AngioPhase[];
+      required: boolean;
+    }
+  | {
+      type: "static";
+      value: AngioPhase;
+    };
 
 export type TemplateRequires = {
   type: RequireState;
@@ -25,6 +37,8 @@ export type TemplateRequires = {
 export type TemplateMeta = {
   exam_type: ExamType;
   requires: TemplateRequires;
+  display_name?: string;
+  phase?: TemplatePhase;
   side_gender?: SideGender;
   defaults?: TemplateDefaults;
 };
@@ -44,6 +58,7 @@ export type TemplateDetail = {
   name: string;
   examType: ExamType;
   requires: TemplateRequires;
+  phase?: TemplatePhase;
   defaults?: TemplateDefaults;
 };
 
@@ -64,6 +79,7 @@ export type RenderInput = {
   indication?: string;
   sex?: "M" | "F";
   side?: "RIGHT" | "LEFT" | "BILATERAL";
+  phase?: AngioPhase;
   contrast?: "with" | "without";
   notes?: string;
   dxaLumbarBmd?: string;
@@ -148,6 +164,7 @@ type AstNode = IfNode | TextNode;
 const SUPPORTED_EXAM_TYPES: ExamType[] = ["CT", "XR", "US", "MR", "MG", "DXA", "NM"];
 const SUPPORTED_REQUIRE_STATES: RequireState[] = ["required", "optional", "none", "fixed"];
 const SUPPORTED_SIDE_GENDERS: SideGender[] = ["masculine", "feminine"];
+const SUPPORTED_ANGIO_PHASES: AngioPhase[] = ["arterial", "venoso", "arterial_e_venoso"];
 const SUPPORTED_INCIDENCES = ["PA e Perfil", "AP", "PA", "Perfil", "Obliqua", "Ortostática", "Axial"] as const;
 const SUPPORTED_CONDITIONS = new Set([
   "MG_CONVENCIONAL",
@@ -166,6 +183,9 @@ const SUPPORTED_CONDITIONS = new Set([
   "NOTAS",
   "INCIDENCIA",
   "DECUBITUS",
+  "PHASE_ARTERIAL",
+  "PHASE_VENOSO",
+  "PHASE_AMBAS",
 ]);
 
 const IF_TOKEN_RE = /<!--\s*(IF\s+[A-Z0-9_]+|ELSE|ENDIF\s+[A-Z0-9_]+)\s*-->/g;
@@ -316,6 +336,69 @@ export class TemplatesService {
       }
     }
 
+    const displayNameRaw = (meta as any).display_name as unknown;
+    let displayName: string | undefined;
+    if (displayNameRaw !== undefined) {
+      if (typeof displayNameRaw !== "string") {
+        throw new BadRequestException("YAML: display_name inválido");
+      }
+      const normalized = this.sanitizeTemplateName(displayNameRaw);
+      if (normalized.length === 0) {
+        throw new BadRequestException("YAML: display_name inválido");
+      }
+      displayName = normalized;
+    }
+
+    const phaseRaw = (meta as any).phase as unknown;
+    let phase: TemplatePhase | undefined;
+    if (phaseRaw !== undefined) {
+      if (!phaseRaw || typeof phaseRaw !== "object") {
+        throw new BadRequestException("YAML: phase inválido");
+      }
+
+      const phaseType = (phaseRaw as any).type as unknown;
+      if (phaseType === "select") {
+        const optionsRaw = (phaseRaw as any).options as unknown;
+        if (!Array.isArray(optionsRaw) || optionsRaw.length === 0) {
+          throw new BadRequestException("YAML: phase.options inválido");
+        }
+
+        const parsedOptions = optionsRaw.map((opt) => {
+          if (typeof opt !== "string" || !SUPPORTED_ANGIO_PHASES.includes(opt as AngioPhase)) {
+            throw new BadRequestException("YAML: phase.options inválido");
+          }
+          return opt as AngioPhase;
+        });
+
+        const uniqueOptions = Array.from(new Set(parsedOptions));
+        const requiredRaw = (phaseRaw as any).required as unknown;
+        let required = true;
+        if (requiredRaw !== undefined) {
+          if (typeof requiredRaw !== "boolean") {
+            throw new BadRequestException("YAML: phase.required inválido");
+          }
+          required = requiredRaw;
+        }
+
+        phase = {
+          type: "select",
+          options: uniqueOptions,
+          required,
+        };
+      } else if (phaseType === "static") {
+        const valueRaw = (phaseRaw as any).value as unknown;
+        if (typeof valueRaw !== "string" || !SUPPORTED_ANGIO_PHASES.includes(valueRaw as AngioPhase)) {
+          throw new BadRequestException("YAML: phase.value inválido");
+        }
+        phase = {
+          type: "static",
+          value: valueRaw as AngioPhase,
+        };
+      } else {
+        throw new BadRequestException("YAML: phase.type inválido");
+      }
+    }
+
     const defaultsRaw = (meta as any).defaults as unknown;
     let defaults: TemplateDefaults | undefined;
     if (defaultsRaw !== undefined) {
@@ -361,6 +444,8 @@ export class TemplatesService {
       meta: {
         exam_type: meta.exam_type as ExamType,
         requires: fullRequires,
+        display_name: displayName,
+        phase,
         side_gender: sideGender as SideGender | undefined,
         defaults,
       },
@@ -469,6 +554,29 @@ export class TemplatesService {
 
     if (req.artifact_source === "required" && input.artifactSourceEnabled === undefined) {
       throw new BadRequestException("requires.artifact_source: obrigatório");
+    }
+
+    const templatePhase = meta.phase;
+    if (!templatePhase) {
+      if (input.phase !== undefined) {
+        throw new BadRequestException("phase: não suportado para este template");
+      }
+      return;
+    }
+
+    if (templatePhase.type === "static") {
+      if (input.phase !== undefined && input.phase !== templatePhase.value) {
+        throw new BadRequestException("phase: inválido para template estático");
+      }
+      return;
+    }
+
+    if (input.phase !== undefined && !templatePhase.options.includes(input.phase)) {
+      throw new BadRequestException("phase: inválido");
+    }
+
+    if (templatePhase.required && !input.phase) {
+      throw new BadRequestException("requires.phase: obrigatório");
     }
   }
 
@@ -783,8 +891,7 @@ export class TemplatesService {
         }
 
         const title = this.extractTitle(parsed.body);
-
-        const name = this.sanitizeTemplateName(title ?? templateId);
+        const name = parsed.meta.display_name ?? this.sanitizeTemplateName(title ?? templateId);
 
         out.push({
           id: templateId,
@@ -806,13 +913,14 @@ export class TemplatesService {
     const parsed = this.parseFrontMatter(source);
 
     const title = this.extractTitle(parsed.body);
-    const name = this.sanitizeTemplateName(title ?? templateId);
+    const name = parsed.meta.display_name ?? this.sanitizeTemplateName(title ?? templateId);
 
     return {
       id: templateId,
       name,
       examType: parsed.meta.exam_type,
       requires: parsed.meta.requires,
+      phase: parsed.meta.phase,
       defaults: parsed.meta.defaults,
     };
   }
@@ -837,6 +945,13 @@ export class TemplatesService {
       );
     })();
 
+    const resolvedPhase: AngioPhase | undefined = (() => {
+      const templatePhase = parsed.meta.phase;
+      if (!templatePhase) return undefined;
+      if (templatePhase.type === "static") return templatePhase.value;
+      return input.phase;
+    })();
+
     const flags: Record<string, boolean> = {
       MG_CONVENCIONAL: input.type === "convencional",
       MG_DIGITAL: input.type === "digital",
@@ -859,6 +974,9 @@ export class TemplatesService {
             : false,
       INCIDENCIA: Boolean(input.incidence),
       DECUBITUS: Boolean(input.decubitus),
+      PHASE_ARTERIAL: resolvedPhase === "arterial",
+      PHASE_VENOSO: resolvedPhase === "venoso",
+      PHASE_AMBAS: resolvedPhase === "arterial_e_venoso",
     };
 
     const ast = this.parseConditionalsToAst(parsed.body);
@@ -907,6 +1025,7 @@ export class TemplatesService {
         return this.formatArtifactList(labels);
       })(),
       SEXO: input.sex === "F" ? "FEMININO" : input.sex === "M" ? "MASCULINO" : undefined,
+      PHASE: resolvedPhase,
       LADO: sideLabel,
       INCIDENCIA: input.incidence ? incidenciaMap[input.incidence] || input.incidence : undefined,
       DECUBITUS: input.decubitus ? (input.decubitus === "ventral" ? "ventral" : input.decubitus === "dorsal" ? "dorsal" : "lateral") : undefined,

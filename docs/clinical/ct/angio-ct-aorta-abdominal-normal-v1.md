@@ -1,5 +1,6 @@
 ---
 exam_type: CT
+display_name: ANGIOTOMOGRAFIA DA AORTA ABDOMINAL
 requires:
   indication: optional
   sex: none
@@ -8,9 +9,10 @@ requires:
   artifact_source: optional
 ---
 
-# ANGIOTOMOGRAFIA DA AORTA ABDOMINAL
+# ANGIOTOMOGRAFIA ARTERIAL DA AORTA ABDOMINAL
 
-**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica antes e após a administração de meio de contraste iodado endovenoso. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{ARTIFACT_SOURCE}}
+**Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica após administração de meio de contraste iodado endovenoso, com fase arterial. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{ARTIFACT_SOURCE}}
+
 <!-- IF INDICACAO -->
 **Indicação:** {{INDICACAO}}
 <!-- ENDIF INDICACAO -->
@@ -24,7 +26,7 @@ Tronco celíaco, artéria mesentérica superior e artérias renais com origens a
 Bifurcação aórtica com configuração habitual. Artérias ilíacas comuns, externas e internas com calibres e permeabilidade preservados, sem estenoses evidentes.
 
 **Impressão diagnóstica:**
-Aorta abdominal e ramos com calibres e permeabilidade preservados.
+Aortografia abdominal dentro dos limites da normalidade. Aorta abdominal e ramos com calibres e permeabilidade preservados.
 
 <!-- IF NOTAS -->
 **Notas:** {{NOTAS}}
