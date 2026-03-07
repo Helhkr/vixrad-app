@@ -17,15 +17,24 @@ requires:
 
 **Análise:**
 
-Mama direita com pele e tecido celular subcutâneo de espessura normal. Parênquima fibroglandular de ecotextura homogênea, sem nódulos, cistos ou distorções arquiteturais. Região retroareolar sem alterações.
+Mamas com predomínio de tecido fibroglandular.
+------------------- Mamas com ecotextura heterogênea.
+------------------- Mamas com predomínio de tecido adiposo.
 
-Mama esquerda com pele e tecido celular subcutâneo de espessura normal. Parênquima fibroglandular de ecotextura homogênea, sem nódulos, cistos ou distorções arquiteturais. Região retroareolar sem alterações.
+Sem sinais de nódulos sólidos ou císticos.
 
-Regiões axilares sem linfonodomegalias.
+Ductos retroareolares com calibre normal.
+
+Regiões axilares sem anormalidades.
 
 **Impressão diagnóstica:**
-Exame ultrassonográfico dentro dos limites da normalidade.
-BI-RADS 1.
+BI-RADS 0 (Inconclusivo. Necessita complementação com outros métodos).
+BI-RADS 1 (Controle anual).
+BI-RADS 2 (Controle anual).
+BI-RADS 3 (Controle semestral).
+BI-RADS 4 A, B ou C (Realizar biópsia).
+BI-RADS 5 (Realizar biópsia).
+BI-RADS 6 (Biópsia já realizada).
 
 <!-- IF NOTAS -->
 **Notas:** {{NOTAS}}

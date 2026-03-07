@@ -1,3 +1,36 @@
+
+import {
+  BadGatewayException,
+  GatewayTimeoutException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  OnModuleInit,
+  ServiceUnavailableException,
+} from "@nestjs/common";
+
+// Ranking central dos modelos Gemini (ordem de fallback)
+export const GEMINI_MODEL_RANKING = [
+  "gemini-2.5-flash",
+   "gemini-2.5-pro",
+  "gemini-2.5-flash-lite",
+];
+
+import type { RenderInput } from "../templates/templates.service";
+
+type GeminiTokenUsage = {
+  promptTokens: number | null;
+  outputTokens: number | null;
+  totalTokens: number | null;
+  source: "usageMetadata" | "countTokens" | "none";
+};
+
+type GeminiGenerateResult = {
+  text: string;
+  usedModel: string;
+  usage: GeminiTokenUsage;
+};
+
 /**
  * Retry utilitário com backoff exponencial simples.
  * @param fn função assíncrona a ser executada
@@ -29,34 +62,16 @@ async function retryWithBackoff<T>(
   }
   throw lastErr;
 }
-import {
-  BadGatewayException,
-  GatewayTimeoutException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  ServiceUnavailableException,
-} from "@nestjs/common";
-
-import type { RenderInput } from "../templates/templates.service";
-
-
-
-type GeminiTokenUsage = {
-  promptTokens: number | null;
-  outputTokens: number | null;
-  totalTokens: number | null;
-  source: "usageMetadata" | "countTokens" | "none";
-};
-
-type GeminiGenerateResult = {
-  text: string;
-  usedModel: string;
-  usage: GeminiTokenUsage;
-};
 
 @Injectable()
-export class AiService {
+export class AiService implements OnModuleInit {
+  onModuleInit(): void {
+    // Limpar cache de modelos ao inicializar o módulo/reiniciar o backend
+    this.modelsCache = undefined;
+    // eslint-disable-next-line no-console
+    console.log("[AiService] Cache de modelos limpo ao inicializar");
+  }
+
   private sanitizeIndication(raw: string): string {
     let s = typeof raw === "string" ? raw : "";
     s = s.trim();
@@ -82,7 +97,7 @@ export class AiService {
     const trimmed = (raw ?? "").trim();
     const model = trimmed.startsWith("models/") ? trimmed.slice("models/".length) : trimmed;
 
-    if (!model) return "gemini-2.5-pro";
+    if (!model) return ""; // Retorna vazio para indicar que nenhum modelo foi fornecido
 
     // Backwards-compatible aliases
     if (model === "gemini-1.5-pro" || model === "gemini-1.5-pro-latest") return "gemini-2.5-pro";
@@ -124,22 +139,16 @@ export class AiService {
   }
 
   private chooseBestModel(available: string[]): string {
-    // Preference order
-    const ranking = [
-      "gemini-3-flash-preview",
-      "gemini-2.5-flash-lite",
-      "gemini-2.5-flash",
-      "gemini-2.5-pro",
-    ];
-    for (const candidate of ranking) {
+    for (const candidate of GEMINI_MODEL_RANKING) {
       if (available.includes(candidate)) return candidate;
     }
     // Fallback if list is empty or none matched
-    return "gemini-2.5-pro";
+    return GEMINI_MODEL_RANKING[0];
   }
 
   private async resolveModel(): Promise<string> {
     const envModel = this.normalizeModel(process.env.GEMINI_MODEL);
+    // Só usa envModel se foi explicitamente definido (não está vazio)
     if (envModel) return envModel;
     const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey) return "gemini-2.5-pro";
@@ -202,18 +211,10 @@ export class AiService {
     }
   }
 
-  private buildCandidates(envModel: string | undefined, available: string[]): string[] {
-    const env = this.normalizeModel(envModel);
-    const ranking = [
-      "gemini-3-flash-preview",
-      "gemini-2.5-flash-lite",
-      "gemini-2.5-flash",
-      "gemini-2.5-pro",
-    ];
-    const inAvailable = ranking.filter((m) => available.includes(m));
-    const base = inAvailable.length > 0 ? inAvailable : ranking;
-    const withEnvFirst = env ? [env, ...base.filter((m) => m !== env)] : base;
-    return Array.from(new Set(withEnvFirst));
+  private buildCandidates(): string[] {
+    // eslint-disable-next-line no-console
+    console.log(`[buildCandidates] Candidatos: ${GEMINI_MODEL_RANKING.join(", ")}`);
+    return GEMINI_MODEL_RANKING;
   }
 
   private async tryModelsGenerate({
@@ -227,12 +228,16 @@ export class AiService {
     candidates: string[];
     buildBody: (model: string) => any;
   }): Promise<GeminiGenerateResult> {
+    // eslint-disable-next-line no-console
+    console.log(`[tryModelsGenerate] Iniciando com candidatos: ${candidates.join(", ")}`);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), Number.isFinite(timeoutMs) ? timeoutMs : 40000);
     let lastErr: Error | HttpException | BadGatewayException | undefined;
     const globalStart = Date.now();
-    const globalTimeout = Number.isFinite(timeoutMs) ? timeoutMs : 60000;
+    const globalTimeout = Number.isFinite(timeoutMs) ? timeoutMs : 120000;
     for (const model of candidates) {
+      // eslint-disable-next-line no-console
+      console.log(`[tryModelsGenerate] Tentando modelo: ${model}`);
       // Timeout por modelo: 20s
       const perModelTimeout = 20000;
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
@@ -409,9 +414,11 @@ export class AiService {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
     }
 
-    const candidates = Array.isArray(params.modelCandidates) && params.modelCandidates.length > 0
-      ? params.modelCandidates.map((m) => this.normalizeModel(m))
-      : this.buildCandidates(this.normalizeModel(process.env.GEMINI_MODEL), await this.fetchAvailableModels(apiKey));
+    // Sempre usar o ranking centralizado
+    const candidates = this.buildCandidates();
+    // eslint-disable-next-line no-console
+    console.log(`[generateReport] Candidatos: ${candidates.join(", ")}`);
+    
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "40000");
 
     const result = await this.tryModelsGenerate({
@@ -436,9 +443,8 @@ export class AiService {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
     }
 
-    const candidates = Array.isArray(opts?.modelCandidates) && opts!.modelCandidates!.length > 0
-      ? opts!.modelCandidates!.map((m) => this.normalizeModel(m))
-      : this.buildCandidates(this.normalizeModel(process.env.GEMINI_MODEL), await this.fetchAvailableModels(apiKey));
+    // NÃO usar fetchAvailableModels() para evitar cache de 15 minutos
+    const candidates = this.buildCandidates();
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
 
     const prompt = `Leia o texto abaixo (pedido/prontuário) e escreva APENAS UMA frase curta com a indicação clínica, em português brasileiro.
@@ -477,9 +483,8 @@ export class AiService {
       throw new ServiceUnavailableException("IA não configurada no servidor (GEMINI_API_KEY ausente)");
     }
 
-    const candidates = Array.isArray(opts?.modelCandidates) && opts!.modelCandidates!.length > 0
-      ? opts!.modelCandidates!.map((m) => this.normalizeModel(m))
-      : this.buildCandidates(this.normalizeModel(process.env.GEMINI_MODEL), await this.fetchAvailableModels(apiKey));
+    // NÃO usar fetchAvailableModels() para evitar cache de 15 minutos
+    const candidates = this.buildCandidates();
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
 
     const prompt = `Leia o documento anexado (pedido/prontuário) e escreva APENAS UMA frase curta com a indicação clínica, em português brasileiro.

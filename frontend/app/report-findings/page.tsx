@@ -676,7 +676,7 @@ export default function ReportFindingsPage() {
               disabled={loading}
               onClick={handleGenerateWithAI}
             >
-              GERAR COM IA
+                GERAR LAUDO
             </Button>
           </Stack>
 

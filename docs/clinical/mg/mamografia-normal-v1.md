@@ -33,7 +33,13 @@ Não se observam microcalcificações de morfologia suspeita.
 Linfonodos axilares sem alterações significativas.
 
 **Impressão diagnóstica:**
-Exame dentro dos padrões da normalidade.
+BI-RADS 0 (Inconclusivo. Necessita complementação com outros métodos).
+BI-RADS 1 (Negativo. Controle anual de rotina).
+BI-RADS 2 (Achados benignos. Controle anual).
+BI-RADS 3 (Achados provavelmente benignos. Controle de 6 meses).
+BI-RADS 4 A, B, C (Achados suspeitos. Biópsia deve ser considerada).
+BI-RADS 5 (Achados altamente suspeitos. Conduta apropriada deve ser realizada).
+BI-RADS 6 (Lesão neoplásica conhecida. Seguimento conforme o indicado).
 
 <!-- IF NOTAS -->
 **Notas:** {{NOTAS}}

@@ -55,87 +55,99 @@ export default function AuthPage() {
 	return (
 		<Container maxWidth="sm" sx={{ py: 6 }}>
 			<Paper sx={{ p: 3 }}>
-				<Stack spacing={3}>
-					<Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-						<Image
-							src={theme.palette.mode === "dark" ? "/914x492_black_background.png" : "/914x492_white_background.png"}
-							alt="Vixrad Logo"
-							width={280}
-							height={150}
-							priority
-							style={{ objectFit: "contain" }}
-						/>
-					</Box>
-
-					<Box>
-						<Typography variant="body2" color="text.secondary">
-							Login/Registro
-						</Typography>
-					</Box>
-
-					<TextField
-						label="Email"
-						type="email"
-						fullWidth
-						margin="normal"
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						autoComplete="email"
-						sx={{
-							'& .MuiInputBase-root': {
-								backgroundColor: theme.palette.mode === 'dark' ? '#121212' : undefined,
-							},
-							'& input:-webkit-autofill': {
-								WebkitBoxShadow: theme.palette.mode === 'dark' ? '0 0 0 100px #121212 inset' : undefined,
-								WebkitTextFillColor: theme.palette.mode === 'dark' ? theme.palette.text.primary : undefined,
-							}
-						}}
-					/>
-
-					<TextField
-						label="Senha"
-						type="password"
-						fullWidth
-						margin="normal"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						autoComplete="current-password"
-						sx={{
-							'& .MuiInputBase-root': {
-								backgroundColor: theme.palette.mode === 'dark' ? '#121212' : undefined,
-							},
-							'& input:-webkit-autofill': {
-								WebkitBoxShadow: theme.palette.mode === 'dark' ? '0 0 0 100px #121212 inset' : undefined,
-								WebkitTextFillColor: theme.palette.mode === 'dark' ? theme.palette.text.primary : undefined,
-							}
-						}}
-					/>
-
-				<Stack direction="row" spacing={2} sx={{ justifyContent: "center" }}>
-					<Button
-						variant="contained"
-						color="primary"
-						disabled={loading}
-						onClick={() => run("login")}
-					>
-						Entrar
-					</Button>
-					<Button
-						variant="outlined"
-						color="primary"
-						disabled={loading}
-						onClick={() => run("register")}
-					>
-						Registrar
-					</Button>
-				</Stack>
-
-					{loading ? (
-						<Box display="flex" justifyContent="center" mt={2}>
-							<CircularProgress />
+				<form
+					autoComplete="off"
+					noValidate
+					onSubmit={(e) => {
+						e.preventDefault();
+						run("login");
+					}}
+				>
+					<Stack spacing={3}>
+						<Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+							<Image
+								src={theme.palette.mode === "dark" ? "/914x492_black_background.png" : "/914x492_white_background.png"}
+								alt="Vixrad Logo"
+								width={280}
+								height={150}
+								priority
+								style={{ objectFit: "contain" }}
+							/>
 						</Box>
-					) : null}
-				</Stack>
+
+						<Box>
+							<Typography variant="body2" color="text.secondary">
+								Login/Registro
+							</Typography>
+						</Box>
+
+						<TextField
+							label="Email"
+							type="email"
+							fullWidth
+							margin="normal"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+							autoComplete="email"
+							sx={{
+								'& .MuiInputBase-root': {
+									backgroundColor: theme.palette.mode === 'dark' ? '#121212' : undefined,
+								},
+								'& input:-webkit-autofill': {
+									WebkitBoxShadow: theme.palette.mode === 'dark' ? '0 0 0 100px #121212 inset' : undefined,
+									WebkitTextFillColor: theme.palette.mode === 'dark' ? theme.palette.text.primary : undefined,
+								}
+							}}
+						/>
+
+						<TextField
+							label="Senha"
+							type="password"
+							fullWidth
+							margin="normal"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+							autoComplete="current-password"
+							sx={{
+								'& .MuiInputBase-root': {
+									backgroundColor: theme.palette.mode === 'dark' ? '#121212' : undefined,
+								},
+								'& input:-webkit-autofill': {
+									WebkitBoxShadow: theme.palette.mode === 'dark' ? '0 0 0 100px #121212 inset' : undefined,
+									WebkitTextFillColor: theme.palette.mode === 'dark' ? theme.palette.text.primary : undefined,
+								}
+							}}
+						/>
+
+						<Stack direction="row" spacing={2} sx={{ justifyContent: "center" }}>
+							<Button
+								variant="contained"
+								color="primary"
+								disabled={loading}
+								type="submit"
+							>
+								Entrar
+							</Button>
+							<Button
+								variant="outlined"
+								color="primary"
+								disabled={loading}
+								onClick={(e) => {
+									e.preventDefault();
+									run("register");
+								}}
+							>
+								Registrar
+							</Button>
+						</Stack>
+
+						{loading ? (
+							<Box display="flex" justifyContent="center" mt={2}>
+								<CircularProgress />
+							</Box>
+						) : null}
+					</Stack>
+				</form>
 			</Paper>
 		</Container>
 	);
