@@ -31,6 +31,14 @@ type GeminiGenerateResult = {
   usage: GeminiTokenUsage;
 };
 
+type GeminiResponseDiagnostics = {
+  finishReason: string | null;
+  blockReason: string | null;
+  blockReasonMessage: string | null;
+  partsCount: number;
+  safetyCategories: string[];
+};
+
 /**
  * Retry utilitário com backoff exponencial simples.
  * @param fn função assíncrona a ser executada
@@ -51,6 +59,9 @@ async function retryWithBackoff<T>(
       return await fn();
     } catch (err) {
       lastErr = err;
+      if (typeof err === "object" && err !== null && (err as { noRetry?: boolean }).noRetry) {
+        throw err;
+      }
       if (attempt < retries) {
         const wait = delayMs * Math.pow(2, attempt);
         // eslint-disable-next-line no-console
@@ -212,9 +223,50 @@ export class AiService implements OnModuleInit {
   }
 
   private buildCandidates(): string[] {
+    return this.buildCandidatesFrom();
+  }
+
+  private buildCandidatesFrom(preferred?: string[]): string[] {
+    const raw = Array.isArray(preferred) && preferred.length > 0 ? preferred : GEMINI_MODEL_RANKING;
+    const candidates = raw
+      .map((model) => this.normalizeModel(model))
+      .filter((model, index, arr) => !!model && arr.indexOf(model) === index);
     // eslint-disable-next-line no-console
-    console.log(`[buildCandidates] Candidatos: ${GEMINI_MODEL_RANKING.join(", ")}`);
-    return GEMINI_MODEL_RANKING;
+    console.log(`[buildCandidates] Candidatos: ${candidates.join(", ")}`);
+    return candidates;
+  }
+
+  private extractDiagnostics(data: any): GeminiResponseDiagnostics {
+    const candidate = data?.candidates?.[0];
+    const parts = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
+    const promptFeedback = data?.promptFeedback;
+    const safetyRatings = Array.isArray(candidate?.safetyRatings) ? candidate.safetyRatings : [];
+
+    return {
+      finishReason: typeof candidate?.finishReason === "string" ? candidate.finishReason : null,
+      blockReason: typeof promptFeedback?.blockReason === "string" ? promptFeedback.blockReason : null,
+      blockReasonMessage:
+        typeof promptFeedback?.blockReasonMessage === "string" ? promptFeedback.blockReasonMessage : null,
+      partsCount: parts.length,
+      safetyCategories: safetyRatings
+        .map((rating: any) => (typeof rating?.category === "string" ? rating.category : ""))
+        .filter((category: string) => !!category),
+    };
+  }
+
+  private formatDiagnostics(diag: GeminiResponseDiagnostics): string {
+    const pieces = [
+      `finishReason=${diag.finishReason ?? "unknown"}`,
+      `parts=${diag.partsCount}`,
+    ];
+    if (diag.blockReason) pieces.push(`blockReason=${diag.blockReason}`);
+    if (diag.blockReasonMessage) pieces.push(`blockReasonMessage=${diag.blockReasonMessage}`);
+    if (diag.safetyCategories.length > 0) pieces.push(`safetyCategories=${diag.safetyCategories.join(",")}`);
+    return pieces.join(", ");
+  }
+
+  private markNoRetry<T extends Error>(error: T): T & { noRetry: true } {
+    return Object.assign(error, { noRetry: true as const });
   }
 
   private async tryModelsGenerate({
@@ -284,14 +336,18 @@ export class AiService implements OnModuleInit {
               if (isApiKeyInvalid) {
                 // eslint-disable-next-line no-console
                 console.error(`[Gemini][Erro] Chave inválida/expirada. Modelo: ${model}, Tempo: ${duration}ms, Status: ${res.status}`);
-                throw new ServiceUnavailableException("Chave da IA (Gemini) inválida/expirada. Atualize GEMINI_API_KEY.");
+                throw this.markNoRetry(
+                  new ServiceUnavailableException("Chave da IA (Gemini) inválida/expirada. Atualize GEMINI_API_KEY."),
+                );
               }
               if (res.status === 429 || res.status === 404 || res.status === 403) {
                 // eslint-disable-next-line no-console
                 console.error(`[Gemini][Erro] Falha no modelo ${model}: ${res.status} ${res.statusText}${geminiMessage ? ` - ${geminiMessage}` : ""}, Tempo: ${duration}ms`);
-                throw new HttpException(
-                  `Falha no modelo ${model}: ${res.status} ${res.statusText}${geminiMessage ? ` - ${geminiMessage}` : ""}`,
-                  res.status,
+                throw this.markNoRetry(
+                  new HttpException(
+                    `Falha no modelo ${model}: ${res.status} ${res.statusText}${geminiMessage ? ` - ${geminiMessage}` : ""}`,
+                    res.status,
+                  ),
                 );
               }
               // eslint-disable-next-line no-console
@@ -301,14 +357,20 @@ export class AiService implements OnModuleInit {
               );
             }
             const data = (await res.json()) as any;
+            const diagnostics = this.extractDiagnostics(data);
             const parts = data?.candidates?.[0]?.content?.parts;
             const out = Array.isArray(parts)
               ? parts.map((p: any) => (typeof p?.text === "string" ? p.text : "")).join("").trim()
               : "";
             if (!out) {
+              const diagnosticsSummary = this.formatDiagnostics(diagnostics);
               // eslint-disable-next-line no-console
-              console.error(`[Gemini][Erro] Resposta vazia. Modelo: ${model}, Tempo: ${duration}ms`);
-              throw new BadGatewayException("Gemini retornou resposta vazia");
+              console.error(
+                `[Gemini][Erro] Resposta vazia ou bloqueada. Modelo: ${model}, Tempo: ${duration}ms, ${diagnosticsSummary}`,
+              );
+              throw this.markNoRetry(
+                new BadGatewayException(`Gemini retornou resposta vazia ou bloqueada (${diagnosticsSummary})`),
+              );
             }
             let usage = this.parseUsageMetadata(data);
             if (usage.source === "none" && this.isCountTokensFallbackEnabled()) {
@@ -415,7 +477,7 @@ export class AiService implements OnModuleInit {
     }
 
     // Sempre usar o ranking centralizado
-    const candidates = this.buildCandidates();
+    const candidates = this.buildCandidatesFrom(params.modelCandidates);
     // eslint-disable-next-line no-console
     console.log(`[generateReport] Candidatos: ${candidates.join(", ")}`);
     
@@ -444,7 +506,7 @@ export class AiService implements OnModuleInit {
     }
 
     // NÃO usar fetchAvailableModels() para evitar cache de 15 minutos
-    const candidates = this.buildCandidates();
+    const candidates = this.buildCandidatesFrom(opts?.modelCandidates);
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
 
     const prompt = `Leia o texto abaixo (pedido/prontuário) e escreva APENAS UMA frase curta com a indicação clínica, em português brasileiro.
@@ -484,7 +546,7 @@ export class AiService implements OnModuleInit {
     }
 
     // NÃO usar fetchAvailableModels() para evitar cache de 15 minutos
-    const candidates = this.buildCandidates();
+    const candidates = this.buildCandidatesFrom(opts?.modelCandidates);
     const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS ?? "20000");
 
     const prompt = `Leia o documento anexado (pedido/prontuário) e escreva APENAS UMA frase curta com a indicação clínica, em português brasileiro.
