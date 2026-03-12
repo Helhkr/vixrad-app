@@ -9,7 +9,7 @@ requires:
   artifact_source: optional
 ---
 
-# ANGIOTOMOGRAFIA ARTERIAL DA AORTA TORÁCICA
+# ANGIOTOMOGRAFIA DA AORTA TORÁCICA
 
 **Técnica:** Exame realizado em tomógrafo multidetectores, com aquisição volumétrica após administração de meio de contraste iodado endovenoso, com fase arterial. Realizadas reconstruções multiplanares (MPR) e tridimensionais (MIP/VRT).{{ARTIFACT_SOURCE}}
 
